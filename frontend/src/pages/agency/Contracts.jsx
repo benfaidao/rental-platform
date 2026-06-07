@@ -215,7 +215,7 @@ function PeriodicPaymentsPanel({ agencyId, contractId, currency }) {
 
       {showAdd && (
         <form onSubmit={e => { e.preventDefault(); createMut.mutate(addForm) }} className="bg-gray-50 rounded-xl p-3 space-y-2">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div><label className="label text-xs">Début période *</label><input className="input py-1 text-sm" type="date" required value={addForm.periodStart} onChange={e => setAddForm(f => ({ ...f, periodStart: e.target.value }))} /></div>
             <div><label className="label text-xs">Fin période *</label><input className="input py-1 text-sm" type="date" required value={addForm.periodEnd} onChange={e => setAddForm(f => ({ ...f, periodEnd: e.target.value }))} /></div>
             <div><label className="label text-xs">Montant *</label><input className="input py-1 text-sm" type="number" required value={addForm.amount} onChange={e => setAddForm(f => ({ ...f, amount: e.target.value }))} /></div>
@@ -340,7 +340,7 @@ function CollectedByInput({ agencyId, value, onChange }) {
           <option value="__other__">Autre personne...</option>
         </select>
       ) : (
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input className="input" value={value || ''} onChange={(e) => onChange(e.target.value)} placeholder="Nom de la personne" />
           <button type="button" className="btn-secondary whitespace-nowrap" onClick={() => { setMode('member'); onChange('') }}>
             Membre de l'agence
@@ -416,7 +416,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
 
       <h4 className="font-medium text-gray-700">Client</h4>
       {!initial && <ClientSearch agencyId={agencyId} onSelect={handleClientSelect} />}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="label">Nom complet *</label><input className="input" value={form.clientName} onChange={set('clientName')} required /></div>
         <div><label className="label">CIN / Passeport</label><input className="input" value={form.clientIdNumber} onChange={set('clientIdNumber')} /></div>
         <div><label className="label">N° Permis de conduire</label><input className="input" value={form.clientLicenseNumber} onChange={set('clientLicenseNumber')} /></div>
@@ -426,7 +426,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
       <div><label className="label">Adresse</label><input className="input" value={form.clientAddress} onChange={set('clientAddress')} /></div>
 
       <h4 className="font-medium text-gray-700">Type de location</h4>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="label">Type</label>
           <select className="input" value={form.rentalType} onChange={set('rentalType')}>
@@ -461,7 +461,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
       </div>
 
       <h4 className="font-medium text-gray-700">Période & Montants</h4>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="label">Date départ *</label><input className="input" type="date" value={form.startDate} onChange={set('startDate')} required /></div>
         <div>
           <label className="label">{form.intervalType === 'OPEN' ? 'Date retour estimée *' : 'Date retour *'}</label>
@@ -481,12 +481,12 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
         </div>
         <div><label className="label">Km départ</label><input className="input" type="number" value={form.startMileage} onChange={set('startMileage')} /></div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="label">Lieu de récupération</label><input className="input" placeholder="Adresse, agence, aéroport..." value={form.pickupLocation} onChange={set('pickupLocation')} /></div>
         <div><label className="label">Lieu de restitution</label><input className="input" placeholder="Adresse, agence, aéroport..." value={form.dropoffLocation} onChange={set('dropoffLocation')} /></div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="label">Garantie</label><input className="input" type="number" step="0.01" value={form.guaranteeAmount} onChange={set('guaranteeAmount')} /></div>
       </div>
 
@@ -507,7 +507,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
         <div><label className="label">Loueur (sous-location)</label><input className="input" value={form.subrenterName} onChange={set('subrenterName')} /></div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {initial && (
           <div>
             <label className="label">Statut</label>
@@ -542,7 +542,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
         </label>
         {hasSecondDriver && (
           <div className="space-y-3 bg-gray-50 rounded-xl p-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="col-span-2"><label className="label">Nom complet</label><input className="input" value={form.secondDriverName} onChange={set('secondDriverName')} placeholder="Nom et prénom" /></div>
               <div><label className="label">N° CIN / Passeport</label><input className="input" value={form.secondDriverIdNumber} onChange={set('secondDriverIdNumber')} /></div>
               <div><label className="label">Expiration CIN</label><input className="input" type="date" value={form.secondDriverIdExpiry?.split?.('T')[0] || form.secondDriverIdExpiry || ''} onChange={set('secondDriverIdExpiry')} /></div>
@@ -613,7 +613,7 @@ function PhotoUploadModal({ agencyId, contract }) {
       {startPhotos.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-green-700 mb-2">Début de location ({startPhotos.length})</h4>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {startPhotos.map(p => (
               <a key={p.id} href={p.url} target="_blank" rel="noreferrer" className="relative block">
                 <img src={p.url} alt="" className="w-full h-24 object-cover rounded-lg hover:opacity-90 transition-opacity" />
@@ -626,7 +626,7 @@ function PhotoUploadModal({ agencyId, contract }) {
       {endPhotos.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-blue-700 mb-2">Fin de location ({endPhotos.length})</h4>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {endPhotos.map(p => (
               <a key={p.id} href={p.url} target="_blank" rel="noreferrer" className="relative block">
                 <img src={p.url} alt="" className="w-full h-24 object-cover rounded-lg hover:opacity-90 transition-opacity" />
@@ -652,9 +652,9 @@ function ClientCombo({ agencyId, value, onChange }) {
     enabled: search.length >= 1,
   })
   return (
-    <div className="relative">
+    <div className="relative flex-1 min-w-[10rem] sm:flex-initial">
       <input
-        className="input w-48 text-sm"
+        className="input w-full sm:w-48 text-sm"
         placeholder="Filtrer par client..."
         value={search || value?.name || ''}
         onChange={e => { setSearch(e.target.value); if (!e.target.value) onChange(null); setOpen(true) }}
@@ -730,29 +730,29 @@ function HistoryTab({ agencyId }) {
           )}
         </div>
         <div className="flex flex-wrap gap-3">
-          <div className="relative">
+          <div className="relative flex-1 min-w-[10rem] sm:flex-initial">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input className="input pl-9 w-48 text-sm" placeholder="N° contrat, client..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input className="input pl-9 w-full sm:w-48 text-sm" placeholder="N° contrat, client..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <ClientCombo agencyId={agencyId} value={clientFilter} onChange={setClientFilter} />
-          <select className="input w-48 text-sm" value={carFilter} onChange={e => setCarFilter(e.target.value)}>
+          <select className="input flex-1 min-w-[10rem] sm:flex-initial sm:w-48 text-sm" value={carFilter} onChange={e => setCarFilter(e.target.value)}>
             <option value="">Tous les véhicules</option>
             {cars.map(c => <option key={c.id} value={c.id}>{c.brand} {c.model} — {c.finalPlate || c.wwPlate}</option>)}
           </select>
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap">
             {STATUS_FILTERS.map(s => (
               <button key={s} onClick={() => setStatusFilter(s)}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium ${statusFilter === s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap ${statusFilter === s ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                 {s ? STATUS[s] : 'Tous'}
               </button>
             ))}
           </div>
         </div>
-        <div className="flex gap-3 items-center">
+        <div className="flex flex-wrap gap-3 items-center">
           <span className="text-xs text-gray-500">Période départ :</span>
-          <input className="input w-36 text-sm" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+          <input className="input w-full sm:w-36 text-sm" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
           <span className="text-xs text-gray-400">→</span>
-          <input className="input w-36 text-sm" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+          <input className="input w-full sm:w-36 text-sm" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} />
         </div>
       </div>
 
@@ -767,7 +767,7 @@ function HistoryTab({ agencyId }) {
       </div>
 
       <div className="card p-0 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               {['N° Contrat', 'Client', 'Véhicule', 'Départ', 'Retour', 'Durée', 'Montant', 'Encaissé', 'Statut'].map(h => (
@@ -803,7 +803,7 @@ function HistoryTab({ agencyId }) {
               <tr><td colSpan={9} className="py-8 text-center text-gray-400">Aucun résultat</td></tr>
             )}
           </tbody>
-        </table>
+        </table></div>
       </div>
     </div>
   )
@@ -880,7 +880,7 @@ function ClientHistoryTab({ agencyId }) {
       {selectedClient && !isLoading && (
         <div className="space-y-4">
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="card text-center py-3">
               <p className="text-xs text-gray-400 mb-1">Locations</p>
               <p className="text-2xl font-bold text-gray-800">{contracts.length}</p>
@@ -902,7 +902,7 @@ function ClientHistoryTab({ agencyId }) {
           {/* Contract list */}
           {contracts.length > 0 && (
             <div className="card p-0 overflow-hidden">
-              <table className="w-full text-sm">
+              <div className="overflow-x-auto"><table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
                     {['N° Contrat', 'Véhicule', 'Départ', 'Retour', 'Durée', 'Montant', 'Encaissé', 'Statut'].map(h => (
@@ -933,7 +933,7 @@ function ClientHistoryTab({ agencyId }) {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             </div>
           )}
 
@@ -1021,17 +1021,17 @@ export default function Contracts() {
   return (
     <div className="space-y-5">
       {/* Tab switcher */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-full sm:w-fit overflow-x-auto">
         <button onClick={() => setTab('contracts')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'contracts' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${tab === 'contracts' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
           <FileDown className="w-4 h-4" /> Contrats
         </button>
         <button onClick={() => setTab('history')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'history' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${tab === 'history' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
           <History className="w-4 h-4" /> Historique
         </button>
         <button onClick={() => setTab('client')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${tab === 'client' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${tab === 'client' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
           <UserCheck className="w-4 h-4" /> Par client
         </button>
       </div>
@@ -1040,24 +1040,24 @@ export default function Contracts() {
       {tab === 'client' && <ClientHistoryTab agencyId={agencyId} />}
 
       {tab === 'contracts' && <>
-      <div className="flex flex-wrap gap-3 justify-between items-center">
-        <div className="flex gap-2 flex-wrap">
+      <div className="flex flex-col lg:flex-row gap-3 lg:justify-between lg:items-center">
+        <div className="flex gap-2 flex-wrap overflow-x-auto">
           {STATUS_FILTERS.map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-sm ${statusFilter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>
+              className={`px-3 py-1.5 rounded-lg text-sm whitespace-nowrap shrink-0 ${statusFilter === s ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>
               {s ? STATUS[s] : 'Tous'}
             </button>
           ))}
         </div>
-        <div className="flex gap-3">
-          <div className="relative">
+        <div className="flex gap-2 sm:gap-3 flex-wrap">
+          <div className="relative flex-1 min-w-[10rem]">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input className="input pl-9 w-56" placeholder="Rechercher..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input className="input pl-9 w-full sm:w-56" placeholder="Rechercher..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <button onClick={() => setContractScannerOpen(true)} className="btn-secondary flex items-center gap-1.5 px-3" title="Scanner QR contrat">
+          <button onClick={() => setContractScannerOpen(true)} className="btn-secondary flex items-center gap-1.5 px-3 shrink-0" title="Scanner QR contrat">
             <ScanLine className="w-4 h-4" /> QR
           </button>
-          <button onClick={() => setModal({ type: 'create' })} className="btn-primary flex items-center gap-2">
+          <button onClick={() => setModal({ type: 'create' })} className="btn-primary flex items-center gap-2 shrink-0 whitespace-nowrap">
             <Plus className="w-4 h-4" /> Nouveau Contrat
           </button>
         </div>
@@ -1065,7 +1065,7 @@ export default function Contracts() {
       <QRScanner isOpen={contractScannerOpen} onClose={() => setContractScannerOpen(false)} onResult={handleContractQRScan} />
 
       <div className="card p-0 overflow-hidden">
-        <table className="w-full text-sm">
+        <div className="overflow-x-auto"><table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               {['N° Contrat', 'Client', 'Véhicule', 'Départ', 'Retour', 'Créé le', 'Montant', 'Encaissement', 'Statut', ''].map(h => (
@@ -1169,7 +1169,7 @@ export default function Contracts() {
               <tr><td colSpan={9} className="py-8 text-center text-gray-400">Aucun contrat</td></tr>
             )}
           </tbody>
-        </table>
+        </table></div>
       </div>
 
       </>}

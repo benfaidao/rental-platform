@@ -64,7 +64,7 @@ function CarForm({ initial, onSubmit, loading }) {
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(form) }} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="label">Immatriculation WW</label><input className="input" value={form.wwPlate} onChange={set('wwPlate')} placeholder="1234-WW-5" /></div>
         <div><label className="label">Immatriculation finale</label><input className="input" value={form.finalPlate} onChange={set('finalPlate')} placeholder="12345-A-1" /></div>
         <div><label className="label">Marque *</label><input className="input" value={form.brand} onChange={set('brand')} required /></div>
@@ -89,12 +89,12 @@ function CarForm({ initial, onSubmit, loading }) {
         <div><label className="label">Prix de location TTC (MAD/jour)</label><input className="input" type="number" step="0.01" value={form.rentalPriceTTC} onChange={set('rentalPriceTTC')} placeholder="0.00" /></div>
       </div>
       <h4 className="font-medium text-gray-700 pt-2">Achat</h4>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="label">Prix d'achat TTC (MAD)</label><input className="input" type="number" step="0.01" value={form.purchasePrice} onChange={set('purchasePrice')} placeholder="0.00" /></div>
         <div><label className="label">Date d'achat</label><input className="input" type="date" value={form.purchaseDate} onChange={set('purchaseDate')} /></div>
       </div>
       <h4 className="font-medium text-gray-700 pt-2">Documents & Dates</h4>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="label">Date d'autorisation</label><input className="input" type="date" value={form.authorizationDate} onChange={set('authorizationDate')} /></div>
         <div><label className="label">Fin assurance</label><input className="input" type="date" value={form.insuranceExpiry} onChange={set('insuranceExpiry')} /></div>
         <div><label className="label">Dernier CT</label><input className="input" type="date" value={form.lastTechnicalInspection} onChange={set('lastTechnicalInspection')} /></div>
@@ -153,7 +153,7 @@ function DocumentsModal({ agencyId, car }) {
     <div className="space-y-5">
       <form onSubmit={handleUpload} className="border rounded-lg p-4 space-y-3 bg-gray-50">
         <h4 className="font-medium text-sm">Ajouter un document</h4>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="label text-xs">Type de document</label>
             <select className="input" value={docType} onChange={e => setDocType(e.target.value)}>
@@ -259,7 +259,7 @@ function UnavailabilityModal({ agencyId, car }) {
 
   return (
     <div className="space-y-4">
-      <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(form) }} className="grid grid-cols-3 gap-3 items-end">
+      <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(form) }} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
         <div>
           <label className="label text-xs">Date début *</label>
           <input className="input py-1.5 text-sm" type="date" value={form.startDate} onChange={set('startDate')} required />
@@ -361,7 +361,7 @@ function CarDetailModal({ agencyId, carId }) {
       </div>
 
       {tab === 'details' && (
-        <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
           <div><span className="text-gray-500">Marque / Modèle</span><p className="font-medium">{car.brand} {car.model}</p></div>
           <div><span className="text-gray-500">Année</span><p className="font-medium">{car.year || '-'}</p></div>
           <div><span className="text-gray-500">Immatriculation WW</span><p className="font-medium">{car.wwPlate || '-'}</p></div>
@@ -506,7 +506,7 @@ function CarDetailModal({ agencyId, carId }) {
             )}
 
             {!!filteredDocs.length && docView === 'detailed' && (
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="border border-gray-200 rounded-lg overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
@@ -716,17 +716,17 @@ export default function Cars() {
 
   return (
     <div className="space-y-5">
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
-        <button onClick={() => setMainTab('cars')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mainTab === 'cars' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-full sm:w-fit overflow-x-auto">
+        <button onClick={() => setMainTab('cars')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${mainTab === 'cars' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
           <Car className="w-4 h-4" /> Véhicules
         </button>
-        <button onClick={() => setMainTab('partners')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mainTab === 'partners' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
+        <button onClick={() => setMainTab('partners')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${mainTab === 'partners' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
           <Share2 className="w-4 h-4" /> Partenaires
         </button>
-        <button onClick={() => setMainTab('calendar')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mainTab === 'calendar' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
+        <button onClick={() => setMainTab('calendar')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${mainTab === 'calendar' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
           <CalendarDays className="w-4 h-4" /> Calendrier
         </button>
-        <button onClick={() => setMainTab('maintenance')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${mainTab === 'maintenance' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
+        <button onClick={() => setMainTab('maintenance')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${mainTab === 'maintenance' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
           <Wrench className="w-4 h-4" /> Maintenance
         </button>
       </div>
@@ -737,9 +737,9 @@ export default function Cars() {
 
       {mainTab === 'cars' && <>
       <AvailabilitySearch agencyId={agencyId} />
-      <div className="flex gap-3 justify-between items-center">
+      <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
         <div className="flex gap-2 flex-1">
-          <div className="relative flex-1 max-w-xs">
+          <div className="relative flex-1 sm:max-w-xs">
             <input
               className="input pl-3 w-full"
               placeholder="Rechercher (marque, plaque, ID)..."
@@ -747,13 +747,13 @@ export default function Cars() {
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <button onClick={() => setScannerOpen(true)} className="btn-secondary flex items-center gap-1.5 px-3" title="Scanner QR code">
-            <ScanLine className="w-4 h-4" /> Scanner QR
+          <button onClick={() => setScannerOpen(true)} className="btn-secondary flex items-center gap-1.5 px-3 shrink-0" title="Scanner QR code">
+            <ScanLine className="w-4 h-4" /> <span className="hidden sm:inline">Scanner QR</span>
           </button>
         </div>
-        <div className="flex items-center gap-2">
-          <p className="text-sm text-gray-500">{filtered.length} véhicule(s)</p>
-          <button onClick={() => setModal({ type: 'create' })} className="btn-primary flex items-center gap-2">
+        <div className="flex items-center justify-between sm:justify-end gap-2">
+          <p className="text-sm text-gray-500 whitespace-nowrap">{filtered.length} véhicule(s)</p>
+          <button onClick={() => setModal({ type: 'create' })} className="btn-primary flex items-center gap-2 whitespace-nowrap">
             <Plus className="w-4 h-4" /> Nouveau Véhicule
           </button>
         </div>
@@ -768,9 +768,9 @@ export default function Cars() {
 
           return (
             <div key={car.id} className={`card ${hasAlert ? 'border-orange-200' : ''}`}>
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
                     <Car className="w-6 h-6 text-gray-500" />
                   </div>
                   <div>
@@ -814,7 +814,7 @@ export default function Cars() {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2 lg:justify-end">
                   <button onClick={() => setDetailModal(car)} className="btn-secondary text-xs py-1.5 flex items-center gap-1" title="Voir les détails">
                     <Eye className="w-3 h-3 text-blue-500" /> Détails
                   </button>
@@ -822,7 +822,7 @@ export default function Cars() {
                     <FileText className="w-3 h-3" /> Documents
                   </button>
                   <button onClick={() => setUnavailModal(car)} className="btn-secondary text-xs py-1.5 flex items-center gap-1" title="Indisponibilités">
-                    <BanIcon className="w-3 h-3 text-orange-500" /> Indisponibilités
+                    <BanIcon className="w-3 h-3 text-orange-500" /> <span className="hidden sm:inline">Indisponibilités</span><span className="sm:hidden">Indispo.</span>
                   </button>
                   <button onClick={() => setSinistresModal(car)} className="btn-secondary text-xs py-1.5 flex items-center gap-1" title="Sinistres">
                     <AlertTriangle className="w-3 h-3 text-red-500" /> Sinistres
@@ -830,10 +830,10 @@ export default function Cars() {
                   <button onClick={() => setQrModal(car)} className="p-2 hover:bg-gray-100 rounded-lg" title="QR Code">
                     <QrCode className="w-4 h-4 text-purple-500" />
                   </button>
-                  <button onClick={() => setModal({ type: 'edit', car })} className="p-2 hover:bg-gray-100 rounded-lg">
+                  <button onClick={() => setModal({ type: 'edit', car })} className="p-2 hover:bg-gray-100 rounded-lg" title="Modifier">
                     <Edit2 className="w-4 h-4 text-gray-500" />
                   </button>
-                  <button onClick={() => { if (confirm('Désactiver ce véhicule ?')) deleteMutation.mutate(car.id) }} className="p-2 hover:bg-red-50 rounded-lg">
+                  <button onClick={() => { if (confirm('Désactiver ce véhicule ?')) deleteMutation.mutate(car.id) }} className="p-2 hover:bg-red-50 rounded-lg" title="Désactiver">
                     <Trash2 className="w-4 h-4 text-red-400" />
                   </button>
                 </div>
