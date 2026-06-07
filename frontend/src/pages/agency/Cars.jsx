@@ -598,7 +598,7 @@ function AvailabilitySearch({ agencyId }) {
         <Search className="w-4 h-4 text-blue-500" />
         <h3 className="font-semibold text-gray-700">Recherche de disponibilité</h3>
       </div>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3">
         <div>
           <label className="label text-xs">Date début</label>
           <input className="input py-1.5 text-sm" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
@@ -607,11 +607,11 @@ function AvailabilitySearch({ agencyId }) {
           <label className="label text-xs">Date fin</label>
           <input className="input py-1.5 text-sm" type="date" value={endDate} min={startDate} onChange={e => setEndDate(e.target.value)} />
         </div>
-        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer pb-1">
+        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer sm:pb-1">
           <input type="checkbox" className="rounded" checked={includePartners} onChange={e => setIncludePartners(e.target.checked)} />
           <Building2 className="w-3.5 h-3.5 text-purple-500" /> Partenaires
         </label>
-        <button className="btn-primary py-1.5 text-sm flex items-center gap-2" onClick={handleSearch} disabled={!startDate || !endDate || isLoading}>
+        <button className="btn-primary py-1.5 text-sm flex items-center justify-center gap-2 w-full sm:w-fit" onClick={handleSearch} disabled={!startDate || !endDate || isLoading}>
           <Search className="w-3.5 h-3.5" /> Chercher
         </button>
       </div>
