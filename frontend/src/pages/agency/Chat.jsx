@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSocket } from '../../contexts/SocketContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { getChatUsers, getPublicChatHistory, getPrivateChatHistory, deleteChatConversation } from '../../api'
-import { Send, Globe, Lock, Circle, Trash2 } from 'lucide-react'
+import { Send, Globe, Lock, Circle, Trash2, ChevronLeft } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -110,6 +110,7 @@ export default function Chat() {
   const queryClient = useQueryClient()
   const [tab, setTab] = useState('public')
   const [selectedUserId, setSelectedUserId] = useState(null)
+  const [mobileShowChat, setMobileShowChat] = useState(false)
   const [publicMessages, setPublicMessages] = useState([])
   const [privateMessages, setPrivateMessages] = useState([])
   const [deletingConversation, setDeletingConversation] = useState(false)
@@ -197,20 +198,21 @@ export default function Chat() {
 
   const openConversation = (userId) => {
     setSelectedUserId(userId)
+    setMobileShowChat(true)
   }
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] gap-4">
+    <div className="flex flex-col lg:flex-row h-[calc(100vh-8rem)] gap-4">
       {/* Sidebar */}
-      <div className="w-64 flex-shrink-0 flex flex-col gap-3">
+      <div className={`${mobileShowChat ? 'hidden lg:flex' : 'flex'} w-full lg:w-64 lg:flex-shrink-0 flex-col gap-3`}>
         <div className="flex rounded-xl overflow-hidden border border-gray-200">
           <button
-            onClick={() => setTab('public')}
+            onClick={() => { setTab('public'); setMobileShowChat(true) }}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors ${tab === 'public' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
             <Globe className="w-3.5 h-3.5" /> Public
           </button>
           <button
-            onClick={() => setTab('private')}
+            onClick={() => { setTab('private'); setMobileShowChat(false) }}
             className={`flex-1 relative flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors ${tab === 'private' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>
             <Lock className="w-3.5 h-3.5" /> Privé
             {totalPrivateUnread > 0 && tab !== 'private' && (
@@ -261,10 +263,13 @@ export default function Chat() {
       </div>
 
       {/* Chat area */}
-      <div className="flex-1 card p-0 overflow-hidden flex flex-col">
+      <div className={`${mobileShowChat ? 'flex' : 'hidden lg:flex'} flex-1 card p-0 overflow-hidden flex-col`}>
         {tab === 'public' && (
           <>
             <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
+              <button onClick={() => setMobileShowChat(false)} className="lg:hidden p-1 -ml-1 hover:bg-gray-100 rounded-lg">
+                <ChevronLeft className="w-4 h-4 text-gray-500" />
+              </button>
               <Globe className="w-4 h-4 text-blue-500" />
               <h2 className="font-semibold text-sm">Chat public — toutes les agences</h2>
             </div>
@@ -290,12 +295,15 @@ export default function Chat() {
 
         {tab === 'private' && selectedUserId && (
           <>
-            <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-purple-500" />
-              <h2 className="font-semibold text-sm">
+            <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 flex-wrap">
+              <button onClick={() => setMobileShowChat(false)} className="lg:hidden p-1 -ml-1 hover:bg-gray-100 rounded-lg">
+                <ChevronLeft className="w-4 h-4 text-gray-500" />
+              </button>
+              <Lock className="w-4 h-4 text-purple-500 shrink-0" />
+              <h2 className="font-semibold text-sm truncate">
                 {allUsers.find(u => u.id === selectedUserId)?.name || '…'}
               </h2>
-              <span className={`text-xs flex items-center gap-1 ${onlineUserIds.has(selectedUserId) ? 'text-green-600' : 'text-gray-400'}`}>
+              <span className={`text-xs flex items-center gap-1 shrink-0 ${onlineUserIds.has(selectedUserId) ? 'text-green-600' : 'text-gray-400'}`}>
                 <Circle className="w-2 h-2 fill-current" />
                 {onlineUserIds.has(selectedUserId) ? 'En ligne' : 'Hors ligne'}
               </span>
@@ -303,10 +311,10 @@ export default function Chat() {
                 onClick={handleDeleteConversation}
                 disabled={deletingConversation}
                 title="Supprimer la conversation pour moi"
-                className="ml-auto flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40"
+                className="ml-auto flex items-center gap-1.5 text-xs text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40 shrink-0"
               >
                 <Trash2 className="w-3.5 h-3.5" />
-                Supprimer la conversation
+                <span className="hidden sm:inline">Supprimer la conversation</span>
               </button>
             </div>
             <ChatWindow
