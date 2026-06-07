@@ -41,9 +41,9 @@ function MembersTab({ agencyId }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
         <p className="text-sm text-gray-500">{members.length} membre(s)</p>
-        <button onClick={() => setShowForm(v => !v)} className="btn-primary flex items-center gap-2 text-sm py-1.5">
+        <button onClick={() => setShowForm(v => !v)} className="btn-primary flex items-center justify-center gap-2 text-sm py-1.5 w-full sm:w-fit">
           <Plus className="w-3.5 h-3.5" /> Ajouter un membre
         </button>
       </div>
@@ -51,7 +51,7 @@ function MembersTab({ agencyId }) {
       {showForm && (
         <form onSubmit={(e) => { e.preventDefault(); addMutation.mutate(form) }} className="card space-y-4 border border-blue-100 bg-blue-50/30">
           <h3 className="font-medium text-gray-700">Nouveau membre</h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div><label className="label text-xs">Prénom *</label><input className="input" value={form.firstName} onChange={set('firstName')} required /></div>
             <div><label className="label text-xs">Nom *</label><input className="input" value={form.lastName} onChange={set('lastName')} required /></div>
             <div><label className="label text-xs">Email *</label><input className="input" type="email" value={form.email} onChange={set('email')} required /></div>
@@ -66,24 +66,24 @@ function MembersTab({ agencyId }) {
             </div>
           </div>
           <div className="flex gap-2">
-            <button type="submit" className="btn-primary text-sm py-1.5" disabled={addMutation.isPending}>
+            <button type="submit" className="btn-primary text-sm py-1.5 flex-1 sm:flex-initial" disabled={addMutation.isPending}>
               {addMutation.isPending ? 'Ajout...' : 'Ajouter'}
             </button>
-            <button type="button" onClick={() => setShowForm(false)} className="btn-secondary text-sm py-1.5">Annuler</button>
+            <button type="button" onClick={() => setShowForm(false)} className="btn-secondary text-sm py-1.5 flex-1 sm:flex-initial">Annuler</button>
           </div>
         </form>
       )}
 
       <div className="space-y-2">
         {members.map(m => (
-          <div key={m.id} className="card flex items-center justify-between py-3 px-4">
-            <div>
+          <div key={m.id} className="card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 px-4">
+            <div className="min-w-0">
               <p className="font-medium text-sm">{m.user.firstName} {m.user.lastName}</p>
-              <p className="text-xs text-gray-500">{m.user.email}{m.user.phone ? ` · ${m.user.phone}` : ''}</p>
+              <p className="text-xs text-gray-500 truncate">{m.user.email}{m.user.phone ? ` · ${m.user.phone}` : ''}</p>
             </div>
             <div className="flex items-center gap-2">
               <select
-                className="input py-1 text-xs w-36"
+                className="input py-1 text-xs flex-1 sm:flex-initial sm:w-36"
                 value={m.role}
                 onChange={(e) => roleMutation.mutate({ userId: m.user.id, role: e.target.value })}
               >
@@ -92,7 +92,7 @@ function MembersTab({ agencyId }) {
               </select>
               <button
                 onClick={() => { if (confirm('Retirer ce membre ?')) removeMutation.mutate(m.user.id) }}
-                className="p-1.5 hover:bg-red-50 rounded text-red-400"
+                className="p-1.5 hover:bg-red-50 rounded text-red-400 shrink-0"
               >
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
@@ -218,19 +218,19 @@ export default function AgencySettings() {
   return (
     <div className="max-w-xl space-y-6">
       {/* ── Onglets ── */}
-      <div className="flex gap-1 border-b border-gray-200">
+      <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
         <button onClick={() => setTab('profile')}
-          className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors ${tab === 'profile' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+          className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${tab === 'profile' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
           Mon profil
         </button>
         {isAdmin && (
           <>
             <button onClick={() => setTab('agency')}
-              className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors ${tab === 'agency' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+              className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${tab === 'agency' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
               Agence
             </button>
             <button onClick={() => setTab('members')}
-              className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors ${tab === 'members' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+              className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${tab === 'members' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
               Membres
             </button>
           </>
@@ -277,7 +277,7 @@ export default function AgencySettings() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="label flex items-center gap-2">
                   <Phone className="w-4 h-4 text-gray-400" /> Téléphone agence
@@ -303,7 +303,7 @@ export default function AgencySettings() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="label flex items-center gap-2">
                   <Hash className="w-4 h-4 text-gray-400" /> ICE
@@ -367,7 +367,7 @@ export default function AgencySettings() {
         </div>
 
         <form onSubmit={(e) => { e.preventDefault(); userMutation.mutate(userForm) }} className="card space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="label flex items-center gap-2">
                 <User className="w-4 h-4 text-gray-400" /> Prénom *
@@ -399,12 +399,12 @@ export default function AgencySettings() {
             </label>
 
             {emailStep === 'idle' && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <input className="input bg-gray-50 flex-1" value={profile?.user?.email || ''} disabled />
                 <button
                   type="button"
                   onClick={() => setEmailStep('input')}
-                  className="btn-secondary flex items-center gap-1.5 text-sm py-2 px-3 shrink-0"
+                  className="btn-secondary flex items-center justify-center gap-1.5 text-sm py-2 px-3 shrink-0"
                 >
                   <Pencil className="w-3.5 h-3.5" /> Modifier
                 </button>
@@ -413,7 +413,7 @@ export default function AgencySettings() {
 
             {emailStep === 'input' && (
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <input
                     type="email"
                     className="input flex-1"
@@ -422,17 +422,19 @@ export default function AgencySettings() {
                     onChange={e => setNewEmail(e.target.value)}
                     autoFocus
                   />
-                  <button
-                    type="button"
-                    onClick={() => requestEmailMutation.mutate()}
-                    disabled={!newEmail.trim() || requestEmailMutation.isPending}
-                    className="btn-primary text-sm py-2 px-3 shrink-0"
-                  >
-                    {requestEmailMutation.isPending ? 'Envoi...' : 'Envoyer le code'}
-                  </button>
-                  <button type="button" onClick={cancelEmailChange} className="p-2 hover:bg-gray-100 rounded">
-                    <X className="w-4 h-4 text-gray-400" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => requestEmailMutation.mutate()}
+                      disabled={!newEmail.trim() || requestEmailMutation.isPending}
+                      className="btn-primary text-sm py-2 px-3 shrink-0 flex-1 sm:flex-initial"
+                    >
+                      {requestEmailMutation.isPending ? 'Envoi...' : 'Envoyer le code'}
+                    </button>
+                    <button type="button" onClick={cancelEmailChange} className="p-2 hover:bg-gray-100 rounded shrink-0">
+                      <X className="w-4 h-4 text-gray-400" />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -459,7 +461,7 @@ export default function AgencySettings() {
                   </div>
                 )}
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <input
                     type="text"
                     className="input flex-1 text-center text-xl tracking-[0.4em] font-mono"
@@ -469,17 +471,19 @@ export default function AgencySettings() {
                     onChange={e => setVerifyCode(e.target.value.replace(/\D/g, ''))}
                     autoFocus
                   />
-                  <button
-                    type="button"
-                    onClick={() => confirmEmailMutation.mutate()}
-                    disabled={verifyCode.length !== 6 || confirmEmailMutation.isPending}
-                    className="btn-primary text-sm py-2 px-3 shrink-0"
-                  >
-                    {confirmEmailMutation.isPending ? 'Vérification...' : 'Confirmer'}
-                  </button>
-                  <button type="button" onClick={cancelEmailChange} className="p-2 hover:bg-gray-100 rounded">
-                    <X className="w-4 h-4 text-gray-400" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => confirmEmailMutation.mutate()}
+                      disabled={verifyCode.length !== 6 || confirmEmailMutation.isPending}
+                      className="btn-primary text-sm py-2 px-3 shrink-0 flex-1 sm:flex-initial"
+                    >
+                      {confirmEmailMutation.isPending ? 'Vérification...' : 'Confirmer'}
+                    </button>
+                    <button type="button" onClick={cancelEmailChange} className="p-2 hover:bg-gray-100 rounded shrink-0">
+                      <X className="w-4 h-4 text-gray-400" />
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
