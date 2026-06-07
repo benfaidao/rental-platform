@@ -1,0 +1,752 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  AGENCY_ADMIN
+  AGENCY_USER
+}
+
+enum AgencyUserRole {
+  ADMIN
+  USER
+}
+
+enum ContractStatus {
+  PENDING
+  RESERVATION
+  RESERVATION_CONFIRMED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum CheckStatus {
+  PAID
+  UNUSED
+  CANCELLED
+  NONE
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  CONTRIBUTION
+  ACCOUNT_PAYMENT
+  BANK_EXPENSE
+  PROFIT_WITHDRAWAL
+  PROFIT_WITHDRAWAL_BANK
+  CASH_TRANSFER
+}
+
+enum BillingStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+enum AgencyContractStatus {
+  ACTIVE
+  ENDED
+}
+
+enum CarStatus {
+  AVAILABLE
+  RENTED
+  MAINTENANCE
+  INACTIVE
+}
+
+enum SinistreStatus {
+  OPEN
+  RESOLVED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  phone     String?
+  role      UserRole @default(AGENCY_USER)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  agencyUsers        AgencyUser[]
+  transactions       FinancialTransaction[]
+  sentMessages       ChatMessage[]          @relation("SentMessages")
+  receivedMessages   ChatMessage[]          @relation("ReceivedMessages")
+  conversationHides  ChatConversationHide[]
+  passwordResets     PasswordResetToken[]
+  emailChangeRequests EmailChangeRequest[]
+
+  @@map("users")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_tokens")
+}
+
+model EmailChangeRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  newEmail  String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_change_requests")
+}
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  senderId   String
+  senderName String
+  agencyName String?
+  content    String
+  isPublic   Boolean  @default(true)
+  toUserId   String?
+  isRead     Boolean  @default(false)
+  isDeleted  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  sender   User  @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User? @relation("ReceivedMessages", fields: [toUserId], references: [id], onDelete: SetNull)
+
+  @@map("chat_messages")
+}
+
+model ChatConversationHide {
+  id          String   @id @default(cuid())
+  userId      String
+  otherUserId String
+  hiddenAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, otherUserId])
+  @@map("chat_conversation_hides")
+}
+
+model Agency {
+  id                    String   @id @default(cuid())
+  name                  String
+  address               String?
+  phone                 String?
+  email                 String?
+  ice                   String?
+  ic                    String?
+  rc                    String?
+  logo                  String?
+  isActive              Boolean  @default(true)
+  isSuspended           Boolean  @default(false)
+  acceptsRentalRequests Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  agencyUsers      AgencyUser[]
+  cars             Car[]
+  contracts        RentalContract[]
+  clients          Client[]
+  checksIssued     CheckIssued[]
+  checksReceived   CheckReceived[]
+  transactions     FinancialTransaction[]
+  associates       Associate[]
+  billings         AgencyBilling[]
+  agencyContracts  AgencyContract[]
+  contributions    Contribution[]
+  partners         Partner[]
+  sinistres        Sinistre[]
+  accessGiven      AgencyAccess[]        @relation("AgencyAccessGiver")
+  accessReceived   AgencyAccess[]        @relation("AgencyAccessReceiver")
+  externalBookings RentalContract[]      @relation("BookedByAgency")
+  rentalRequests   RentalRequest[]       @relation("RequestingAgency")
+  rentalOffers     RentalOffer[]         @relation("OfferingAgency")
+
+  @@map("agencies")
+}
+
+model RentalRequest {
+  id         String   @id @default(cuid())
+  agencyId   String
+  clientName String
+  phone      String?
+  startDate  DateTime
+  endDate    DateTime
+  carType    String?
+  budget     Float?
+  notes      String?
+  status     String   @default("OPEN")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  agency Agency        @relation("RequestingAgency", fields: [agencyId], references: [id], onDelete: Cascade)
+  offers RentalOffer[]
+
+  @@map("rental_requests")
+}
+
+model RentalOffer {
+  id        String   @id @default(cuid())
+  requestId String
+  agencyId  String
+  carId     String?
+  price     Float
+  phone     String?
+  notes     String?
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+
+  request RentalRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  agency  Agency        @relation("OfferingAgency", fields: [agencyId], references: [id], onDelete: Cascade)
+  car     Car?          @relation(fields: [carId], references: [id])
+
+  @@map("rental_offers")
+}
+
+model AgencyUser {
+  id       String         @id @default(cuid())
+  userId   String
+  agencyId String
+  role     AgencyUserRole @default(USER)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  agency Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, agencyId])
+  @@map("agency_users")
+}
+
+model AgencyAccess {
+  id               String   @id @default(cuid())
+  giverAgencyId    String
+  receiverAgencyId String
+  accessType       String   @default("ALL")
+  createdAt        DateTime @default(now())
+
+  giverAgency    Agency           @relation("AgencyAccessGiver", fields: [giverAgencyId], references: [id], onDelete: Cascade)
+  receiverAgency Agency           @relation("AgencyAccessReceiver", fields: [receiverAgencyId], references: [id], onDelete: Cascade)
+  carAccesses    AgencyCarAccess[]
+
+  @@unique([giverAgencyId, receiverAgencyId])
+  @@map("agency_access")
+}
+
+model AgencyCarAccess {
+  id       String @id @default(cuid())
+  accessId String
+  carId    String
+
+  access AgencyAccess @relation(fields: [accessId], references: [id], onDelete: Cascade)
+  car    Car          @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@unique([accessId, carId])
+  @@map("agency_car_accesses")
+}
+
+model Car {
+  id                      String    @id @default(cuid())
+  agencyId                String
+  wwPlate                 String?
+  finalPlate              String?
+  brand                   String
+  model                   String
+  year                    Int?
+  color                   String?
+  fuelType                String?
+  mileage                 Int?
+  authorizationDate       DateTime?
+  lastTechnicalInspection DateTime?
+  nextTechnicalInspection DateTime?
+  insuranceExpiry         DateTime?
+  circulationAuthExpiry   DateTime?
+  purchasePrice           Float?
+  purchaseDate            DateTime?
+  rentalPriceTTC          Float?
+  transmission            String?
+  status                  CarStatus @default(AVAILABLE)
+  isActive                Boolean   @default(true)
+  notes                   String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  agency          Agency           @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  documents       CarDocument[]
+  contracts       RentalContract[]
+  oilChanges      OilChange[]
+  tireRecords     TireRecord[]
+  repairs         Repair[]
+  oilChangeConfig  OilChangeConfig?
+  carAccesses      AgencyCarAccess[]
+  unavailabilities CarUnavailability[]
+  rentalOffers     RentalOffer[]
+  sinistres        Sinistre[]
+
+  @@map("cars")
+}
+
+model Client {
+  id             String    @id @default(cuid())
+  agencyId       String
+  firstName      String
+  lastName       String
+  phone          String?
+  email          String?
+  address        String?
+  idType         String?
+  idNumber       String?
+  idExpiry       DateTime?
+  idFileUrl      String?
+  licenseNumber  String?
+  licenseExpiry  DateTime?
+  licenseFileUrl String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  agency    Agency           @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  contracts RentalContract[]
+
+  @@map("clients")
+}
+
+model CarDocument {
+  id        String   @id @default(cuid())
+  carId     String
+  type      String
+  filename  String
+  url       String
+  notes     String?
+  createdAt DateTime @default(now())
+
+  car Car @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@map("car_documents")
+}
+
+model RentalContract {
+  id                  String         @id @default(cuid())
+  contractNumber      String         @unique
+  agencyId            String
+  carId               String
+  clientName          String
+  clientPhone         String?
+  clientEmail         String?
+  clientIdNumber      String?
+  clientAddress       String?
+  startDate           DateTime
+  endDate             DateTime
+  rentalAmount        Float
+  guaranteeAmount     Float          @default(0)
+  currency            String         @default("MAD")
+  guaranteeCheck      Boolean        @default(false)
+  guaranteeCheckNumber String?
+  isSubRental         Boolean        @default(false)
+  subrenterName       String?
+  status              ContractStatus @default(PENDING)
+  startMileage        Int?
+  endMileage          Int?
+  amountPaid          Float          @default(0)
+  collectedBy         String?
+  collectedAt         DateTime?
+  montantTTC          Float?
+  notes               String?
+  clientId            String?
+  bookedByAgencyId    String?
+  rentalType          String         @default("STANDARD")
+  periodUnit          String?
+  intervalType        String         @default("CLOSED")
+  allowOverage        Boolean        @default(false)
+  startTime                 String?
+  endTime                   String?
+  pickupLocation            String?
+  dropoffLocation           String?
+  clientLicenseNumber       String?
+  secondDriverName          String?
+  secondDriverIdNumber      String?
+  secondDriverIdExpiry      DateTime?
+  secondDriverLicense       String?
+  secondDriverLicenseExpiry DateTime?
+  createdAt                 DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  agency           Agency             @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  car              Car                @relation(fields: [carId], references: [id])
+  client           Client?            @relation(fields: [clientId], references: [id])
+  bookedByAgency   Agency?            @relation("BookedByAgency", fields: [bookedByAgencyId], references: [id])
+  photos           ContractPhoto[]
+  documents        ContractDocument[]
+  periodicPayments PeriodicPayment[]
+  sinistres        Sinistre[]
+
+  @@map("rental_contracts")
+}
+
+model PeriodicPayment {
+  id          String    @id @default(cuid())
+  contractId  String
+  periodStart DateTime
+  periodEnd   DateTime
+  amount      Float
+  paidAt      DateTime?
+  notes       String?
+  createdAt   DateTime  @default(now())
+
+  contract RentalContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@map("periodic_payments")
+}
+
+model ContractPhoto {
+  id         String   @id @default(cuid())
+  contractId String
+  type       String
+  filename   String
+  url        String
+  createdAt  DateTime @default(now())
+
+  contract RentalContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@map("contract_photos")
+}
+
+model ContractDocument {
+  id         String   @id @default(cuid())
+  contractId String
+  filename   String
+  url        String
+  type       String   @default("OTHER")
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  contract RentalContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@map("contract_documents")
+}
+
+model OilChangeConfig {
+  id             String @id @default(cuid())
+  carId          String @unique
+  intervalKm     Int    @default(5000)
+  intervalMonths Int    @default(6)
+
+  car Car @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@map("oil_change_configs")
+}
+
+model OilChange {
+  id            String    @id @default(cuid())
+  carId         String
+  date          DateTime
+  mileage       Int
+  oilType       String?
+  filterChanged Boolean   @default(false)
+  cost          Float?
+  notes         String?
+  nextKm        Int?
+  nextDate      DateTime?
+  createdAt     DateTime  @default(now())
+
+  car Car @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@map("oil_changes")
+}
+
+model TireRecord {
+  id        String   @id @default(cuid())
+  carId     String
+  date      DateTime
+  mileage   Int?
+  position  String?
+  brand     String?
+  size      String?
+  cost      Float?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  car Car @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@map("tire_records")
+}
+
+model Repair {
+  id                    String    @id @default(cuid())
+  carId                 String
+  date                  DateTime
+  description           String
+  mileage               Int?
+  cost                  Float?
+  garage                String?
+  nextRepairDate        DateTime?
+  nextRepairDescription String?
+  notes                 String?
+  createdAt             DateTime  @default(now())
+
+  car    Car           @relation(fields: [carId], references: [id], onDelete: Cascade)
+  photos RepairPhoto[]
+
+  @@map("repairs")
+}
+
+model RepairPhoto {
+  id        String   @id @default(cuid())
+  repairId  String
+  filename  String
+  url       String
+  createdAt DateTime @default(now())
+
+  repair Repair @relation(fields: [repairId], references: [id], onDelete: Cascade)
+
+  @@map("repair_photos")
+}
+
+model CheckIssued {
+  id               String      @id @default(cuid())
+  agencyId         String
+  checkNumber      String
+  payableTo        String
+  amount           Float
+  date             DateTime
+  encaissementDate DateTime?
+  status           CheckStatus @default(NONE)
+  reason           String?
+  comment          String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  agency Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@map("checks_issued")
+}
+
+model CheckReceived {
+  id          String      @id @default(cuid())
+  agencyId    String
+  checkNumber String
+  payableTo   String
+  amount      Float
+  date        DateTime
+  status      CheckStatus @default(NONE)
+  reason      String?
+  comment     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  agency Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@map("checks_received")
+}
+
+model Associate {
+  id           String  @id @default(cuid())
+  agencyId     String
+  name         String
+  email        String?
+  phone        String?
+  role         String?
+  sharePercent Float?
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  agency        Agency                @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  transactions  FinancialTransaction[]
+  contributions Contribution[]
+
+  @@map("associates")
+}
+
+model FinancialTransaction {
+  id                String          @id @default(cuid())
+  agencyId          String
+  type              TransactionType
+  amount            Float
+  currency          String          @default("MAD")
+  description       String
+  date              DateTime
+  associateId       String?
+  collectedByName   String?
+  category          String?
+  notes             String?
+  createdAt         DateTime        @default(now())
+
+  agency    Agency     @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  associate Associate? @relation(fields: [associateId], references: [id])
+  user      User?      @relation(fields: [userId], references: [id])
+  userId    String?
+
+  @@map("financial_transactions")
+}
+
+model Contribution {
+  id          String   @id @default(cuid())
+  agencyId    String
+  associateId String
+  amount      Float
+  date        DateTime
+  period      String?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  agency    Agency    @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  associate Associate @relation(fields: [associateId], references: [id], onDelete: Cascade)
+
+  @@map("contributions")
+}
+
+model Partner {
+  id          String   @id @default(cuid())
+  agencyId    String
+  name        String
+  contactName String?
+  type        String?
+  address     String?
+  phone       String?
+  email       String?
+  website     String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  agency   Agency           @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  contacts PartnerContact[]
+
+  @@map("partners")
+}
+
+model PartnerContact {
+  id        String   @id @default(cuid())
+  partnerId String
+  name      String
+  role      String?
+  phone     String?
+  email     String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@map("partner_contacts")
+}
+
+model CarUnavailability {
+  id        String   @id @default(cuid())
+  carId     String
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+  createdAt DateTime @default(now())
+
+  car Car @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  @@map("car_unavailabilities")
+}
+
+model Sinistre {
+  id              String         @id @default(cuid())
+  agencyId        String
+  carId           String
+  contractId      String?
+  title           String?
+  description     String?
+  status          SinistreStatus @default(OPEN)
+  collectedAmount Float?
+  collectionDate  DateTime?
+  transactionId   String?        @unique
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  agency      Agency              @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  car         Car                 @relation(fields: [carId], references: [id])
+  contract    RentalContract?     @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  photos      SinistrePhoto[]
+
+  @@map("sinistres")
+}
+
+model SinistrePhoto {
+  id         String   @id @default(cuid())
+  sinistreId String
+  filename   String
+  url        String
+  createdAt  DateTime @default(now())
+
+  sinistre Sinistre @relation(fields: [sinistreId], references: [id], onDelete: Cascade)
+
+  @@map("sinistre_photos")
+}
+
+model AgencyContract {
+  id          String               @id @default(cuid())
+  agencyId    String
+  startDate   DateTime
+  endDate     DateTime?
+  montantTTC  Float
+  periodUnit  String               @default("MONTHLY")
+  status      AgencyContractStatus @default(ACTIVE)
+  notes       String?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  agency   Agency          @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  billings AgencyBilling[]
+
+  @@map("agency_contracts")
+}
+
+model AgencyBilling {
+  id            String        @id @default(cuid())
+  agencyId      String
+  contractId    String?
+  amount        Float
+  currency      String        @default("MAD")
+  dueDate       DateTime
+  paidDate      DateTime?
+  status        BillingStatus @default(PENDING)
+  paymentMethod String?
+  description   String?
+  period        String?
+  periodStart   DateTime?
+  periodEnd     DateTime?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  agency   Agency          @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  contract AgencyContract? @relation(fields: [contractId], references: [id], onDelete: SetNull)
+
+  @@map("agency_billings")
+}
+
+model PlatformSettings {
+  id          String   @id @default(cuid())
+  companyName String?
+  address     String?
+  ice         String?
+  ic          String?
+  rc          String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("platform_settings")
+}

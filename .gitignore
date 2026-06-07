@@ -1,0 +1,19 @@
+node_modules/
+dist/
+build/
+.env
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+
+# Docker volumes data if ever mounted locally
+postgres_data/
+minio_data/
+uploads/
+.claude/
