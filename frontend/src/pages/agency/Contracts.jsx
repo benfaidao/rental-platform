@@ -1018,6 +1018,72 @@ export default function Contracts() {
     toast.success(`Contrat ${contractNumber} recherché`)
   }
 
+  const renderContractActions = (c) => (
+    <div className="flex gap-1 flex-wrap">
+      <button
+        onClick={async () => {
+          try {
+            const res = await downloadContractPdf(agencyId, c.id)
+            const url = URL.createObjectURL(res.data)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `contrat-${c.contractNumber}.pdf`
+            a.click()
+            URL.revokeObjectURL(url)
+          } catch {
+            toast.error('Erreur lors du téléchargement')
+          }
+        }}
+        className="p-1.5 hover:bg-gray-100 rounded" title="Télécharger PDF"
+      >
+        <FileDown className="w-3.5 h-3.5 text-blue-500" />
+      </button>
+      <button
+        onClick={() => setModal({ type: 'signature', contract: c })}
+        className="p-1.5 hover:bg-purple-50 rounded" title="Signer & Télécharger PDF"
+      >
+        <PenLine className="w-3.5 h-3.5 text-purple-500" />
+      </button>
+      <button onClick={() => setModal({ type: 'photos', contract: c })} className="p-1.5 hover:bg-gray-100 rounded" title="Photos de la voiture">
+        <Camera className="w-3.5 h-3.5 text-green-500" />
+      </button>
+      {c.rentalType === 'PERIODIC' && (
+        <button onClick={() => setModal({ type: 'payments', contract: c })} className="p-1.5 hover:bg-blue-50 rounded" title="Paiements périodiques">
+          <CalendarRange className="w-3.5 h-3.5 text-blue-500" />
+        </button>
+      )}
+      <button onClick={() => setModal({ type: 'signed', contract: c })} className={`p-1.5 rounded ${c.documents?.length > 0 ? 'hover:bg-green-50' : 'hover:bg-gray-100'}`} title="Contrat signé">
+        <FileSignature className={`w-3.5 h-3.5 ${c.documents?.length > 0 ? 'text-green-500' : 'text-gray-400'}`} />
+      </button>
+      <button onClick={() => setModal({ type: 'sinistres', contract: c })} className="p-1.5 hover:bg-orange-50 rounded" title="Sinistres">
+        <AlertTriangle className="w-3.5 h-3.5 text-orange-500" />
+      </button>
+      <button onClick={() => setModal({ type: 'edit', contract: c })} className="p-1.5 hover:bg-gray-100 rounded" title="Modifier">
+        <Edit2 className="w-3.5 h-3.5 text-gray-500" />
+      </button>
+      <button onClick={() => { if (confirm('Supprimer ce contrat ?')) deleteMutation.mutate(c.id) }} className="p-1.5 hover:bg-red-50 rounded" title="Supprimer">
+        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+      </button>
+    </div>
+  )
+
+  const renderContractBadges = (c) => (
+    <div className="flex gap-1 flex-wrap">
+      {c.rentalType === 'PERIODIC' && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-sans font-medium">Périodique · {c.periodUnit === 'WEEK' ? 'Sem.' : 'Mois'}</span>}
+      {c.intervalType === 'OPEN' && <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-sans font-medium">Ouvert</span>}
+      {!c.allowOverage && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-sans font-medium">Dép. non autorisé</span>}
+      {c.documents?.length > 0 && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-sans font-medium flex items-center gap-0.5"><CheckCircle className="w-2.5 h-2.5" /> Signé</span>}
+    </div>
+  )
+
+  const renderPaymentBadge = (c) => (
+    c.amountPaid >= c.rentalAmount
+      ? <span className="badge-green">Encaissé</span>
+      : c.amountPaid > 0
+        ? <span className="badge-yellow">{c.amountPaid.toLocaleString()} / {c.rentalAmount.toLocaleString()}</span>
+        : <span className="badge-gray">Non encaissé</span>
+  )
+
   return (
     <div className="space-y-5">
       {/* Tab switcher */}
@@ -1064,7 +1130,56 @@ export default function Contracts() {
       </div>
       <QRScanner isOpen={contractScannerOpen} onClose={() => setContractScannerOpen(false)} onResult={handleContractQRScan} />
 
-      <div className="card p-0 overflow-hidden">
+      {/* Mobile: card list */}
+      <div className="lg:hidden space-y-3">
+        {isLoading && <div className="card text-center py-8 text-gray-400">Chargement...</div>}
+        {!isLoading && filtered.map(c => (
+          <div key={c.id} className="card space-y-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="font-mono text-xs font-medium">{c.contractNumber}</p>
+                {renderContractBadges(c)}
+              </div>
+              <span className={STATUS_BADGE[c.status]}>{STATUS[c.status]}</span>
+            </div>
+            <div>
+              <p className="font-medium">{c.clientName}</p>
+              <div className="flex flex-wrap gap-1 mt-0.5">
+                {c.isSubRental && !c.bookedByAgency && <span className="badge-yellow text-xs">Sous-location</span>}
+                {c.bookedByAgency && (
+                  <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-medium">
+                    Réservé par {c.bookedByAgency.name}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>{c.car?.brand} {c.car?.model} <span className="text-xs text-gray-400">— {c.car?.finalPlate || c.car?.wwPlate}</span></span>
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>{fmtDate(c.startDate)} → {fmtDate(c.endDate)}</span>
+              <span className="text-xs text-gray-400">créé le {fmtDate(c.createdAt)}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-sm">{c.rentalAmount.toLocaleString()} {c.currency}</span>
+              <div className="text-right">
+                {renderPaymentBadge(c)}
+                {c.collectedBy && <p className="text-xs text-gray-400 mt-0.5">par {c.collectedBy}</p>}
+                {c.collectedAt && <p className="text-xs text-gray-400">le {fmtDate(c.collectedAt)}</p>}
+              </div>
+            </div>
+            <div className="pt-2 border-t border-gray-100">
+              {renderContractActions(c)}
+            </div>
+          </div>
+        ))}
+        {!isLoading && !filtered.length && (
+          <div className="card text-center py-8 text-gray-400">Aucun contrat</div>
+        )}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden lg:block card p-0 overflow-hidden">
         <div className="overflow-x-auto"><table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
@@ -1074,17 +1189,12 @@ export default function Contracts() {
             </tr>
           </thead>
           <tbody>
-            {isLoading && <tr><td colSpan={8} className="py-8 text-center text-gray-400">Chargement...</td></tr>}
+            {isLoading && <tr><td colSpan={10} className="py-8 text-center text-gray-400">Chargement...</td></tr>}
             {filtered.map(c => (
               <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
                 <td className="py-3 px-4 font-mono text-xs font-medium">
                   {c.contractNumber}
-                  <div className="flex gap-1 mt-0.5 flex-wrap">
-                    {c.rentalType === 'PERIODIC' && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-sans font-medium">Périodique · {c.periodUnit === 'WEEK' ? 'Sem.' : 'Mois'}</span>}
-                    {c.intervalType === 'OPEN' && <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-sans font-medium">Ouvert</span>}
-                    {!c.allowOverage && <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-sans font-medium">Dép. non autorisé</span>}
-                    {c.documents?.length > 0 && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-sans font-medium flex items-center gap-0.5"><CheckCircle className="w-2.5 h-2.5" /> Signé</span>}
-                  </div>
+                  <div className="mt-0.5">{renderContractBadges(c)}</div>
                 </td>
                 <td className="py-3 px-4">
                   <div>
@@ -1105,68 +1215,16 @@ export default function Contracts() {
                 <td className="py-3 px-4 text-gray-400 text-xs">{fmtDate(c.createdAt)}</td>
                 <td className="py-3 px-4 font-medium">{c.rentalAmount.toLocaleString()} {c.currency}</td>
                 <td className="py-3 px-4">
-                  {c.amountPaid >= c.rentalAmount
-                    ? <span className="badge-green">Encaissé</span>
-                    : c.amountPaid > 0
-                      ? <span className="badge-yellow">{c.amountPaid.toLocaleString()} / {c.rentalAmount.toLocaleString()}</span>
-                      : <span className="badge-gray">Non encaissé</span>
-                  }
+                  {renderPaymentBadge(c)}
                   {c.collectedBy && <p className="text-xs text-gray-400 mt-0.5">par {c.collectedBy}</p>}
                   {c.collectedAt && <p className="text-xs text-gray-400">le {fmtDate(c.collectedAt)}</p>}
                 </td>
                 <td className="py-3 px-4"><span className={STATUS_BADGE[c.status]}>{STATUS[c.status]}</span></td>
-                <td className="py-3 px-4">
-                  <div className="flex gap-1">
-                    <button
-                      onClick={async () => {
-                        try {
-                          const res = await downloadContractPdf(agencyId, c.id)
-                          const url = URL.createObjectURL(res.data)
-                          const a = document.createElement('a')
-                          a.href = url
-                          a.download = `contrat-${c.contractNumber}.pdf`
-                          a.click()
-                          URL.revokeObjectURL(url)
-                        } catch {
-                          toast.error('Erreur lors du téléchargement')
-                        }
-                      }}
-                      className="p-1 hover:bg-gray-100 rounded" title="Télécharger PDF"
-                    >
-                      <FileDown className="w-3.5 h-3.5 text-blue-500" />
-                    </button>
-                    <button
-                      onClick={() => setModal({ type: 'signature', contract: c })}
-                      className="p-1 hover:bg-purple-50 rounded" title="Signer & Télécharger PDF"
-                    >
-                      <PenLine className="w-3.5 h-3.5 text-purple-500" />
-                    </button>
-                    <button onClick={() => setModal({ type: 'photos', contract: c })} className="p-1 hover:bg-gray-100 rounded" title="Photos de la voiture">
-                      <Camera className="w-3.5 h-3.5 text-green-500" />
-                    </button>
-                    {c.rentalType === 'PERIODIC' && (
-                      <button onClick={() => setModal({ type: 'payments', contract: c })} className="p-1 hover:bg-blue-50 rounded" title="Paiements périodiques">
-                        <CalendarRange className="w-3.5 h-3.5 text-blue-500" />
-                      </button>
-                    )}
-                    <button onClick={() => setModal({ type: 'signed', contract: c })} className={`p-1 rounded ${c.documents?.length > 0 ? 'hover:bg-green-50' : 'hover:bg-gray-100'}`} title="Contrat signé">
-                      <FileSignature className={`w-3.5 h-3.5 ${c.documents?.length > 0 ? 'text-green-500' : 'text-gray-400'}`} />
-                    </button>
-                    <button onClick={() => setModal({ type: 'sinistres', contract: c })} className="p-1 hover:bg-orange-50 rounded" title="Sinistres">
-                      <AlertTriangle className="w-3.5 h-3.5 text-orange-500" />
-                    </button>
-                    <button onClick={() => setModal({ type: 'edit', contract: c })} className="p-1 hover:bg-gray-100 rounded">
-                      <Edit2 className="w-3.5 h-3.5 text-gray-500" />
-                    </button>
-                    <button onClick={() => { if (confirm('Supprimer ce contrat ?')) deleteMutation.mutate(c.id) }} className="p-1 hover:bg-red-50 rounded">
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                    </button>
-                  </div>
-                </td>
+                <td className="py-3 px-4">{renderContractActions(c)}</td>
               </tr>
             ))}
             {!isLoading && !filtered.length && (
-              <tr><td colSpan={9} className="py-8 text-center text-gray-400">Aucun contrat</td></tr>
+              <tr><td colSpan={10} className="py-8 text-center text-gray-400">Aucun contrat</td></tr>
             )}
           </tbody>
         </table></div>
