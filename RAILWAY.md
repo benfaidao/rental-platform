@@ -77,7 +77,7 @@ noms d'hôtes internes Railway au lieu des noms de service docker-compose — do
   FRONTEND_PORT=80
   ```
 - **Settings → Networking → Generate Domain** — c'est ce domaine qui sera l'URL publique de l'application (et la valeur à reporter dans `APP_URL` du backend, étape 3).
-- Le gateway écoute sur le port fourni dynamiquement par Railway via la variable `$PORT` (substitué dans la config nginx au démarrage par `docker-entrypoint.sh`) — rien à configurer manuellement côté port.
+- Le gateway écoute sur le port **8080** (déclaré par `EXPOSE 8080` dans `gateway/Dockerfile` et `listen 8080` dans la config nginx) — Railway s'en sert pour router le trafic du domaine public vers le conteneur. Si le domaine généré ne répond pas, vérifiez dans **Settings → Networking** que le port cible (« Target Port ») du domaine est bien `8080`.
 
 ## 6. Premier déploiement
 
