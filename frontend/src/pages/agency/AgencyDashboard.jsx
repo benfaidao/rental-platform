@@ -84,20 +84,20 @@ function AvailabilitySearch({ agencyId }) {
         <Search className="w-4 h-4 text-blue-500" />
         <h3 className="font-semibold text-gray-700">Voitures disponibles sur une période</h3>
       </div>
-      <div className="flex flex-wrap items-end gap-3">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3">
+        <div className="w-full sm:w-auto">
           <label className="label text-xs">Date début</label>
           <input className="input py-1.5 text-sm" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
         </div>
-        <div>
+        <div className="w-full sm:w-auto">
           <label className="label text-xs">Date fin</label>
           <input className="input py-1.5 text-sm" type="date" value={endDate} min={startDate} onChange={e => setEndDate(e.target.value)} />
         </div>
-        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer pb-1">
+        <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer sm:pb-1">
           <input type="checkbox" className="rounded" checked={includePartners} onChange={e => setIncludePartners(e.target.checked)} />
           <Building2 className="w-3.5 h-3.5 text-purple-500" /> Partenaires
         </label>
-        <button className="btn-primary py-1.5 text-sm flex items-center gap-2" onClick={handleSearch} disabled={!startDate || !endDate}>
+        <button className="btn-primary py-1.5 text-sm flex items-center justify-center gap-2 w-full sm:w-fit" onClick={handleSearch} disabled={!startDate || !endDate}>
           <Search className="w-3.5 h-3.5" /> Chercher
         </button>
       </div>
@@ -163,7 +163,7 @@ function MiniGantt({ agencyId }) {
 
   return (
     <div className="card">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
           <CalendarDays className="w-4 h-4 text-blue-500" />
           <h3 className="font-semibold text-sm">Disponibilité des véhicules</h3>
@@ -259,7 +259,7 @@ export default function AgencyDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Disponibles aujourd'hui" value={stats.carsAvailableToday ?? stats.availableCars} sub={`${stats.totalCars} au total`} icon={Car} color="green" />
         <StatCard label="En location" value={stats.rentedCars} icon={Car} color="orange" />
         <StatCard label="Contrats actifs" value={stats.activeContracts} sub={`${stats.pendingContracts} en attente`} icon={FileText} color="blue" />
@@ -267,7 +267,7 @@ export default function AgencyDashboard() {
       </div>
 
       {stats.partnerCarsTotal > 0 && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Partenaires disponibles" value={stats.partnerCarsAvailableToday} sub={`${stats.partnerCarsTotal} au total`} icon={Building2} color="green" />
           <StatCard label="Partenaires loués par nous" value={stats.partnerCarsRentedByUs} icon={Building2} color="orange" />
         </div>
@@ -283,12 +283,12 @@ export default function AgencyDashboard() {
           </div>
           <div className="space-y-2">
             {alerts.contractsReturningSoon.map(c => (
-              <div key={c.id} className="flex justify-between items-center py-2 border-b border-orange-100 last:border-0 text-sm">
+              <div key={c.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-orange-100 last:border-0 text-sm">
                 <div>
                   <p className="font-medium">{c.clientName}</p>
                   <p className="text-gray-500 text-xs">{c.car?.brand} {c.car?.model} · {c.car?.finalPlate || c.car?.wwPlate}</p>
                 </div>
-                <div className="text-right">
+                <div className="sm:text-right">
                   <p className="text-xs text-gray-500">Retour le</p>
                   <p className="text-sm">{fmtDate(c.endDate)}</p>
                   {fmtDays(c.endDate)}
@@ -305,12 +305,12 @@ export default function AgencyDashboard() {
           items={alerts.contractsEndingSoon}
           icon={Clock}
           renderItem={(c) => (
-            <div className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-gray-50 last:border-0">
               <div>
                 <p className="font-medium">{c.clientName}</p>
                 <p className="text-gray-500 text-xs">{c.car?.brand} {c.car?.model} · {c.car?.finalPlate || c.car?.wwPlate}</p>
               </div>
-              <div className="text-right">
+              <div className="sm:text-right">
                 <p className="text-xs text-gray-500">Retour le</p>
                 <p className="text-sm">{fmtDate(c.endDate)}</p>
                 {fmtDays(c.endDate)}
@@ -324,12 +324,12 @@ export default function AgencyDashboard() {
           items={alerts.contractsStartingSoon}
           icon={Clock}
           renderItem={(c) => (
-            <div className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-gray-50 last:border-0">
               <div>
                 <p className="font-medium">{c.clientName}</p>
                 <p className="text-gray-500 text-xs">{c.car?.brand} {c.car?.model}</p>
               </div>
-              <div className="text-right">
+              <div className="sm:text-right">
                 <p className="text-xs text-gray-500">Départ le</p>
                 <p className="text-sm">{fmtDate(c.startDate)}</p>
               </div>
@@ -342,7 +342,7 @@ export default function AgencyDashboard() {
           items={alerts.carsInsuranceExpiring}
           icon={Shield}
           renderItem={(c) => (
-            <div className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-gray-50 last:border-0">
               <p className="font-medium">{c.brand} {c.model} <span className="text-gray-400 text-xs">{c.finalPlate || c.wwPlate}</span></p>
               <span>{fmtDate(c.insuranceExpiry)} — {fmtDays(c.insuranceExpiry)}</span>
             </div>
@@ -354,7 +354,7 @@ export default function AgencyDashboard() {
           items={alerts.carsTechExpiring}
           icon={AlertTriangle}
           renderItem={(c) => (
-            <div className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-gray-50 last:border-0">
               <p className="font-medium">{c.brand} {c.model} <span className="text-gray-400 text-xs">{c.finalPlate || c.wwPlate}</span></p>
               <span>{fmtDate(c.nextTechnicalInspection)} — {fmtDays(c.nextTechnicalInspection)}</span>
             </div>
@@ -366,7 +366,7 @@ export default function AgencyDashboard() {
           items={alerts.oilChangeDue}
           icon={Wrench}
           renderItem={(c) => (
-            <div className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-gray-50 last:border-0">
               <p className="font-medium">{c.car?.brand} {c.car?.model} <span className="text-gray-400 text-xs">{c.car?.finalPlate}</span></p>
               <span>{fmtDate(c.nextDate)} — {fmtDays(c.nextDate)}</span>
             </div>
@@ -378,7 +378,7 @@ export default function AgencyDashboard() {
           items={alerts.oilChangeDueByKm}
           icon={Gauge}
           renderItem={(c) => (
-            <div className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-gray-50 last:border-0">
               <div>
                 <p className="font-medium">{c.car?.brand} {c.car?.model} <span className="text-gray-400 text-xs">{c.car?.finalPlate || c.car?.wwPlate}</span></p>
                 <p className="text-xs text-gray-400">{c.kmSince.toLocaleString()} km depuis dernière vidange · actuel : {c.currentMileage.toLocaleString()} km</p>
@@ -395,7 +395,7 @@ export default function AgencyDashboard() {
           items={alerts.repairsUpcoming}
           icon={Wrench}
           renderItem={(c) => (
-            <div className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-gray-50 last:border-0">
               <div>
                 <p className="font-medium">{c.car?.brand} {c.car?.model}</p>
                 <p className="text-gray-500 text-xs">{c.nextRepairDescription}</p>
@@ -433,7 +433,7 @@ export default function AgencyDashboard() {
         </div>
       )}
       {stats.checksIssuedUnused === 0 && stats.checksReceivedUnused === 0 && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="p-4 rounded-xl border bg-gray-50 border-gray-100">
             <p className="text-xs text-gray-500">Chèques émis non exploités</p>
             <p className="text-2xl font-bold text-gray-400">0</p>

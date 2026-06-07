@@ -41,7 +41,7 @@ function ClientForm({ initial, onSubmit, loading }) {
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <h4 className="font-medium text-gray-700 mb-3">Informations personnelles</h4>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="label">Prénom *</label><input className="input" value={form.firstName} onChange={set('firstName')} required /></div>
           <div><label className="label">Nom *</label><input className="input" value={form.lastName} onChange={set('lastName')} required /></div>
           <div><label className="label">Téléphone</label><input className="input" value={form.phone} onChange={set('phone')} /></div>
@@ -52,7 +52,7 @@ function ClientForm({ initial, onSubmit, loading }) {
 
       <div>
         <h4 className="font-medium text-gray-700 mb-3">Pièce d'identité</h4>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="label">Type</label>
             <select className="input" value={form.idType} onChange={set('idType')}>
@@ -70,7 +70,7 @@ function ClientForm({ initial, onSubmit, loading }) {
 
       <div>
         <h4 className="font-medium text-gray-700 mb-3">Permis de conduire</h4>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="label">Numéro</label><input className="input" value={form.licenseNumber} onChange={set('licenseNumber')} /></div>
           <div><label className="label">Date d'expiration</label><input className="input" type="date" value={form.licenseExpiry} onChange={set('licenseExpiry')} /></div>
           <div className="col-span-2">
@@ -107,7 +107,7 @@ function ClientHistoryModal({ agencyId, client, onClose }) {
       {!isLoading && (
         <div className="space-y-4">
           {contracts.length > 0 && (
-            <div className="grid grid-cols-3 gap-3 pb-2 border-b border-gray-100">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pb-2 border-b border-gray-100">
               <div className="text-center">
                 <p className="text-xs text-gray-400">Nb de locations</p>
                 <p className="text-xl font-bold text-gray-800">{contracts.length}</p>
@@ -218,8 +218,8 @@ export default function Clients() {
 
   return (
     <div className="space-y-5">
-      <div className="flex gap-3 justify-between items-center">
-        <div className="relative flex-1 max-w-sm">
+      <div className="flex flex-col sm:flex-row gap-3 sm:justify-between sm:items-center">
+        <div className="relative flex-1 sm:max-w-sm">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
             className="input pl-9"
@@ -228,7 +228,7 @@ export default function Clients() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <button onClick={() => setModal({ client: null })} className="btn-primary flex items-center gap-2">
+        <button onClick={() => setModal({ client: null })} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit">
           <Plus className="w-4 h-4" /> Nouveau Client
         </button>
       </div>
@@ -239,16 +239,16 @@ export default function Clients() {
           const idAlert = isExpired(c.idExpiry) || isExpiringSoon(c.idExpiry)
           const licAlert = isExpired(c.licenseExpiry) || isExpiringSoon(c.licenseExpiry)
           return (
-            <div key={c.id} className={`card flex items-center justify-between ${idAlert || licAlert ? 'border-orange-200' : ''}`}>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 font-bold text-sm">
+            <div key={c.id} className={`card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${idAlert || licAlert ? 'border-orange-200' : ''}`}>
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">
                   {c.firstName[0]}{c.lastName[0]}
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="font-semibold">{c.firstName} {c.lastName}</p>
                   <div className="flex gap-3 text-xs text-gray-500 mt-0.5 flex-wrap">
                     {c.phone && <span>{c.phone}</span>}
-                    {c.email && <span>{c.email}</span>}
+                    {c.email && <span className="truncate">{c.email}</span>}
                   </div>
                   <div className="flex gap-3 text-xs mt-1 flex-wrap">
                     {c.idNumber && (
@@ -264,7 +264,7 @@ export default function Clients() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 self-end sm:self-auto">
                 {c.idFileUrl && (
                   <a href={c.idFileUrl} target="_blank" rel="noreferrer" className="p-1.5 hover:bg-gray-100 rounded" title="Pièce d'identité">
                     <ExternalLink className="w-3.5 h-3.5 text-blue-500" />
