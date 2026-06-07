@@ -416,7 +416,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
 
       <h4 className="font-medium text-gray-700">Client</h4>
       {!initial && <ClientSearch agencyId={agencyId} onSelect={handleClientSelect} />}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><label className="label">Nom complet *</label><input className="input" value={form.clientName} onChange={set('clientName')} required /></div>
         <div><label className="label">CIN / Passeport</label><input className="input" value={form.clientIdNumber} onChange={set('clientIdNumber')} /></div>
         <div><label className="label">N° Permis de conduire</label><input className="input" value={form.clientLicenseNumber} onChange={set('clientLicenseNumber')} /></div>
@@ -426,7 +426,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
       <div><label className="label">Adresse</label><input className="input" value={form.clientAddress} onChange={set('clientAddress')} /></div>
 
       <h4 className="font-medium text-gray-700">Type de location</h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="label">Type</label>
           <select className="input" value={form.rentalType} onChange={set('rentalType')}>
@@ -461,7 +461,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
       </div>
 
       <h4 className="font-medium text-gray-700">Période & Montants</h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><label className="label">Date départ *</label><input className="input" type="date" value={form.startDate} onChange={set('startDate')} required /></div>
         <div>
           <label className="label">{form.intervalType === 'OPEN' ? 'Date retour estimée *' : 'Date retour *'}</label>
@@ -481,12 +481,12 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
         </div>
         <div><label className="label">Km départ</label><input className="input" type="number" value={form.startMileage} onChange={set('startMileage')} /></div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><label className="label">Lieu de récupération</label><input className="input" placeholder="Adresse, agence, aéroport..." value={form.pickupLocation} onChange={set('pickupLocation')} /></div>
         <div><label className="label">Lieu de restitution</label><input className="input" placeholder="Adresse, agence, aéroport..." value={form.dropoffLocation} onChange={set('dropoffLocation')} /></div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><label className="label">Garantie</label><input className="input" type="number" step="0.01" value={form.guaranteeAmount} onChange={set('guaranteeAmount')} /></div>
       </div>
 
@@ -507,7 +507,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
         <div><label className="label">Loueur (sous-location)</label><input className="input" value={form.subrenterName} onChange={set('subrenterName')} /></div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {initial && (
           <div>
             <label className="label">Statut</label>
@@ -542,7 +542,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
         </label>
         {hasSecondDriver && (
           <div className="space-y-3 bg-gray-50 rounded-xl p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="col-span-2"><label className="label">Nom complet</label><input className="input" value={form.secondDriverName} onChange={set('secondDriverName')} placeholder="Nom et prénom" /></div>
               <div><label className="label">N° CIN / Passeport</label><input className="input" value={form.secondDriverIdNumber} onChange={set('secondDriverIdNumber')} /></div>
               <div><label className="label">Expiration CIN</label><input className="input" type="date" value={form.secondDriverIdExpiry?.split?.('T')[0] || form.secondDriverIdExpiry || ''} onChange={set('secondDriverIdExpiry')} /></div>
