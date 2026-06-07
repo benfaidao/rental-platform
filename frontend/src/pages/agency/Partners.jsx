@@ -180,14 +180,14 @@ function PartnerCard({ agencyId, partner }) {
       {/* Add contact modal */}
       <Modal isOpen={contactModal} onClose={() => setContactModal(false)} title={`Nouveau contact — ${partner.name}`}>
         <form onSubmit={(e) => { e.preventDefault(); addContactMutation.mutate(cForm) }} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2"><label className="label">Nom *</label><input className="input" value={cForm.name} onChange={setC('name')} required /></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2"><label className="label">Nom *</label><input className="input" value={cForm.name} onChange={setC('name')} required /></div>
             <div><label className="label">Poste / Rôle</label><input className="input" value={cForm.role} onChange={setC('role')} placeholder="Directeur, Commercial..." /></div>
             <div><label className="label">Téléphone</label><input className="input" value={cForm.phone} onChange={setC('phone')} /></div>
-            <div className="col-span-2"><label className="label">Email</label><input className="input" type="email" value={cForm.email} onChange={setC('email')} /></div>
+            <div className="md:col-span-2"><label className="label">Email</label><input className="input" type="email" value={cForm.email} onChange={setC('email')} /></div>
           </div>
           <div><label className="label">Notes</label><textarea className="input" rows={2} value={cForm.notes} onChange={setC('notes')} /></div>
-          <div className="flex justify-end"><button type="submit" className="btn-primary" disabled={addContactMutation.isPending}>Ajouter</button></div>
+          <div className="flex justify-end"><button type="submit" className="btn-primary justify-center w-full sm:w-fit" disabled={addContactMutation.isPending}>Ajouter</button></div>
         </form>
       </Modal>
     </div>

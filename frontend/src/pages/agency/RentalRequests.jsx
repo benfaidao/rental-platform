@@ -42,7 +42,7 @@ function RequestForm({ onClose, agencyId }) {
 
   return (
     <form onSubmit={(e) => { e.preventDefault(); mutation.mutate(form) }} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="label">Nom du client *</label>
           <input className="input" value={form.clientName} onChange={set('clientName')} required placeholder="Ex. Mohammed Alaoui" />
@@ -59,7 +59,7 @@ function RequestForm({ onClose, agencyId }) {
           <label className="label">Date fin *</label>
           <input className="input" type="date" value={form.endDate} min={form.startDate} onChange={set('endDate')} required />
         </div>
-        {d > 0 && <p className="col-span-2 text-xs text-gray-500 -mt-2">{d} jour(s)</p>}
+        {d > 0 && <p className="md:col-span-2 text-xs text-gray-500 -mt-2">{d} jour(s)</p>}
         <div>
           <label className="label">Type de véhicule souhaité</label>
           <input className="input" value={form.carType} onChange={set('carType')} placeholder="Ex. SUV, berline, utilitaire..." />
@@ -68,14 +68,14 @@ function RequestForm({ onClose, agencyId }) {
           <label className="label">Budget max (MAD)</label>
           <input className="input" type="number" min="0" value={form.budget} onChange={set('budget')} placeholder="Optionnel" />
         </div>
-        <div className="col-span-2">
+        <div className="md:col-span-2">
           <label className="label">Notes</label>
           <textarea className="input" rows={2} value={form.notes} onChange={set('notes')} placeholder="Exigences particulières, kilométrage, équipements..." />
         </div>
       </div>
-      <div className="flex justify-end gap-2">
-        <button type="button" onClick={onClose} className="btn-secondary">Annuler</button>
-        <button type="submit" className="btn-primary" disabled={mutation.isPending}>
+      <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
+        <button type="button" onClick={onClose} className="btn-secondary justify-center w-full sm:w-fit">Annuler</button>
+        <button type="submit" className="btn-primary justify-center w-full sm:w-fit" disabled={mutation.isPending}>
           <Send className="w-4 h-4 inline mr-1" /> Publier la demande
         </button>
       </div>
