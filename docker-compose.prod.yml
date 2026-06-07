@@ -1,0 +1,66 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-rental_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-rental_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-rental_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-rental_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - rental_net
+
+  backend:
+    image: ghcr.io/${IMAGE_OWNER}/rental-platform-backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-rental_user}:${POSTGRES_PASSWORD:-rental_password}@postgres:5432/${POSTGRES_DB:-rental_platform}
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: production
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@rental.ma}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      APP_URL: ${APP_URL}
+    volumes:
+      - uploads:/app/uploads
+    expose:
+      - "3001"
+    networks:
+      - rental_net
+
+  frontend:
+    image: ghcr.io/${IMAGE_OWNER}/rental-platform-frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - "80"
+    networks:
+      - rental_net
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - rental_net
+
+volumes:
+  postgres_data:
+  uploads:
+
+networks:
+  rental_net:
+    driver: bridge
