@@ -356,7 +356,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
     carId: '', clientId: '', clientName: '', clientPhone: '', clientEmail: '', clientIdNumber: '', clientAddress: '',
     startDate: '', endDate: '', rentalAmount: '', guaranteeAmount: '', currency: 'MAD',
     guaranteeCheck: false, guaranteeCheckNumber: '', isSubRental: false, subrenterName: '',
-    startMileage: '', notes: '', amountPaid: '', collectedBy: '', collectedAt: '', montantTTC: '',
+    startMileage: '', notes: '', amountPaid: '', collectedBy: '', collectedAt: '',
     rentalType: 'STANDARD', periodUnit: 'MONTH', intervalType: 'CLOSED', allowOverage: false,
     startTime: '', endTime: '', pickupLocation: '', dropoffLocation: '',
     clientLicenseNumber: '',
@@ -528,10 +528,6 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
         <div>
           <label className="label">Date d'encaissement</label>
           <input className="input" type="date" value={form.collectedAt?.split?.('T')[0] ?? form.collectedAt ?? ''} onChange={set('collectedAt')} />
-        </div>
-        <div>
-          <label className="label">Montant TTC ({form.currency || 'MAD'})</label>
-          <input className="input" type="number" step="0.01" min="0" value={form.montantTTC ?? ''} onChange={set('montantTTC')} placeholder="0.00" />
         </div>
       </div>
 
@@ -1251,7 +1247,6 @@ export default function Contracts() {
               amountPaid: modal.contract.amountPaid ?? 0,
               collectedBy: modal.contract.collectedBy ?? '',
               collectedAt: modal.contract.collectedAt?.split('T')[0] ?? '',
-              montantTTC: modal.contract.montantTTC ?? '',
             }}
             cars={cars}
             agencyId={agencyId}
