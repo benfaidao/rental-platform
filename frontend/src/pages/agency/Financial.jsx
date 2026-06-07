@@ -368,7 +368,7 @@ function Transactions({ agencyId, isAdmin, user }) {
             </select>
           </div>
           <div><label className="label">Description *</label><input className="input" value={form.description} onChange={set('description')} required /></div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><label className="label">Montant *</label><input className="input" type="number" step="0.01" value={form.amount} onChange={set('amount')} required /></div>
             <div><label className="label">Devise</label><select className="input" value={form.currency} onChange={set('currency')}><option>MAD</option><option>EUR</option><option>USD</option></select></div>
             <div><label className="label">Date *</label><input className="input" type="date" value={form.date} onChange={set('date')} required /></div>
@@ -391,7 +391,7 @@ function Transactions({ agencyId, isAdmin, user }) {
             <p className="text-xs text-gray-400">Le nom libre remplace la sélection si les deux sont remplis.</p>
           </div>
           <div><label className="label">Notes</label><textarea className="input" rows={2} value={form.notes} onChange={set('notes')} /></div>
-          <div className="flex justify-end"><button type="submit" className="btn-primary" disabled={createMutation.isPending}>Enregistrer</button></div>
+          <div className="flex justify-end"><button type="submit" className="btn-primary justify-center w-full sm:w-fit" disabled={createMutation.isPending}>Enregistrer</button></div>
         </form>
       </Modal>
     </div>
