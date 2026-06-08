@@ -166,20 +166,20 @@ function DocumentsModal({ agencyId, car }) {
           </div>
         </div>
         <div><label className="label text-xs">Notes</label><input className="input" value={notes} onChange={e => setNotes(e.target.value)} /></div>
-        <button type="submit" className="btn-primary text-xs py-1.5 flex items-center gap-1" disabled={uploading}>
+        <button type="submit" className="btn-primary text-xs py-1.5 flex items-center justify-center gap-1 w-full sm:w-fit" disabled={uploading}>
           <Upload className="w-3 h-3" /> {uploading ? 'Upload...' : 'Ajouter'}
         </button>
       </form>
 
       <div className="space-y-2">
         {docs.map(doc => (
-          <div key={doc.id} className="flex items-center justify-between bg-white border rounded-lg px-4 py-3">
-            <div>
+          <div key={doc.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white border rounded-lg px-4 py-3">
+            <div className="min-w-0">
               <p className="text-sm font-medium">{DOC_TYPES.find(t => t.value === doc.type)?.label || doc.type}</p>
-              <p className="text-xs text-gray-500">{doc.filename}</p>
-              {doc.notes && <p className="text-xs text-gray-400">{doc.notes}</p>}
+              <p className="text-xs text-gray-500 truncate">{doc.filename}</p>
+              {doc.notes && <p className="text-xs text-gray-400 truncate">{doc.notes}</p>}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 shrink-0">
               <a href={doc.url} target="_blank" rel="noreferrer" className="btn-secondary text-xs py-1">Voir</a>
               <button onClick={() => { if (confirm('Supprimer ?')) deleteMutation.mutate(doc.id) }} className="text-red-400 hover:text-red-600 p-1">
                 <Trash2 className="w-4 h-4" />
