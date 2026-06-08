@@ -52,3 +52,12 @@
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-teal-100 text-teal-800;
   }
 }
+
+@media (max-width: 639px) {
+  input[type="date"].input,
+  input[type="datetime-local"].input,
+  input[type="time"].input {
+    width: auto;
+    max-width: 170px;
+  }
+}
