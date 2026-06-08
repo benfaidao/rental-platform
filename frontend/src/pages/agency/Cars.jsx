@@ -272,8 +272,8 @@ function UnavailabilityModal({ agencyId, car }) {
           <label className="label text-xs">Raison</label>
           <input className="input py-1.5 text-sm" placeholder="Réparation, associé..." value={form.reason} onChange={set('reason')} />
         </div>
-        <div className="col-span-3 flex justify-end">
-          <button type="submit" className="btn-primary text-sm py-1.5" disabled={createMutation.isPending}>
+        <div className="sm:col-span-3 flex justify-end">
+          <button type="submit" className="btn-primary text-sm py-1.5 justify-center w-full sm:w-fit" disabled={createMutation.isPending}>
             <Plus className="w-3.5 h-3.5 inline mr-1" /> Ajouter
           </button>
         </div>
