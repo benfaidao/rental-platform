@@ -20,7 +20,7 @@ function CheckForm({ initial, onSubmit, loading, isIssued }) {
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
   return (
     <form onSubmit={(e) => { e.preventDefault(); onSubmit(form) }} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div><label className="label">N° Chèque *</label><input className="input" value={form.checkNumber} onChange={set('checkNumber')} required /></div>
         <div><label className="label">À l'ordre de *</label><input className="input" value={form.payableTo} onChange={set('payableTo')} required /></div>
         <div><label className="label">Montant (MAD) *</label><input className="input" type="number" step="0.01" value={form.amount} onChange={set('amount')} required /></div>
@@ -55,10 +55,11 @@ function CheckTable({ checks, onEdit, onDelete, isIssued }) {
 
   return (
     <div>
-      <div className="flex gap-4 mb-4 text-sm">
+      <div className="flex flex-wrap gap-4 mb-4 text-sm">
         <span className="text-gray-500">Total: <strong>{total.toLocaleString()} MAD</strong></span>
         {totalUnused > 0 && <span className="text-yellow-600">Non exploités: <strong>{totalUnused.toLocaleString()} MAD</strong></span>}
       </div>
+      <div className="overflow-x-auto">
       <table className="w-full text-sm bg-white rounded-xl shadow-sm border border-gray-100">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>{headers.map(h => <th key={h} className="text-left py-3 px-4 font-medium text-gray-600">{h}</th>)}</tr>
@@ -84,6 +85,7 @@ function CheckTable({ checks, onEdit, onDelete, isIssued }) {
           {!checks.length && <tr><td colSpan={colSpan} className="py-8 text-center text-gray-400">Aucun chèque</td></tr>}
         </tbody>
       </table>
+      </div>
     </div>
   )
 }
@@ -116,16 +118,16 @@ export default function Checks() {
 
   return (
     <div className="space-y-5">
-      <div className="flex justify-between items-center">
-        <div className="flex gap-2 border-b border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+        <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
           {[{ id: 'issued', label: 'Chèques Émis' }, { id: 'received', label: 'Chèques Reçus' }].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'}`}>
+              className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'}`}>
               {t.label}
             </button>
           ))}
         </div>
-        <button onClick={() => setModal({ check: null })} className="btn-primary flex items-center gap-2">
+        <button onClick={() => setModal({ check: null })} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit">
           <Plus className="w-4 h-4" /> Nouveau Chèque
         </button>
       </div>

@@ -43,27 +43,27 @@ function Associates({ agencyId }) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <button onClick={() => { setForm({ name: '', email: '', phone: '', role: 'ASSOCIATE', sharePercent: '' }); setModal({ record: null }) }} className="btn-primary flex items-center gap-2">
+        <button onClick={() => { setForm({ name: '', email: '', phone: '', role: 'ASSOCIATE', sharePercent: '' }); setModal({ record: null }) }} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit">
           <Plus className="w-4 h-4" /> Ajouter
         </button>
       </div>
       <div className="grid gap-3">
         {associates.map(a => (
-          <div key={a.id} className="card flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600">
+          <div key={a.id} className="card flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600 shrink-0">
                 {a.name[0].toUpperCase()}
               </div>
-              <div>
-                <p className="font-medium">{a.name}</p>
-                <div className="flex gap-2 text-xs text-gray-500">
+              <div className="min-w-0">
+                <p className="font-medium truncate">{a.name}</p>
+                <div className="flex flex-wrap gap-x-2 text-xs text-gray-500">
                   {a.role && <span>{a.role === 'ASSOCIATE' ? 'Associé' : 'Employé'}</span>}
                   {a.sharePercent && <span>— {a.sharePercent}%</span>}
                   {a.phone && <span>· {a.phone}</span>}
                 </div>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 shrink-0">
               <button onClick={() => { setForm({ ...a, sharePercent: a.sharePercent || '' }); setModal({ record: a }) }} className="p-1 hover:bg-gray-100 rounded"><Edit2 className="w-4 h-4 text-gray-500" /></button>
               <button onClick={() => { if (confirm('Désactiver ?')) deleteMutation.mutate(a.id) }} className="p-1 hover:bg-red-50 rounded"><Trash2 className="w-4 h-4 text-red-400" /></button>
             </div>
@@ -74,7 +74,7 @@ function Associates({ agencyId }) {
       <Modal isOpen={!!modal} onClose={() => setModal(null)} title={modal?.record ? 'Modifier' : 'Nouvel Associé / Employé'}>
         <form onSubmit={(e) => { e.preventDefault(); modal?.record ? updateMutation.mutate({ id: modal.record.id, data: form }) : createMutation.mutate(form) }} className="space-y-4">
           <div><label className="label">Nom *</label><input className="input" value={form.name} onChange={set('name')} required /></div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className="label">Email</label><input className="input" type="email" value={form.email} onChange={set('email')} /></div>
             <div><label className="label">Téléphone</label><input className="input" value={form.phone} onChange={set('phone')} /></div>
             <div><label className="label">Rôle</label><select className="input" value={form.role} onChange={set('role')}><option value="ASSOCIATE">Associé</option><option value="EMPLOYEE">Employé</option></select></div>
@@ -113,21 +113,22 @@ function Contributions({ agencyId }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3 mb-1">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-1">
         <label className="text-sm font-medium text-gray-600">Année :</label>
-        <div className="flex gap-1">
+        <div className="flex gap-1 overflow-x-auto">
           {years.map(y => (
-            <button key={y} onClick={() => setYear(y)} className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${year === y ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{y}</button>
+            <button key={y} onClick={() => setYear(y)} className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${year === y ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{y}</button>
           ))}
-          <button onClick={() => setYear(null)} className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${!year ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Tout</button>
+          <button onClick={() => setYear(null)} className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${!year ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Tout</button>
         </div>
       </div>
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <p className="text-sm text-gray-500">Total cotisations: <strong>{total.toLocaleString()} MAD</strong></p>
-        <button onClick={() => { setForm({ associateId: '', amount: '', date: '', period: '', notes: '' }); setModal(true) }} className="btn-primary flex items-center gap-2">
+        <button onClick={() => { setForm({ associateId: '', amount: '', date: '', period: '', notes: '' }); setModal(true) }} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit">
           <Plus className="w-4 h-4" /> Nouvelle Cotisation
         </button>
       </div>
+      <div className="overflow-x-auto">
       <table className="w-full text-sm bg-white rounded-xl shadow-sm border border-gray-100">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>{['Associé', 'Montant', 'Date', 'Période', 'Notes', ''].map(h => <th key={h} className="text-left py-3 px-4 font-medium text-gray-600">{h}</th>)}</tr>
@@ -146,10 +147,11 @@ function Contributions({ agencyId }) {
           {!filteredContributions.length && <tr><td colSpan={6} className="py-8 text-center text-gray-400">Aucune cotisation{year ? ` en ${year}` : ''}</td></tr>}
         </tbody>
       </table>
+      </div>
       <Modal isOpen={modal} onClose={() => setModal(false)} title="Nouvelle Cotisation">
         <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(form) }} className="space-y-4">
           <div><label className="label">Associé *</label><select className="input" value={form.associateId} onChange={set('associateId')} required><option value="">Choisir</option>{associates.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className="label">Montant (MAD) *</label><input className="input" type="number" step="0.01" value={form.amount} onChange={set('amount')} required /></div>
             <div><label className="label">Date *</label><input className="input" type="date" value={form.date} onChange={set('date')} required /></div>
             <div><label className="label">Période</label><input className="input" placeholder="Ex: 2024-01" value={form.period} onChange={set('period')} /></div>
@@ -188,21 +190,21 @@ function Transactions({ agencyId, isAdmin, user }) {
   return (
     <div className="space-y-4">
       {/* Year selector */}
-      <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
         <label className="text-sm font-medium text-gray-600">Année :</label>
-        <div className="flex gap-1">
+        <div className="flex gap-1 overflow-x-auto">
           {years.map(y => (
             <button
               key={y}
               onClick={() => setYear(y)}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${year === y ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${year === y ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
             >
               {y}
             </button>
           ))}
           <button
             onClick={() => setYear(null)}
-            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${!year ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${!year ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
           >
             Tout
           </button>
@@ -211,7 +213,7 @@ function Transactions({ agencyId, isAdmin, user }) {
 
       {summary && (
         <>
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
           <div className="card flex items-center gap-3 border-blue-100">
             <div className="p-2 rounded-lg text-blue-600 bg-blue-50"><Home className="w-5 h-5" /></div>
             <div>
@@ -230,7 +232,7 @@ function Transactions({ agencyId, isAdmin, user }) {
         </div>
 
         {/* Stats visibles par tous */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: 'Recettes', val: fmt(summary.income), icon: TrendingUp, color: 'text-green-600 bg-green-50' },
             { label: 'Dépenses espèces', val: fmt(summary.expense), icon: TrendingDown, color: 'text-red-600 bg-red-50' },
@@ -266,20 +268,20 @@ function Transactions({ agencyId, isAdmin, user }) {
 
         {/* Soldes — admin seulement */}
         {isAdmin && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Solde en espèces avec détail */}
             <div className="card">
               <div className="flex items-center gap-3 mb-1">
-                <div className={`p-2 rounded-lg ${(summary.cashBalance ?? summary.balance) >= 0 ? 'text-blue-600 bg-blue-50' : 'text-red-600 bg-red-50'}`}>
+                <div className={`p-2 rounded-lg shrink-0 ${(summary.cashBalance ?? summary.balance) >= 0 ? 'text-blue-600 bg-blue-50' : 'text-red-600 bg-red-50'}`}>
                   <DollarSign className="w-5 h-5" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-500">Solde en espèces</p>
                   <p className="font-bold">{fmt(summary.cashBalance ?? summary.balance)}</p>
                 </div>
                 <button
                   onClick={() => setShowCashDetail(v => !v)}
-                  className="text-xs text-blue-500 hover:text-blue-700 underline"
+                  className="text-xs text-blue-500 hover:text-blue-700 underline shrink-0"
                 >
                   {showCashDetail ? 'Masquer' : 'Détail'}
                 </button>
@@ -326,11 +328,12 @@ function Transactions({ agencyId, isAdmin, user }) {
       )}
 
       <div className="flex justify-end">
-        <button onClick={() => { setForm({ type: 'INCOME', amount: '', currency: 'MAD', description: '', date: '', associateId: '', collectedByName: '', category: '', notes: '' }); setModal(true) }} className="btn-primary flex items-center gap-2">
+        <button onClick={() => { setForm({ type: 'INCOME', amount: '', currency: 'MAD', description: '', date: '', associateId: '', collectedByName: '', category: '', notes: '' }); setModal(true) }} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit">
           <Plus className="w-4 h-4" /> Nouvelle Transaction
         </button>
       </div>
 
+      <div className="overflow-x-auto">
       <table className="w-full text-sm bg-white rounded-xl shadow-sm border border-gray-100">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>{['Type', 'Description', 'Montant', 'Date', 'Encaissé par', 'Catégorie', ''].map(h => <th key={h} className="text-left py-3 px-4 font-medium text-gray-600">{h}</th>)}</tr>
@@ -358,6 +361,7 @@ function Transactions({ agencyId, isAdmin, user }) {
           {!transactions.length && <tr><td colSpan={7} className="py-8 text-center text-gray-400">Aucune transaction</td></tr>}
         </tbody>
       </table>
+      </div>
 
       <Modal isOpen={modal} onClose={() => setModal(false)} title="Nouvelle Transaction">
         <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(form) }} className="space-y-4">
@@ -413,10 +417,10 @@ export default function Financial() {
 
   return (
     <div className="space-y-5">
-      <div className="flex gap-2 border-b border-gray-200">
+      <div className="flex gap-2 border-b border-gray-200 overflow-x-auto">
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+            className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${tab === t.id ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
             {t.label}
           </button>
         ))}
