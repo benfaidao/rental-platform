@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getClients, createClient, updateClient, deleteClient, getClient } from '../../api'
+import { getClients, createClient, updateClient, deleteClient, getClient, getFileUrl } from '../../api'
 import Modal from '../../components/Modal'
 import { Plus, Edit2, Trash2, Search, UserCheck, FileText, ExternalLink, History, Car } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -266,7 +266,7 @@ export default function Clients() {
               </div>
               <div className="flex items-center gap-2 self-end sm:self-auto">
                 {c.idFileUrl && (
-                  <a href={c.idFileUrl} target="_blank" rel="noreferrer" className="p-1.5 hover:bg-gray-100 rounded" title="Pièce d'identité">
+                  <a href={getFileUrl(c.idFileUrl, agencyId)} target="_blank" rel="noreferrer" className="p-1.5 hover:bg-gray-100 rounded" title="Pièce d'identité">
                     <ExternalLink className="w-3.5 h-3.5 text-blue-500" />
                   </a>
                 )}

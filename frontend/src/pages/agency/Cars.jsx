@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getCars, getCar, createCar, updateCar, deleteCar, uploadCarDocument, getCarDocuments, deleteCarDocument, getCarUnavailabilities, createCarUnavailability, deleteCarUnavailability, getCarAvailability, checkAvailability } from '../../api'
+import { getCars, getCar, createCar, updateCar, deleteCar, uploadCarDocument, getCarDocuments, deleteCarDocument, getCarUnavailabilities, createCarUnavailability, deleteCarUnavailability, getCarAvailability, checkAvailability, getFileUrl } from '../../api'
 import Modal from '../../components/Modal'
 import SinistresModal from './Sinistres'
 import QRScanner from '../../components/QRScanner'
@@ -146,9 +146,6 @@ function DocumentsModal({ agencyId, car }) {
     }
   }
 
-  const API_URL = import.meta.env.VITE_API_URL || '/api'
-  const getFileUrl = (url) => url.startsWith('/uploads') ? url.replace('/uploads', `${API_URL.replace('/api', '')}/api/uploads`) : url
-
   return (
     <div className="space-y-5">
       <form onSubmit={handleUpload} className="border rounded-lg p-4 space-y-3 bg-gray-50">
@@ -180,7 +177,7 @@ function DocumentsModal({ agencyId, car }) {
               {doc.notes && <p className="text-xs text-gray-400 truncate">{doc.notes}</p>}
             </div>
             <div className="flex gap-2 shrink-0">
-              <a href={doc.url} target="_blank" rel="noreferrer" className="btn-secondary text-xs py-1">Voir</a>
+              <a href={getFileUrl(doc.url, agencyId)} target="_blank" rel="noreferrer" className="btn-secondary text-xs py-1">Voir</a>
               <button onClick={() => { if (confirm('Supprimer ?')) deleteMutation.mutate(doc.id) }} className="text-red-400 hover:text-red-600 p-1">
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -311,9 +308,6 @@ function CarDetailModal({ agencyId, carId }) {
   const [tab, setTab] = useState('details')
   const [docView, setDocView] = useState('simple')
   const [docTypeFilter, setDocTypeFilter] = useState('')
-
-  const API_URL = import.meta.env.VITE_API_URL || '/api'
-  const getFileUrl = (url) => url?.startsWith('/uploads') ? url.replace('/uploads', `${API_URL.replace('/api', '')}/api/uploads`) : url
 
   const { data: car, isLoading } = useQuery({
     queryKey: ['carDetail', agencyId, carId],

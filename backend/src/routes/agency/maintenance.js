@@ -204,7 +204,7 @@ router.post('/repairs/:id/photos', upload.array('photos', 10), async (req, res) 
         data: {
           repairId: req.params.id,
           filename: file.originalname,
-          url: `/uploads/${file.filename}`,
+          url: `/agencies/${req.params.agencyId}/files/${file.filename}`,
         },
       })
     )

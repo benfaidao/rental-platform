@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   getCars, getOilChanges, createOilChange, updateOilChange, deleteOilChange,
   getTires, createTire, updateTire, deleteTire,
-  getRepairs, createRepair, updateRepair, deleteRepair, uploadRepairPhotos,
+  getRepairs, createRepair, updateRepair, deleteRepair, uploadRepairPhotos, getFileUrl,
 } from '../../api'
 import Modal from '../../components/Modal'
 import { Plus, Edit2, Trash2, Wrench, Upload } from 'lucide-react'
@@ -280,7 +280,7 @@ function Repairs({ agencyId, cars }) {
                 )}
                 {r.photos?.length > 0 && (
                   <div className="flex gap-1 mt-2">
-                    {r.photos.map(p => <img key={p.id} src={p.url} alt="" className="w-12 h-12 object-cover rounded" />)}
+                    {r.photos.map(p => <img key={p.id} src={getFileUrl(p.url, agencyId)} alt="" className="w-12 h-12 object-cover rounded" />)}
                   </div>
                 )}
               </div>

@@ -1,14 +1,12 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getSinistres, createSinistre, updateSinistre, deleteSinistre, uploadSinistrePhotos, deleteSinistrePhoto, getCars } from '../../api'
+import { getSinistres, createSinistre, updateSinistre, deleteSinistre, uploadSinistrePhotos, deleteSinistrePhoto, getCars, getFileUrl } from '../../api'
 import { AlertTriangle, Plus, Trash2, Upload, X, CheckCircle, Clock, Camera, Edit2, DollarSign } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 const fmtDate = (d) => d ? format(new Date(d), 'dd/MM/yyyy', { locale: fr }) : '-'
-const API_URL = import.meta.env.VITE_API_URL || '/api'
-const imgSrc  = (url) => url.startsWith('http') ? url : `${API_URL.replace('/api', '')}${url}`
 
 const STATUS_LABELS  = { OPEN: 'Ouvert', RESOLVED: 'Résolu' }
 const STATUS_COLORS  = { OPEN: 'bg-orange-100 text-orange-700', RESOLVED: 'bg-green-100 text-green-700' }
@@ -142,7 +140,7 @@ function PhotosPanel({ agencyId, sinistre }) {
         <div className="grid grid-cols-3 gap-2">
           {sinistre.photos.map(photo => (
             <div key={photo.id} className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-square">
-              <img src={imgSrc(photo.url)} alt="sinistre" className="w-full h-full object-cover" />
+              <img src={getFileUrl(photo.url, agencyId)} alt="sinistre" className="w-full h-full object-cover" />
               <button
                 onClick={() => deletePhoto(photo.id)}
                 className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"

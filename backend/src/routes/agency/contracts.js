@@ -394,7 +394,7 @@ router.post('/:contractId/photos', upload.array('photos', 10), async (req, res) 
           contractId: req.params.contractId,
           type: type || 'START',
           filename: file.originalname,
-          url: `/uploads/${file.filename}`,
+          url: `/agencies/${req.params.agencyId}/files/${file.filename}`,
         },
       })
     )
@@ -409,7 +409,7 @@ router.post('/:contractId/documents', upload.single('file'), async (req, res) =>
     data: {
       contractId: req.params.contractId,
       filename: req.file.originalname,
-      url: `/uploads/${req.file.filename}`,
+      url: `/agencies/${req.params.agencyId}/files/${req.file.filename}`,
       type: type || 'OTHER',
       notes: notes || null,
     },

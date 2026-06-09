@@ -26,6 +26,20 @@ api.interceptors.response.use(
 
 export default api
 
+// Build an authenticated URL for a stored file (usable in <img src> / <a href>)
+export const getFileUrl = (url, agencyId) => {
+  if (!url) return url
+  const token = localStorage.getItem('token')
+  const tokenParam = token ? `?token=${encodeURIComponent(token)}` : ''
+  const base = API_URL.replace('/api', '')
+  if (url.startsWith('/agencies/')) return `${base}${url}${tokenParam}`
+  if (url.startsWith('/uploads/') && agencyId) {
+    const filename = url.slice('/uploads/'.length)
+    return `${base}/agencies/${agencyId}/files/${filename}${tokenParam}`
+  }
+  return url
+}
+
 // Auth
 export const login = (data) => api.post('/auth/login', data)
 export const getMe = () => api.get('/auth/me')

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getCars, getContracts, createContract, updateContract, deleteContract, downloadContractPdf, downloadContractPdfSigned, uploadContractPhotos, uploadContractDocument, deleteContractDocument, getClients, getClient, getPeriodicPayments, createPeriodicPayment, updatePeriodicPayment, deletePeriodicPayment, getAgencyMembers } from '../../api'
+import { getCars, getContracts, createContract, updateContract, deleteContract, downloadContractPdf, downloadContractPdfSigned, uploadContractPhotos, uploadContractDocument, deleteContractDocument, getClients, getClient, getPeriodicPayments, createPeriodicPayment, updatePeriodicPayment, deletePeriodicPayment, getAgencyMembers, getFileUrl } from '../../api'
 import Modal from '../../components/Modal'
 import SinistresModal from './Sinistres'
 import SignatureCanvas from '../../components/SignatureCanvas'
@@ -139,7 +139,7 @@ function SignedContractModal({ agencyId, contract, onRefresh }) {
                 </div>
               </div>
               <div className="flex gap-2">
-                <a href={doc.url} target="_blank" rel="noreferrer" className="p-1.5 hover:bg-green-100 rounded" title="Voir">
+                <a href={getFileUrl(doc.url, agencyId)} target="_blank" rel="noreferrer" className="p-1.5 hover:bg-green-100 rounded" title="Voir">
                   <Eye className="w-4 h-4 text-green-700" />
                 </a>
                 <button onClick={() => handleDelete(doc.id)} className="p-1.5 hover:bg-red-50 rounded" title="Supprimer">
@@ -611,8 +611,8 @@ function PhotoUploadModal({ agencyId, contract }) {
           <h4 className="text-sm font-medium text-green-700 mb-2">Début de location ({startPhotos.length})</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {startPhotos.map(p => (
-              <a key={p.id} href={p.url} target="_blank" rel="noreferrer" className="relative block">
-                <img src={p.url} alt="" className="w-full h-24 object-cover rounded-lg hover:opacity-90 transition-opacity" />
+              <a key={p.id} href={getFileUrl(p.url, agencyId)} target="_blank" rel="noreferrer" className="relative block">
+                <img src={getFileUrl(p.url, agencyId)} alt="" className="w-full h-24 object-cover rounded-lg hover:opacity-90 transition-opacity" />
               </a>
             ))}
           </div>
@@ -624,8 +624,8 @@ function PhotoUploadModal({ agencyId, contract }) {
           <h4 className="text-sm font-medium text-blue-700 mb-2">Fin de location ({endPhotos.length})</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {endPhotos.map(p => (
-              <a key={p.id} href={p.url} target="_blank" rel="noreferrer" className="relative block">
-                <img src={p.url} alt="" className="w-full h-24 object-cover rounded-lg hover:opacity-90 transition-opacity" />
+              <a key={p.id} href={getFileUrl(p.url, agencyId)} target="_blank" rel="noreferrer" className="relative block">
+                <img src={getFileUrl(p.url, agencyId)} alt="" className="w-full h-24 object-cover rounded-lg hover:opacity-90 transition-opacity" />
               </a>
             ))}
           </div>

@@ -161,9 +161,18 @@ app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+const { authenticate, requireAgencyAccess } = require('./middleware/auth');
+const fs = require('fs');
 
-const { authenticate } = require('./middleware/auth');
+// Protected file serving — requires auth + agency membership
+app.get('/agencies/:agencyId/files/:filename', authenticate, requireAgencyAccess, (req, res) => {
+  const filename = path.basename(req.params.filename);
+  const agencyPath = path.join(__dirname, '../uploads', req.params.agencyId, filename);
+  const legacyPath = path.join(__dirname, '../uploads', filename);
+  const filePath = fs.existsSync(agencyPath) ? agencyPath : (fs.existsSync(legacyPath) ? legacyPath : null);
+  if (!filePath) return res.status(404).json({ error: 'Fichier introuvable' });
+  res.sendFile(filePath);
+});
 
 // Unread count (HTTP fallback for socket)
 app.get('/chat/unread', authenticate, async (req, res) => {

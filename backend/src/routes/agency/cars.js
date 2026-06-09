@@ -325,7 +325,7 @@ router.get('/:carId/documents', async (req, res) => {
 router.post('/:carId/documents', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Fichier requis' });
   const { type, notes } = req.body;
-  const url = `/uploads/${req.file.filename}`;
+  const url = `/agencies/${req.params.agencyId}/files/${req.file.filename}`;
   const doc = await prisma.carDocument.create({
     data: {
       carId: req.params.carId,

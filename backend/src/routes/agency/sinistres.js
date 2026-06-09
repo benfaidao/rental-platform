@@ -200,7 +200,7 @@ router.post('/:sinistreId/photos', upload.array('photos', 10), async (req, res) 
           data: {
             sinistreId: req.params.sinistreId,
             filename: file.filename,
-            url: `/uploads/${file.filename}`,
+            url: `/agencies/${req.params.agencyId}/files/${file.filename}`,
           },
         })
       )

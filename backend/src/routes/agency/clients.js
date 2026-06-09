@@ -54,10 +54,10 @@ router.post('/', uploadFields, async (req, res) => {
       firstName, lastName, phone, email, address,
       idType, idNumber,
       idExpiry: idExpiry ? new Date(idExpiry) : null,
-      idFileUrl: req.files?.idFile?.[0] ? `/uploads/${req.files.idFile[0].filename}` : null,
+      idFileUrl: req.files?.idFile?.[0] ? `/agencies/${req.params.agencyId}/files/${req.files.idFile[0].filename}` : null,
       licenseNumber,
       licenseExpiry: licenseExpiry ? new Date(licenseExpiry) : null,
-      licenseFileUrl: req.files?.licenseFile?.[0] ? `/uploads/${req.files.licenseFile[0].filename}` : null,
+      licenseFileUrl: req.files?.licenseFile?.[0] ? `/agencies/${req.params.agencyId}/files/${req.files.licenseFile[0].filename}` : null,
     },
   });
   res.status(201).json(client);
@@ -74,10 +74,10 @@ router.put('/:clientId', uploadFields, async (req, res) => {
       firstName, lastName, phone, email, address,
       idType, idNumber,
       idExpiry: idExpiry ? new Date(idExpiry) : null,
-      ...(req.files?.idFile?.[0] && { idFileUrl: `/uploads/${req.files.idFile[0].filename}` }),
+      ...(req.files?.idFile?.[0] && { idFileUrl: `/agencies/${req.params.agencyId}/files/${req.files.idFile[0].filename}` }),
       licenseNumber,
       licenseExpiry: licenseExpiry ? new Date(licenseExpiry) : null,
-      ...(req.files?.licenseFile?.[0] && { licenseFileUrl: `/uploads/${req.files.licenseFile[0].filename}` }),
+      ...(req.files?.licenseFile?.[0] && { licenseFileUrl: `/agencies/${req.params.agencyId}/files/${req.files.licenseFile[0].filename}` }),
     },
   });
   res.json(client);
