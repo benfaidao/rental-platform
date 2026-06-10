@@ -181,16 +181,35 @@ app.get('/chat/unread', authenticate, async (req, res) => {
   res.json({ total, summary });
 });
 
-// List all users for chat (everyone except self)
+// List users for chat — own agency by default, all when searching
 app.get('/chat/users', authenticate, async (req, res) => {
-  const users = await prisma.user.findMany({
-    where: { id: { not: req.user.id }, isActive: true },
-    select: {
-      id: true, firstName: true, lastName: true,
-      agencyUsers: { include: { agency: { select: { name: true } } }, take: 1 },
-    },
-    orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
-  });
+  const { search } = req.query;
+  const select = {
+    id: true, firstName: true, lastName: true,
+    agencyUsers: { include: { agency: { select: { name: true } } }, take: 1 },
+  };
+  const orderBy = [{ firstName: 'asc' }, { lastName: 'asc' }];
+
+  let where;
+  if (search) {
+    where = {
+      id: { not: req.user.id },
+      isActive: true,
+      OR: [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+      ],
+    };
+  } else {
+    const myAgencyIds = req.user.agencyUsers.map(au => au.agencyId);
+    where = {
+      id: { not: req.user.id },
+      isActive: true,
+      agencyUsers: { some: { agencyId: { in: myAgencyIds } } },
+    };
+  }
+
+  const users = await prisma.user.findMany({ where, select, orderBy });
   res.json(users.map(u => ({
     id: u.id,
     name: `${u.firstName} ${u.lastName}`,

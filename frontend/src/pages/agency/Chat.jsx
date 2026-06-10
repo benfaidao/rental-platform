@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useSocket } from '../../contexts/SocketContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { getChatUsers, getPublicChatHistory, getPrivateChatHistory, deleteChatConversation } from '../../api'
-import { Send, Globe, Lock, Circle, Trash2, ChevronLeft } from 'lucide-react'
+import { Send, Globe, Lock, Circle, Trash2, ChevronLeft, Search } from 'lucide-react'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -114,10 +114,11 @@ export default function Chat() {
   const [publicMessages, setPublicMessages] = useState([])
   const [privateMessages, setPrivateMessages] = useState([])
   const [deletingConversation, setDeletingConversation] = useState(false)
+  const [search, setSearch] = useState('')
 
   const { data: allUsers = [] } = useQuery({
-    queryKey: ['chatUsers'],
-    queryFn: () => getChatUsers().then(r => r.data),
+    queryKey: ['chatUsers', search],
+    queryFn: () => getChatUsers(search ? { search } : {}).then(r => r.data),
   })
 
   const { data: publicHistory } = useQuery({
@@ -230,7 +231,18 @@ export default function Chat() {
 
         {tab === 'private' && (
           <div className="flex-1 overflow-y-auto space-y-1">
-            <p className="text-xs text-gray-400 px-1 mb-2">{allUsers.length} utilisateur(s)</p>
+            <div className="relative mb-2">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              <input
+                className="input pl-8 text-xs py-1.5"
+                placeholder="Rechercher un utilisateur…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <p className="text-xs text-gray-400 px-1 mb-1">
+              {search ? `${allUsers.length} résultat(s)` : `Mon agence · ${allUsers.length} membre(s)`}
+            </p>
             {allUsers.map(u => {
               const isOnline = onlineUserIds.has(u.id)
               const unread = unreadMap.get(u.id) || 0
@@ -256,7 +268,9 @@ export default function Chat() {
               )
             })}
             {allUsers.length === 0 && (
-              <p className="text-xs text-gray-400 text-center py-4">Aucun autre utilisateur</p>
+              <p className="text-xs text-gray-400 text-center py-4">
+                {search ? 'Aucun résultat' : 'Aucun autre membre dans votre agence'}
+              </p>
             )}
           </div>
         )}

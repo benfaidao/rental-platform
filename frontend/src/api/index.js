@@ -228,7 +228,7 @@ export const makeOffer = (agencyId, requestId, data) => api.post(`/agencies/${ag
 export const respondToOffer = (agencyId, requestId, offerId, data) => api.put(`/agencies/${agencyId}/requests/${requestId}/offers/${offerId}`, data)
 
 // Chat
-export const getChatUsers = () => api.get('/chat/users')
+export const getChatUsers = (params) => api.get('/chat/users', { params })
 export const getChatUnread = () => api.get('/chat/unread')
 export const getPublicChatHistory = () => api.get('/chat/public')
 export const getPrivateChatHistory = (otherUserId) => api.get(`/chat/private/${otherUserId}`)
