@@ -471,11 +471,11 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
       <h4 className="font-medium text-gray-700">Période & Montants</h4>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><label className="label">Date départ *</label><input className="input" type="date" value={form.startDate} onChange={set('startDate')} required /></div>
+        <div><label className="label">Heure départ</label><input className="input" type="time" value={form.startTime} onChange={set('startTime')} /></div>
         <div>
           <label className="label">{form.intervalType === 'OPEN' ? 'Date retour estimée *' : 'Date retour *'}</label>
           <input className="input" type="date" value={form.endDate} min={form.startDate || undefined} onChange={set('endDate')} required />
         </div>
-        <div><label className="label">Heure départ</label><input className="input" type="time" value={form.startTime} onChange={set('startTime')} /></div>
         <div><label className="label">Heure retour</label><input className="input" type="time" value={form.endTime} onChange={set('endTime')} /></div>
         <div>
           <label className="label">{form.rentalType === 'PERIODIC' ? `Montant par ${form.periodUnit === 'WEEK' ? 'semaine' : 'mois'} *` : 'Montant location *'}</label>
