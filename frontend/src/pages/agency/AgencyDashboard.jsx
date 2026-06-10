@@ -1,7 +1,7 @@
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { getDashboard, getCarsCalendar, getCarAvailability, checkAvailability } from '../../api'
-import { Car, FileText, CheckCircle, AlertTriangle, DollarSign, Clock, Wrench, Shield, ChevronLeft, ChevronRight, CalendarDays, Search, Building2, Gauge } from 'lucide-react'
+import { Car, FileText, CheckCircle, AlertTriangle, DollarSign, Clock, Wrench, Shield, ChevronLeft, ChevronRight, CalendarDays, Search, Building2, Gauge, CalendarClock } from 'lucide-react'
 import { format, differenceInDays, parseISO, getDaysInMonth, addMonths, subMonths } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import { useState } from 'react'
@@ -48,6 +48,104 @@ function AlertsSection({ title, items, icon: Icon, renderItem }) {
 }
 
 const STATUS_COLORS = { PENDING: 'bg-yellow-400', RESERVATION: 'bg-purple-400', RESERVATION_CONFIRMED: 'bg-teal-400', ACTIVE: 'bg-green-500', COMPLETED: 'bg-gray-400' }
+const STATUS_LABELS = { PENDING: 'En attente', RESERVATION: 'Réservation', RESERVATION_CONFIRMED: 'Réservation confirmée' }
+const STATUS_BADGE = {
+  PENDING: 'bg-yellow-100 text-yellow-800',
+  RESERVATION: 'bg-purple-100 text-purple-800',
+  RESERVATION_CONFIRMED: 'bg-teal-100 text-teal-800',
+}
+
+function fmtCountdown(d) {
+  const days = differenceInDays(new Date(d), new Date())
+  if (days === 0) return { label: "Aujourd'hui", cls: 'text-orange-600 font-semibold' }
+  if (days === 1) return { label: 'Demain', cls: 'text-orange-500 font-semibold' }
+  return { label: `Dans ${days} jour${days > 1 ? 's' : ''}`, cls: 'text-blue-600 font-medium' }
+}
+
+function UpcomingStartsSection({ contracts, agencyId }) {
+  if (!contracts?.length) return null
+  return (
+    <div className="card border-blue-200">
+      <div className="flex items-center gap-2 mb-4">
+        <CalendarClock className="w-5 h-5 text-blue-500" />
+        <h3 className="font-semibold text-blue-900">
+          Départs dans les 7 jours <span className="ml-1 text-sm text-blue-400">({contracts.length})</span>
+        </h3>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        {contracts.map(c => {
+          const countdown = fmtCountdown(c.startDate)
+          return (
+            <div key={c.id} className="flex flex-col gap-1.5 p-3 rounded-xl bg-blue-50 border border-blue-100">
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-mono text-xs text-blue-400">{c.contractNumber}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_BADGE[c.status]}`}>
+                  {STATUS_LABELS[c.status]}
+                </span>
+              </div>
+              <p className="font-semibold text-gray-800 leading-tight">{c.clientName}</p>
+              {c.clientPhone && <p className="text-xs text-gray-500">{c.clientPhone}</p>}
+              <p className="text-xs text-gray-600">
+                <Car className="w-3 h-3 inline mr-1 text-gray-400" />
+                {c.car?.brand} {c.car?.model}
+                {(c.car?.finalPlate || c.car?.wwPlate) && (
+                  <span className="text-gray-400 ml-1">· {c.car?.finalPlate || c.car?.wwPlate}</span>
+                )}
+              </p>
+              <div className="flex items-center justify-between mt-0.5">
+                <span className="text-xs text-gray-500">Départ le {fmtDate(c.startDate)}</span>
+                <span className={`text-xs ${countdown.cls}`}>{countdown.label}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function TechInspectionSection({ cars }) {
+  const hasItems = cars?.length > 0
+  return (
+    <div className={`card ${hasItems ? 'border-amber-200' : 'border-gray-100'}`}>
+      <div className="flex items-center gap-2 mb-4">
+        <AlertTriangle className={`w-5 h-5 ${hasItems ? 'text-amber-500' : 'text-gray-300'}`} />
+        <h3 className={`font-semibold ${hasItems ? 'text-amber-900' : 'text-gray-500'}`}>
+          Contrôles techniques — 30 jours
+          {hasItems && <span className="ml-1 text-sm text-amber-400">({cars.length})</span>}
+        </h3>
+      </div>
+      {!hasItems ? (
+        <div className="flex items-center gap-2 text-green-600 text-sm py-1">
+          <CheckCircle className="w-4 h-4" />
+          <span>Aucun contrôle technique à renouveler dans les 30 jours</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          {cars.map(c => {
+            const days = differenceInDays(new Date(c.nextTechnicalInspection), new Date())
+            const urgent = days <= 7
+            const warning = days <= 15
+            return (
+              <div key={c.id} className={`flex flex-col gap-1 p-3 rounded-xl border ${urgent ? 'bg-red-50 border-red-200' : warning ? 'bg-amber-50 border-amber-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                <p className="font-semibold text-gray-800 leading-tight">
+                  {c.brand} {c.model}
+                  <span className="text-gray-400 text-xs font-normal ml-1.5">{c.finalPlate || c.wwPlate}</span>
+                </p>
+                <div className="flex items-center justify-between mt-0.5">
+                  <span className="text-xs text-gray-500">Expire le {fmtDate(c.nextTechnicalInspection)}</span>
+                  <span className={`text-xs font-semibold ${urgent ? 'text-red-600' : warning ? 'text-amber-600' : 'text-yellow-700'}`}>
+                    {days === 0 ? "Aujourd'hui" : days < 0 ? `Expiré (${Math.abs(days)}j)` : `Dans ${days} j.`}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function AvailabilitySearch({ agencyId }) {
   const today = format(new Date(), 'yyyy-MM-dd')
@@ -273,6 +371,10 @@ export default function AgencyDashboard() {
         </div>
       )}
 
+      <UpcomingStartsSection contracts={alerts.contractsStartingSoon} agencyId={agencyId} />
+
+      <TechInspectionSection cars={alerts.carsTechExpiring} />
+
       {alerts.contractsReturningSoon?.length > 0 && (
         <div className="card border-orange-200 bg-orange-50">
           <div className="flex items-center gap-2 mb-4">
@@ -320,24 +422,6 @@ export default function AgencyDashboard() {
         />
 
         <AlertsSection
-          title="Contrats démarrant bientôt"
-          items={alerts.contractsStartingSoon}
-          icon={Clock}
-          renderItem={(c) => (
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-gray-50 last:border-0">
-              <div>
-                <p className="font-medium">{c.clientName}</p>
-                <p className="text-gray-500 text-xs">{c.car?.brand} {c.car?.model}</p>
-              </div>
-              <div className="sm:text-right">
-                <p className="text-xs text-gray-500">Départ le</p>
-                <p className="text-sm">{fmtDate(c.startDate)}</p>
-              </div>
-            </div>
-          )}
-        />
-
-        <AlertsSection
           title="Assurances expirant dans 30 jours"
           items={alerts.carsInsuranceExpiring}
           icon={Shield}
@@ -345,18 +429,6 @@ export default function AgencyDashboard() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-gray-50 last:border-0">
               <p className="font-medium">{c.brand} {c.model} <span className="text-gray-400 text-xs">{c.finalPlate || c.wwPlate}</span></p>
               <span>{fmtDate(c.insuranceExpiry)} — {fmtDays(c.insuranceExpiry)}</span>
-            </div>
-          )}
-        />
-
-        <AlertsSection
-          title="Contrôles techniques à renouveler"
-          items={alerts.carsTechExpiring}
-          icon={AlertTriangle}
-          renderItem={(c) => (
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-gray-50 last:border-0">
-              <p className="font-medium">{c.brand} {c.model} <span className="text-gray-400 text-xs">{c.finalPlate || c.wwPlate}</span></p>
-              <span>{fmtDate(c.nextTechnicalInspection)} — {fmtDays(c.nextTechnicalInspection)}</span>
             </div>
           )}
         />

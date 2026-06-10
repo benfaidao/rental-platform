@@ -61,8 +61,8 @@ router.get('/', async (req, res) => {
       orderBy: { endDate: 'asc' },
     }),
     prisma.rentalContract.findMany({
-      where: { agencyId, status: 'PENDING', startDate: { gt: today, lte: in7days } },
-      include: { car: { select: { brand: true, model: true, finalPlate: true } } },
+      where: { agencyId, status: { in: ['PENDING', 'RESERVATION', 'RESERVATION_CONFIRMED'] }, startDate: { gt: today, lte: in7days } },
+      include: { car: { select: { brand: true, model: true, finalPlate: true, wwPlate: true } } },
       orderBy: { startDate: 'asc' },
     }),
     prisma.financialTransaction.aggregate({
