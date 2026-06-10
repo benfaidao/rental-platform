@@ -74,13 +74,13 @@ function SignaturePdfModal({ agencyId, contract, onClose, onSigned }) {
         <SignatureCanvas ref={driver2Ref} label={`Signature du 2ème conducteur (${contract.secondDriverName})`} />
       )}
       <SignatureCanvas ref={agencyRef} label="Signature de l'Agence" />
-      <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-        <button type="button" onClick={onClose} className="btn-secondary">Annuler</button>
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2 border-t border-gray-100">
+        <button type="button" onClick={onClose} className="btn-secondary w-full sm:w-fit justify-center">Annuler</button>
         <button
           type="button"
           onClick={handleGenerate}
           disabled={loading}
-          className="btn-primary flex items-center gap-2"
+          className="btn-primary flex items-center gap-2 w-full sm:w-fit justify-center"
         >
           <FileDown className="w-4 h-4" />
           {loading ? 'Génération...' : 'Télécharger PDF signé'}
@@ -547,7 +547,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
         {hasSecondDriver && (
           <div className="space-y-3 bg-gray-50 rounded-xl p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="col-span-2"><label className="label">Nom complet</label><input className="input" value={form.secondDriverName} onChange={set('secondDriverName')} placeholder="Nom et prénom" /></div>
+              <div className="md:col-span-2"><label className="label">Nom complet</label><input className="input" value={form.secondDriverName} onChange={set('secondDriverName')} placeholder="Nom et prénom" /></div>
               <div><label className="label">N° CIN / Passeport</label><input className="input" value={form.secondDriverIdNumber} onChange={set('secondDriverIdNumber')} /></div>
               <div><label className="label">Expiration CIN</label><input className="input" type="date" value={form.secondDriverIdExpiry?.split?.('T')[0] || form.secondDriverIdExpiry || ''} onChange={set('secondDriverIdExpiry')} /></div>
               <div><label className="label">N° Permis de conduire</label><input className="input" value={form.secondDriverLicense} onChange={set('secondDriverLicense')} /></div>
@@ -559,7 +559,7 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
 
       <div><label className="label">Notes</label><textarea className="input" rows={2} value={form.notes} onChange={set('notes')} /></div>
       <div className="flex justify-end pt-2">
-        <button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button>
+        <button type="submit" className="btn-primary w-full sm:w-fit justify-center" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button>
       </div>
     </form>
   )
@@ -760,7 +760,7 @@ function HistoryTab({ agencyId }) {
         </div>
       </div>
 
-      <div className="flex gap-6 text-sm items-center">
+      <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm items-center">
         <span className="text-gray-500">{filtered.length} contrat(s)</span>
         {filtered.length > 0 && <>
           <span className="text-gray-700 font-medium">Total : {totalAmount.toLocaleString('fr-MA')} MAD</span>
