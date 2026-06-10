@@ -361,8 +361,9 @@ model RentalContract {
   rentalAmount        Float
   guaranteeAmount     Float          @default(0)
   currency            String         @default("MAD")
-  guaranteeCheck      Boolean        @default(false)
+  guaranteeCheck       Boolean        @default(false)
   guaranteeCheckNumber String?
+  guaranteeCheckAmount Float?
   isSubRental         Boolean        @default(false)
   subrenterName       String?
   status              ContractStatus @default(PENDING)

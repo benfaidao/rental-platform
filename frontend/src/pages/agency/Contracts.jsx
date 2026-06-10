@@ -354,8 +354,9 @@ function CollectedByInput({ agencyId, value, onChange }) {
 function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
   const [form, setForm] = useState(initial || {
     carId: '', clientId: '', clientType: 'INDIVIDUAL', clientName: '', clientPhone: '', clientEmail: '', clientIdNumber: '', clientAddress: '',
-    startDate: '', endDate: '', rentalAmount: '', guaranteeAmount: '', currency: 'MAD',
-    guaranteeCheck: false, guaranteeCheckNumber: '', isSubRental: false, subrenterName: '',
+    startDate: '', endDate: '', rentalAmount: '', currency: 'MAD',
+    guaranteeAmount: '', guaranteeCheck: false, guaranteeCheckNumber: '', guaranteeCheckAmount: '',
+    isSubRental: false, subrenterName: '',
     startMileage: '', notes: '', amountPaid: '', collectedBy: '', collectedAt: '',
     rentalType: 'STANDARD', periodUnit: 'MONTH', intervalType: 'CLOSED', allowOverage: false,
     startTime: '', endTime: '', pickupLocation: '', dropoffLocation: '',
@@ -482,6 +483,10 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
           <input className="input" type="number" step="0.01" value={form.rentalAmount} onChange={set('rentalAmount')} required />
         </div>
         <div>
+          <label className="label">Montant encaissé ({form.currency || 'MAD'})</label>
+          <input className="input" type="number" step="0.01" min="0" value={form.amountPaid ?? ''} onChange={set('amountPaid')} placeholder="0.00" />
+        </div>
+        <div>
           <label className="label">Devise</label>
           <select className="input" value={form.currency} onChange={set('currency')}>
             {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -495,10 +500,10 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="label">Garantie</label><input className="input" type="number" step="0.01" value={form.guaranteeAmount} onChange={set('guaranteeAmount')} /></div>
+        <div><label className="label">Caution encaissée ({form.currency || 'MAD'})</label><input className="input" type="number" step="0.01" min="0" value={form.guaranteeAmount ?? ''} onChange={set('guaranteeAmount')} placeholder="0.00" /></div>
       </div>
 
-      <div className="flex gap-6">
+      <div className="flex flex-wrap gap-4">
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={form.guaranteeCheck} onChange={set('guaranteeCheck')} className="rounded" />
           <span className="text-sm">Chèque de garantie</span>
@@ -509,7 +514,10 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
         </label>
       </div>
       {form.guaranteeCheck && (
-        <div><label className="label">N° chèque de garantie</label><input className="input" value={form.guaranteeCheckNumber} onChange={set('guaranteeCheckNumber')} /></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><label className="label">Montant du chèque ({form.currency || 'MAD'})</label><input className="input" type="number" step="0.01" min="0" value={form.guaranteeCheckAmount ?? ''} onChange={set('guaranteeCheckAmount')} placeholder="0.00" /></div>
+          <div><label className="label">N° du chèque</label><input className="input" value={form.guaranteeCheckNumber ?? ''} onChange={set('guaranteeCheckNumber')} /></div>
+        </div>
       )}
       {form.isSubRental && (
         <div><label className="label">Loueur (sous-location)</label><input className="input" value={form.subrenterName} onChange={set('subrenterName')} /></div>
@@ -526,10 +534,6 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
           </div>
         )}
         <div>
-          <label className="label">Montant encaissé ({form.currency || 'MAD'})</label>
-          <input className="input" type="number" step="0.01" min="0" value={form.amountPaid ?? ''} onChange={set('amountPaid')} placeholder="0.00" />
-        </div>
-        <div>
           <label className="label">Encaissé par</label>
           <CollectedByInput agencyId={agencyId} value={form.collectedBy ?? ''} onChange={(v) => setForm(f => ({ ...f, collectedBy: v }))} />
         </div>
@@ -540,14 +544,20 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
       </div>
 
       <div className="border-t pt-4">
-        <label className="flex items-center gap-2 cursor-pointer mb-3">
-          <input type="checkbox" checked={hasSecondDriver} onChange={e => setHasSecondDriver(e.target.checked)} className="rounded" />
+        <button
+          type="button"
+          onClick={() => setHasSecondDriver(v => !v)}
+          className="w-full flex items-center justify-between gap-2 py-1 text-left"
+        >
           <span className="font-medium text-gray-700">2ème conducteur</span>
-        </label>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${hasSecondDriver ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+            {hasSecondDriver ? 'Actif' : 'Ajouter'}
+          </span>
+        </button>
         {hasSecondDriver && (
-          <div className="space-y-3 bg-gray-50 rounded-xl p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2"><label className="label">Nom complet</label><input className="input" value={form.secondDriverName} onChange={set('secondDriverName')} placeholder="Nom et prénom" /></div>
+          <div className="mt-3 space-y-3 bg-gray-50 rounded-xl p-3 sm:p-4">
+            <div><label className="label">Nom complet</label><input className="input" value={form.secondDriverName} onChange={set('secondDriverName')} placeholder="Nom et prénom" /></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div><label className="label">N° CIN / Passeport</label><input className="input" value={form.secondDriverIdNumber} onChange={set('secondDriverIdNumber')} /></div>
               <div><label className="label">Expiration CIN</label><input className="input" type="date" value={form.secondDriverIdExpiry?.split?.('T')[0] || form.secondDriverIdExpiry || ''} onChange={set('secondDriverIdExpiry')} /></div>
               <div><label className="label">N° Permis de conduire</label><input className="input" value={form.secondDriverLicense} onChange={set('secondDriverLicense')} /></div>
