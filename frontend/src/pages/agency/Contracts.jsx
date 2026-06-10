@@ -5,7 +5,7 @@ import { getCars, getContracts, createContract, updateContract, deleteContract, 
 import Modal from '../../components/Modal'
 import SinistresModal from './Sinistres'
 import SignatureCanvas from '../../components/SignatureCanvas'
-import { Plus, Edit2, Trash2, FileDown, Camera, Search, UserCheck, History, Filter, X, Car, ScanLine, CalendarRange, CheckCircle, Circle, ChevronDown, ChevronUp, FileSignature, Eye, Upload, AlertTriangle, PenLine } from 'lucide-react'
+import { Plus, Edit2, Trash2, FileDown, Camera, Search, UserCheck, History, Filter, X, Car, ScanLine, CalendarRange, CheckCircle, Circle, ChevronDown, ChevronUp, FileSignature, Eye, Upload, AlertTriangle, PenLine, Building2 } from 'lucide-react'
 import QRScanner from '../../components/QRScanner'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
@@ -353,7 +353,7 @@ function CollectedByInput({ agencyId, value, onChange }) {
 
 function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
   const [form, setForm] = useState(initial || {
-    carId: '', clientId: '', clientName: '', clientPhone: '', clientEmail: '', clientIdNumber: '', clientAddress: '',
+    carId: '', clientId: '', clientType: 'INDIVIDUAL', clientName: '', clientPhone: '', clientEmail: '', clientIdNumber: '', clientAddress: '',
     startDate: '', endDate: '', rentalAmount: '', guaranteeAmount: '', currency: 'MAD',
     guaranteeCheck: false, guaranteeCheckNumber: '', isSubRental: false, subrenterName: '',
     startMileage: '', notes: '', amountPaid: '', collectedBy: '', collectedAt: '',
@@ -382,12 +382,13 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
     setForm(f => ({
       ...f,
       clientId: client.id,
-      clientName: `${client.firstName} ${client.lastName}`,
+      clientType: client.clientType || 'INDIVIDUAL',
+      clientName: client.clientType === 'COMPANY' && client.companyName ? client.companyName : `${client.firstName} ${client.lastName}`,
       clientPhone: client.phone || f.clientPhone,
       clientEmail: client.email || f.clientEmail,
       clientIdNumber: client.idNumber || f.clientIdNumber,
       clientAddress: client.address || f.clientAddress,
-      clientLicenseNumber: client.licenseNumber || f.clientLicenseNumber,
+      clientLicenseNumber: client.clientType === 'COMPANY' ? '' : (client.licenseNumber || f.clientLicenseNumber),
     }))
   }
 
@@ -416,10 +417,17 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
 
       <h4 className="font-medium text-gray-700">Client</h4>
       {!initial && <ClientSearch agencyId={agencyId} onSelect={handleClientSelect} />}
+      {form.clientType === 'COMPANY' && (
+        <p className="text-xs text-purple-600 bg-purple-50 rounded-lg px-3 py-2 flex items-center gap-1.5">
+          <Building2 className="w-3.5 h-3.5 shrink-0" /> Client Entreprise — permis de conduire non obligatoire
+        </p>
+      )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="label">Nom complet *</label><input className="input" value={form.clientName} onChange={set('clientName')} required /></div>
+        <div><label className="label">Nom {form.clientType === 'COMPANY' ? '(entreprise)' : 'complet'} *</label><input className="input" value={form.clientName} onChange={set('clientName')} required /></div>
         <div><label className="label">CIN / Passeport</label><input className="input" value={form.clientIdNumber} onChange={set('clientIdNumber')} /></div>
-        <div><label className="label">N° Permis de conduire</label><input className="input" value={form.clientLicenseNumber} onChange={set('clientLicenseNumber')} /></div>
+        {form.clientType !== 'COMPANY' && (
+          <div><label className="label">N° Permis de conduire</label><input className="input" value={form.clientLicenseNumber} onChange={set('clientLicenseNumber')} /></div>
+        )}
         <div><label className="label">Téléphone</label><input className="input" value={form.clientPhone} onChange={set('clientPhone')} /></div>
         <div><label className="label">Email</label><input className="input" type="email" value={form.clientEmail} onChange={set('clientEmail')} /></div>
       </div>

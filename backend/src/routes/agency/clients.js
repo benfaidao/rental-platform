@@ -15,6 +15,7 @@ router.get('/', async (req, res) => {
     where.OR = [
       { firstName: { contains: search, mode: 'insensitive' } },
       { lastName: { contains: search, mode: 'insensitive' } },
+      { companyName: { contains: search, mode: 'insensitive' } },
       { phone: { contains: search, mode: 'insensitive' } },
       { idNumber: { contains: search, mode: 'insensitive' } },
     ];
@@ -45,13 +46,17 @@ router.get('/:clientId', async (req, res) => {
 const uploadFields = upload.fields([{ name: 'idFile', maxCount: 1 }, { name: 'licenseFile', maxCount: 1 }]);
 
 router.post('/', uploadFields, async (req, res) => {
-  const { firstName, lastName, phone, email, address, idType, idNumber, idExpiry, licenseNumber, licenseExpiry } = req.body;
+  const { clientType, firstName, lastName, companyName, companyIce, phone, email, address, idType, idNumber, idExpiry, licenseNumber, licenseExpiry } = req.body;
   if (!firstName || !lastName) return res.status(400).json({ error: 'Prénom et nom requis' });
 
   const client = await prisma.client.create({
     data: {
       agencyId: req.params.agencyId,
-      firstName, lastName, phone, email, address,
+      clientType: clientType || 'INDIVIDUAL',
+      firstName, lastName,
+      companyName: companyName || null,
+      companyIce: companyIce || null,
+      phone, email, address,
       idType, idNumber,
       idExpiry: idExpiry ? new Date(idExpiry) : null,
       idFileUrl: req.files?.idFile?.[0] ? `/agencies/${req.params.agencyId}/files/${req.files.idFile[0].filename}` : null,
@@ -64,14 +69,18 @@ router.post('/', uploadFields, async (req, res) => {
 });
 
 router.put('/:clientId', uploadFields, async (req, res) => {
-  const { firstName, lastName, phone, email, address, idType, idNumber, idExpiry, licenseNumber, licenseExpiry } = req.body;
+  const { clientType, firstName, lastName, companyName, companyIce, phone, email, address, idType, idNumber, idExpiry, licenseNumber, licenseExpiry } = req.body;
   const existing = await prisma.client.findFirst({ where: { id: req.params.clientId, agencyId: req.params.agencyId } });
   if (!existing) return res.status(404).json({ error: 'Client non trouvé' });
 
   const client = await prisma.client.update({
     where: { id: req.params.clientId },
     data: {
-      firstName, lastName, phone, email, address,
+      clientType: clientType || 'INDIVIDUAL',
+      firstName, lastName,
+      companyName: companyName || null,
+      companyIce: companyIce || null,
+      phone, email, address,
       idType, idNumber,
       idExpiry: idExpiry ? new Date(idExpiry) : null,
       ...(req.files?.idFile?.[0] && { idFileUrl: `/agencies/${req.params.agencyId}/files/${req.files.idFile[0].filename}` }),

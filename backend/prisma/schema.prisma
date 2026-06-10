@@ -308,8 +308,11 @@ model Car {
 model Client {
   id             String    @id @default(cuid())
   agencyId       String
+  clientType     String    @default("INDIVIDUAL")
   firstName      String
   lastName       String
+  companyName    String?
+  companyIce     String?
   phone          String?
   email          String?
   address        String?

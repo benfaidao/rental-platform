@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getClients, createClient, updateClient, deleteClient, getClient, getFileUrl } from '../../api'
 import Modal from '../../components/Modal'
-import { Plus, Edit2, Trash2, Search, UserCheck, FileText, ExternalLink, History, Car } from 'lucide-react'
+import { Plus, Edit2, Trash2, Search, UserCheck, FileText, ExternalLink, History, Building2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -20,13 +20,16 @@ const ID_TYPES = ['CIN', 'Passeport', 'Carte de séjour', 'Autre']
 
 function ClientForm({ initial, onSubmit, loading }) {
   const [form, setForm] = useState(initial || {
-    firstName: '', lastName: '', phone: '', email: '', address: '',
+    clientType: 'INDIVIDUAL',
+    firstName: '', lastName: '', companyName: '', companyIce: '',
+    phone: '', email: '', address: '',
     idType: 'CIN', idNumber: '', idExpiry: '',
     licenseNumber: '', licenseExpiry: '',
   })
   const [idFile, setIdFile] = useState(null)
   const [licenseFile, setLicenseFile] = useState(null)
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
+  const isCompany = form.clientType === 'COMPANY'
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -39,8 +42,34 @@ function ClientForm({ initial, onSubmit, loading }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Type de client */}
+      <div className="flex gap-3">
+        {[{ value: 'INDIVIDUAL', label: 'Particulier' }, { value: 'COMPANY', label: 'Entreprise' }].map(opt => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => setForm(f => ({ ...f, clientType: opt.value }))}
+            className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${form.clientType === opt.value ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Entreprise */}
+      {isCompany && (
+        <div>
+          <h4 className="font-medium text-gray-700 mb-3">Informations entreprise</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2"><label className="label">Raison sociale *</label><input className="input" value={form.companyName} onChange={set('companyName')} required /></div>
+            <div><label className="label">ICE</label><input className="input" placeholder="Ex: 001234567000012" value={form.companyIce} onChange={set('companyIce')} /></div>
+          </div>
+        </div>
+      )}
+
+      {/* Contact */}
       <div>
-        <h4 className="font-medium text-gray-700 mb-3">Informations personnelles</h4>
+        <h4 className="font-medium text-gray-700 mb-3">{isCompany ? 'Contact / Représentant' : 'Informations personnelles'}</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div><label className="label">Prénom *</label><input className="input" value={form.firstName} onChange={set('firstName')} required /></div>
           <div><label className="label">Nom *</label><input className="input" value={form.lastName} onChange={set('lastName')} required /></div>
@@ -50,6 +79,7 @@ function ClientForm({ initial, onSubmit, loading }) {
         <div className="mt-4"><label className="label">Adresse</label><input className="input" value={form.address} onChange={set('address')} /></div>
       </div>
 
+      {/* Pièce d'identité */}
       <div>
         <h4 className="font-medium text-gray-700 mb-3">Pièce d'identité</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -68,17 +98,20 @@ function ClientForm({ initial, onSubmit, loading }) {
         </div>
       </div>
 
-      <div>
-        <h4 className="font-medium text-gray-700 mb-3">Permis de conduire</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div><label className="label">Numéro</label><input className="input" value={form.licenseNumber} onChange={set('licenseNumber')} /></div>
-          <div><label className="label">Date d'expiration</label><input className="input" type="date" value={form.licenseExpiry} onChange={set('licenseExpiry')} /></div>
-          <div className="col-span-2">
-            <label className="label">Photo / PDF {initial?.licenseFileUrl && <span className="text-blue-500 text-xs">(fichier existant)</span>}</label>
-            <input type="file" className="input text-xs" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={e => setLicenseFile(e.target.files[0])} />
+      {/* Permis — masqué pour les entreprises */}
+      {!isCompany && (
+        <div>
+          <h4 className="font-medium text-gray-700 mb-3">Permis de conduire</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label className="label">Numéro</label><input className="input" value={form.licenseNumber} onChange={set('licenseNumber')} /></div>
+            <div><label className="label">Date d'expiration</label><input className="input" type="date" value={form.licenseExpiry} onChange={set('licenseExpiry')} /></div>
+            <div className="col-span-2">
+              <label className="label">Photo / PDF {initial?.licenseFileUrl && <span className="text-blue-500 text-xs">(fichier existant)</span>}</label>
+              <input type="file" className="input text-xs" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={e => setLicenseFile(e.target.files[0])} />
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="flex justify-end pt-2">
         <button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button>
@@ -211,6 +244,9 @@ export default function Clients() {
     client,
     initial: {
       ...client,
+      clientType: client.clientType || 'INDIVIDUAL',
+      companyName: client.companyName || '',
+      companyIce: client.companyIce || '',
       idExpiry: client.idExpiry?.split('T')[0] || '',
       licenseExpiry: client.licenseExpiry?.split('T')[0] || '',
     },
@@ -241,11 +277,22 @@ export default function Clients() {
           return (
             <div key={c.id} className={`card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${idAlert || licAlert ? 'border-orange-200' : ''}`}>
               <div className="flex items-center gap-4 min-w-0">
-                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">
-                  {c.firstName[0]}{c.lastName[0]}
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${c.clientType === 'COMPANY' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+                  {c.clientType === 'COMPANY' ? <Building2 className="w-5 h-5" /> : `${c.firstName[0]}${c.lastName[0]}`}
                 </div>
                 <div className="min-w-0">
-                  <p className="font-semibold">{c.firstName} {c.lastName}</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="font-semibold">{c.clientType === 'COMPANY' && c.companyName ? c.companyName : `${c.firstName} ${c.lastName}`}</p>
+                    {c.clientType === 'COMPANY' && (
+                      <span className="badge-purple text-xs">Entreprise</span>
+                    )}
+                  </div>
+                  {c.clientType === 'COMPANY' && (
+                    <div className="flex gap-3 text-xs text-gray-500 mt-0.5 flex-wrap">
+                      <span>{c.firstName} {c.lastName}</span>
+                      {c.companyIce && <span>ICE : {c.companyIce}</span>}
+                    </div>
+                  )}
                   <div className="flex gap-3 text-xs text-gray-500 mt-0.5 flex-wrap">
                     {c.phone && <span>{c.phone}</span>}
                     {c.email && <span className="truncate">{c.email}</span>}
