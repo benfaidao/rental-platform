@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getClients, createClient, updateClient, deleteClient, getClient, getFileUrl } from '../../api'
 import Modal from '../../components/Modal'
-import { Plus, Edit2, Trash2, Search, UserCheck, FileText, ExternalLink, History, Building2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, Search, UserCheck, FileText, ExternalLink, History, Building2, Car } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -105,7 +105,7 @@ function ClientForm({ initial, onSubmit, loading }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div><label className="label">Numéro</label><input className="input" value={form.licenseNumber} onChange={set('licenseNumber')} /></div>
             <div><label className="label">Date d'expiration</label><input className="input" type="date" value={form.licenseExpiry} onChange={set('licenseExpiry')} /></div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="label">Photo / PDF {initial?.licenseFileUrl && <span className="text-blue-500 text-xs">(fichier existant)</span>}</label>
               <input type="file" className="input text-xs" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={e => setLicenseFile(e.target.files[0])} />
             </div>
@@ -114,7 +114,7 @@ function ClientForm({ initial, onSubmit, loading }) {
       )}
 
       <div className="flex justify-end pt-2">
-        <button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button>
+        <button type="submit" className="btn-primary w-full sm:w-fit justify-center" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button>
       </div>
     </form>
   )
