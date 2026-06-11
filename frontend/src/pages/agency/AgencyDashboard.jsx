@@ -21,12 +21,12 @@ function StatCard({ label, value, sub, icon: Icon, color }) {
     purple: 'bg-purple-50 text-purple-600',
   }
   return (
-    <div className="card flex items-start gap-4">
-      <div className={`p-3 rounded-xl ${colors[color]}`}><Icon className="w-6 h-6" /></div>
-      <div>
-        <p className="text-sm text-gray-500">{label}</p>
-        <p className="text-2xl font-bold text-gray-800">{value}</p>
-        {sub && <p className="text-xs text-gray-400">{sub}</p>}
+    <div className="card flex items-start gap-2.5 sm:gap-4">
+      <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${colors[color]}`}><Icon className="w-5 h-5 sm:w-6 sm:h-6" /></div>
+      <div className="min-w-0">
+        <p className="text-xs sm:text-sm text-gray-500 leading-tight">{label}</p>
+        <p className="text-lg sm:text-2xl font-bold text-gray-800 leading-tight">{value}</p>
+        {sub && <p className="text-xs text-gray-400 truncate">{sub}</p>}
       </div>
     </div>
   )
@@ -315,7 +315,7 @@ function MiniGantt({ agencyId }) {
             ))}
             {!data.cars.length && <p className="text-xs text-gray-400 py-4 text-center">Aucune voiture</p>}
           </div>
-          <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
+          <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-400">
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-yellow-400 inline-block" /> En attente</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-green-500 inline-block" /> Actif</span>
             <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-gray-400 inline-block" /> Terminé</span>
@@ -343,7 +343,7 @@ export default function AgencyDashboard() {
     <div className="space-y-6">
       {billingAlert && (
         <div className="card border-red-200 bg-red-50">
-          <div className="flex items-center gap-2">
+          <div className="flex items-start gap-2">
             <AlertTriangle className="w-5 h-5 text-red-500" />
             <div>
               <h3 className="font-semibold text-red-800">Facturation à régulariser</h3>
@@ -357,7 +357,7 @@ export default function AgencyDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard label="Disponibles aujourd'hui" value={stats.carsAvailableToday ?? stats.availableCars} sub={`${stats.totalCars} au total`} icon={Car} color="green" />
         <StatCard label="En location" value={stats.rentedCars} icon={Car} color="orange" />
         <StatCard label="Contrats actifs" value={stats.activeContracts} sub={`${stats.pendingContracts} en attente`} icon={FileText} color="blue" />
@@ -365,7 +365,7 @@ export default function AgencyDashboard() {
       </div>
 
       {stats.partnerCarsTotal > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <StatCard label="Partenaires disponibles" value={stats.partnerCarsAvailableToday} sub={`${stats.partnerCarsTotal} au total`} icon={Building2} color="green" />
           <StatCard label="Partenaires loués par nous" value={stats.partnerCarsRentedByUs} icon={Building2} color="orange" />
         </div>
