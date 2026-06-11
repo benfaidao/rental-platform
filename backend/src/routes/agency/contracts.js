@@ -167,13 +167,13 @@ router.get('/:contractId', async (req, res) => {
 
 router.post('/', async (req, res) => {
   const {
-    carId, clientId, clientName, clientPhone, clientEmail, clientIdNumber, clientAddress,
+    carId, clientId, clientName, clientPhone, clientEmail, clientIdNumber, clientIdExpiry, clientAddress,
     startDate, endDate, rentalAmount, guaranteeAmount, currency, guaranteeCheck,
     guaranteeCheckNumber, guaranteeCheckAmount, isSubRental, subrenterName, startMileage, notes, amountPaid,
     collectedBy, collectedAt, montantTTC,
     rentalType, periodUnit, intervalType, allowOverage,
     startTime, endTime, pickupLocation, dropoffLocation,
-    clientLicenseNumber,
+    clientLicenseNumber, clientLicenseExpiry,
     secondDriverName, secondDriverIdNumber, secondDriverIdExpiry,
     secondDriverLicense, secondDriverLicenseExpiry,
   } = req.body;
@@ -239,6 +239,7 @@ router.post('/', async (req, res) => {
       clientPhone,
       clientEmail,
       clientIdNumber,
+      clientIdExpiry: clientIdExpiry ? new Date(clientIdExpiry) : null,
       clientAddress,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
@@ -267,6 +268,7 @@ router.post('/', async (req, res) => {
       pickupLocation: pickupLocation || null,
       dropoffLocation: dropoffLocation || null,
       clientLicenseNumber: clientLicenseNumber || null,
+      clientLicenseExpiry: clientLicenseExpiry ? new Date(clientLicenseExpiry) : null,
       secondDriverName: secondDriverName || null,
       secondDriverIdNumber: secondDriverIdNumber || null,
       secondDriverIdExpiry: secondDriverIdExpiry ? new Date(secondDriverIdExpiry) : null,
@@ -291,12 +293,12 @@ router.post('/', async (req, res) => {
 
 router.put('/:contractId', async (req, res) => {
   const {
-    clientName, clientPhone, clientEmail, clientIdNumber, clientAddress,
+    clientName, clientPhone, clientEmail, clientIdNumber, clientIdExpiry, clientAddress,
     startDate, endDate, rentalAmount, guaranteeAmount, currency, guaranteeCheck,
     guaranteeCheckNumber, guaranteeCheckAmount, isSubRental, subrenterName, status, startMileage,
     endMileage, notes, amountPaid, collectedBy, collectedAt, montantTTC, intervalType, allowOverage,
     startTime, endTime, pickupLocation, dropoffLocation,
-    clientLicenseNumber,
+    clientLicenseNumber, clientLicenseExpiry,
     secondDriverName, secondDriverIdNumber, secondDriverIdExpiry,
     secondDriverLicense, secondDriverLicenseExpiry,
   } = req.body;
@@ -313,6 +315,7 @@ router.put('/:contractId', async (req, res) => {
     where: { id: req.params.contractId },
     data: {
       clientName, clientPhone, clientEmail, clientIdNumber, clientAddress,
+      clientIdExpiry: clientIdExpiry !== undefined ? (clientIdExpiry ? new Date(clientIdExpiry) : null) : undefined,
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
       rentalAmount: rentalAmount ? parseFloat(rentalAmount) : undefined,
@@ -335,6 +338,7 @@ router.put('/:contractId', async (req, res) => {
       pickupLocation: pickupLocation !== undefined ? (pickupLocation || null) : undefined,
       dropoffLocation: dropoffLocation !== undefined ? (dropoffLocation || null) : undefined,
       clientLicenseNumber: clientLicenseNumber !== undefined ? (clientLicenseNumber || null) : undefined,
+      clientLicenseExpiry: clientLicenseExpiry !== undefined ? (clientLicenseExpiry ? new Date(clientLicenseExpiry) : null) : undefined,
       secondDriverName: secondDriverName !== undefined ? (secondDriverName || null) : undefined,
       secondDriverIdNumber: secondDriverIdNumber !== undefined ? (secondDriverIdNumber || null) : undefined,
       secondDriverIdExpiry: secondDriverIdExpiry !== undefined ? (secondDriverIdExpiry ? new Date(secondDriverIdExpiry) : null) : undefined,

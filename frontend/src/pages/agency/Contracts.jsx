@@ -353,14 +353,14 @@ function CollectedByInput({ agencyId, value, onChange }) {
 
 function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
   const [form, setForm] = useState(initial || {
-    carId: '', clientId: '', clientType: 'INDIVIDUAL', clientName: '', clientPhone: '', clientEmail: '', clientIdNumber: '', clientAddress: '',
+    carId: '', clientId: '', clientType: 'INDIVIDUAL', clientName: '', clientPhone: '', clientEmail: '', clientIdNumber: '', clientIdExpiry: '', clientAddress: '',
     startDate: '', endDate: '', rentalAmount: '', currency: 'MAD',
     guaranteeAmount: '', guaranteeCheck: false, guaranteeCheckNumber: '', guaranteeCheckAmount: '',
     isSubRental: false, subrenterName: '',
     startMileage: '', notes: '', amountPaid: '', collectedBy: '', collectedAt: '',
     rentalType: 'STANDARD', periodUnit: 'MONTH', intervalType: 'CLOSED', allowOverage: false,
     startTime: '', endTime: '', pickupLocation: '', dropoffLocation: '',
-    clientLicenseNumber: '',
+    clientLicenseNumber: '', clientLicenseExpiry: '',
     secondDriverName: '', secondDriverIdNumber: '', secondDriverIdExpiry: '',
     secondDriverLicense: '', secondDriverLicenseExpiry: '',
   })
@@ -388,8 +388,10 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
       clientPhone: client.phone || f.clientPhone,
       clientEmail: client.email || f.clientEmail,
       clientIdNumber: client.idNumber || f.clientIdNumber,
+      clientIdExpiry: client.idExpiry ? client.idExpiry.split('T')[0] : f.clientIdExpiry,
       clientAddress: client.address || f.clientAddress,
       clientLicenseNumber: client.clientType === 'COMPANY' ? '' : (client.licenseNumber || f.clientLicenseNumber),
+      clientLicenseExpiry: client.clientType === 'COMPANY' ? '' : (client.licenseExpiry ? client.licenseExpiry.split('T')[0] : f.clientLicenseExpiry),
     }))
   }
 
@@ -426,8 +428,12 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div><label className="label">Nom {form.clientType === 'COMPANY' ? '(entreprise)' : 'complet'} *</label><input className="input" value={form.clientName} onChange={set('clientName')} required /></div>
         <div><label className="label">CIN / Passeport</label><input className="input" value={form.clientIdNumber} onChange={set('clientIdNumber')} /></div>
+        <div><label className="label">Expiration CIN / Passeport</label><input className="input" type="date" value={form.clientIdExpiry} onChange={set('clientIdExpiry')} /></div>
         {form.clientType !== 'COMPANY' && (
           <div><label className="label">N° Permis de conduire</label><input className="input" value={form.clientLicenseNumber} onChange={set('clientLicenseNumber')} /></div>
+        )}
+        {form.clientType !== 'COMPANY' && (
+          <div><label className="label">Expiration permis de conduire</label><input className="input" type="date" value={form.clientLicenseExpiry} onChange={set('clientLicenseExpiry')} /></div>
         )}
         <div><label className="label">Téléphone</label><input className="input" value={form.clientPhone} onChange={set('clientPhone')} /></div>
         <div><label className="label">Email</label><input className="input" type="email" value={form.clientEmail} onChange={set('clientEmail')} /></div>
@@ -1265,6 +1271,8 @@ export default function Contracts() {
               amountPaid: modal.contract.amountPaid ?? 0,
               collectedBy: modal.contract.collectedBy ?? '',
               collectedAt: modal.contract.collectedAt?.split('T')[0] ?? '',
+              clientIdExpiry: modal.contract.clientIdExpiry?.split('T')[0] ?? '',
+              clientLicenseExpiry: modal.contract.clientLicenseExpiry?.split('T')[0] ?? '',
             }}
             cars={cars}
             agencyId={agencyId}

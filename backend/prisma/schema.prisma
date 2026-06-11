@@ -355,6 +355,7 @@ model RentalContract {
   clientPhone         String?
   clientEmail         String?
   clientIdNumber      String?
+  clientIdExpiry      DateTime?
   clientAddress       String?
   startDate           DateTime
   endDate             DateTime
@@ -385,6 +386,7 @@ model RentalContract {
   pickupLocation            String?
   dropoffLocation           String?
   clientLicenseNumber       String?
+  clientLicenseExpiry       DateTime?
   secondDriverName          String?
   secondDriverIdNumber      String?
   secondDriverIdExpiry      DateTime?
