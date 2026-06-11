@@ -62,7 +62,7 @@ function SinistreForm({ cars, preselectedCarId, preselectedContractId, preselect
         <label className="label">Description</label>
         <textarea className="input min-h-[80px]" value={form.description} onChange={set('description')} placeholder="Décrire le sinistre..." />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="label">Montant encaissé</label>
           <input className="input" type="number" step="0.01" min="0" value={form.collectedAmount} onChange={set('collectedAmount')} placeholder="0.00" />
@@ -239,11 +239,11 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
   // ── Liste ────────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <span className="text-sm text-gray-500">
           {isLoading ? 'Chargement...' : `${sinistres.length} sinistre(s)`}
         </span>
-        <button onClick={() => setView('create')} className="btn-primary flex items-center gap-2 text-sm">
+        <button onClick={() => setView('create')} className="btn-primary flex items-center justify-center gap-2 text-sm w-full sm:w-fit">
           <Plus className="w-4 h-4" /> Nouveau sinistre
         </button>
       </div>
@@ -315,7 +315,7 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
                   <p className="text-sm text-gray-600 whitespace-pre-line">{s.description}</p>
                 )}
                 {s.collectedAmount > 0 && (
-                  <div className="flex gap-6 text-sm">
+                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
                     <div>
                       <span className="text-gray-500">Montant encaissé :</span>{' '}
                       <span className="font-semibold text-green-700">{s.collectedAmount} MAD</span>
