@@ -135,20 +135,22 @@ function PartnerCard({ agencyId, partner }) {
             </button>
           </div>
           {partner.contacts.length > 0 ? (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  {['Nom', 'Poste', 'Téléphone', 'Email', ''].map(h => (
-                    <th key={h} className="text-left py-2 px-3 text-xs font-medium text-gray-500">{h}</th>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[480px]">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    {['Nom', 'Poste', 'Téléphone', 'Email', ''].map(h => (
+                      <th key={h} className="text-left py-2 px-3 text-xs font-medium text-gray-500">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {partner.contacts.map(c => (
+                    <ContactRow key={c.id} agencyId={agencyId} partner={partner} contact={c} />
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {partner.contacts.map(c => (
-                  <ContactRow key={c.id} agencyId={agencyId} partner={partner} contact={c} />
-                ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           ) : (
             <p className="text-center py-4 text-xs text-gray-400">Aucun contact — cliquez sur "Ajouter un contact"</p>
           )}
@@ -158,9 +160,9 @@ function PartnerCard({ agencyId, partner }) {
       {/* Edit partner modal */}
       <Modal isOpen={editModal} onClose={() => setEditModal(false)} title="Modifier le partenaire">
         <form onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(form) }} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2"><label className="label">Nom de l'entreprise *</label><input className="input" value={form.name} onChange={setF('name')} required /></div>
-            <div className="col-span-2"><label className="label">Nom du contact principal</label><input className="input" value={form.contactName} onChange={setF('contactName')} placeholder="Prénom Nom" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2"><label className="label">Nom de l'entreprise *</label><input className="input" value={form.name} onChange={setF('name')} required /></div>
+            <div className="sm:col-span-2"><label className="label">Nom du contact principal</label><input className="input" value={form.contactName} onChange={setF('contactName')} placeholder="Prénom Nom" /></div>
             <div><label className="label">Type</label>
               <select className="input" value={form.type} onChange={setF('type')}>
                 <option value="">—</option>
@@ -170,10 +172,10 @@ function PartnerCard({ agencyId, partner }) {
             <div><label className="label">Téléphone</label><input className="input" value={form.phone} onChange={setF('phone')} /></div>
             <div><label className="label">Email</label><input className="input" type="email" value={form.email} onChange={setF('email')} /></div>
             <div><label className="label">Site web</label><input className="input" value={form.website} onChange={setF('website')} /></div>
-            <div className="col-span-2"><label className="label">Adresse</label><input className="input" value={form.address} onChange={setF('address')} /></div>
+            <div className="sm:col-span-2"><label className="label">Adresse</label><input className="input" value={form.address} onChange={setF('address')} /></div>
           </div>
           <div><label className="label">Notes</label><textarea className="input" rows={2} value={form.notes} onChange={setF('notes')} /></div>
-          <div className="flex justify-end"><button type="submit" className="btn-primary" disabled={updateMutation.isPending}>Enregistrer</button></div>
+          <div className="flex justify-end"><button type="submit" className="btn-primary w-full sm:w-fit justify-center" disabled={updateMutation.isPending}>Enregistrer</button></div>
         </form>
       </Modal>
 
@@ -215,14 +217,14 @@ export default function Partners() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <input
-          className="input max-w-xs"
+          className="input w-full sm:max-w-xs"
           placeholder="Nom, contact, téléphone..."
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-        <button onClick={() => setModal(true)} className="btn-primary flex items-center gap-2">
+        <button onClick={() => setModal(true)} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit shrink-0">
           <Plus className="w-4 h-4" /> Nouveau Partenaire
         </button>
       </div>
@@ -242,9 +244,9 @@ export default function Partners() {
 
       <Modal isOpen={modal} onClose={() => setModal(false)} title="Nouveau Partenaire">
         <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(form) }} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2"><label className="label">Nom de l'entreprise *</label><input className="input" value={form.name} onChange={set('name')} required /></div>
-            <div className="col-span-2"><label className="label">Nom du contact principal</label><input className="input" value={form.contactName} onChange={set('contactName')} placeholder="Prénom Nom" /></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2"><label className="label">Nom de l'entreprise *</label><input className="input" value={form.name} onChange={set('name')} required /></div>
+            <div className="sm:col-span-2"><label className="label">Nom du contact principal</label><input className="input" value={form.contactName} onChange={set('contactName')} placeholder="Prénom Nom" /></div>
             <div><label className="label">Type</label>
               <select className="input" value={form.type} onChange={set('type')}>
                 <option value="">—</option>
@@ -254,10 +256,10 @@ export default function Partners() {
             <div><label className="label">Téléphone</label><input className="input" value={form.phone} onChange={set('phone')} /></div>
             <div><label className="label">Email</label><input className="input" type="email" value={form.email} onChange={set('email')} /></div>
             <div><label className="label">Site web</label><input className="input" value={form.website} onChange={set('website')} /></div>
-            <div className="col-span-2"><label className="label">Adresse</label><input className="input" value={form.address} onChange={set('address')} /></div>
+            <div className="sm:col-span-2"><label className="label">Adresse</label><input className="input" value={form.address} onChange={set('address')} /></div>
           </div>
           <div><label className="label">Notes</label><textarea className="input" rows={2} value={form.notes} onChange={set('notes')} /></div>
-          <div className="flex justify-end"><button type="submit" className="btn-primary" disabled={createMutation.isPending}>Créer</button></div>
+          <div className="flex justify-end"><button type="submit" className="btn-primary w-full sm:w-fit justify-center" disabled={createMutation.isPending}>Créer</button></div>
         </form>
       </Modal>
     </div>
