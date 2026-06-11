@@ -30,6 +30,7 @@ const agencyRequestsRoutes = require('./routes/agency/requests');
 const agencySinistresRoutes = require('./routes/agency/sinistres');
 const agencyProfileRoutes   = require('./routes/agency/profile');
 const agencyMembersRoutes   = require('./routes/agency/members');
+const publicRoutes          = require('./routes/public');
 
 const app = express();
 const server = http.createServer(app);
@@ -270,6 +271,7 @@ app.delete('/chat/conversations/:otherUserId', authenticate, async (req, res) =>
   res.json({ ok: true });
 });
 
+app.use('/public', publicRoutes);
 app.use('/auth', authRoutes);
 app.use('/admin/agencies', adminAgenciesRoutes);
 app.use('/admin/billing', adminBillingRoutes);

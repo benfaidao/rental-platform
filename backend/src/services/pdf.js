@@ -17,7 +17,7 @@ async function generateContractPdf(contract, stream, signatures = {}) {
 
   // ── QR code ────────────────────────────────────────────────────────────────
   const qrBuffer = await QRCode.toBuffer(
-    `rental:contract:${contract.contractNumber}`,
+    `https://www.mobiliscar.com/contract/${contract.contractNumber}`,
     { width: 100, margin: 1 }
   );
 

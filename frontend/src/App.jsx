@@ -20,6 +20,7 @@ import Access from './pages/agency/Access'
 import Chat from './pages/agency/Chat'
 import RentalRequests from './pages/agency/RentalRequests'
 import AgencySettings from './pages/agency/AgencySettings'
+import ContractView from './pages/ContractView'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children, adminOnly = false }) {
@@ -63,6 +64,7 @@ export default function App() {
       <SocketProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/contract/:contractNumber" element={<ContractView />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
