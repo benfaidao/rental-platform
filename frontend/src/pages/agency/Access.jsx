@@ -79,9 +79,9 @@ function GiverAccessCard({ agencyId, access, ownCars }) {
 
   return (
     <div className={`card p-0 overflow-hidden ${isBlocked ? 'border border-red-200' : ''}`}>
-      <div className="flex items-center justify-between p-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4">
         <div className="flex items-center gap-3">
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center ${isBlocked ? 'bg-red-100' : 'bg-blue-100'}`}>
+          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${isBlocked ? 'bg-red-100' : 'bg-blue-100'}`}>
             {isBlocked
               ? <Ban className="w-4 h-4 text-red-600" />
               : <Building2 className="w-4 h-4 text-blue-600" />}
@@ -99,9 +99,9 @@ function GiverAccessCard({ agencyId, access, ownCars }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <select
-            className={`input text-xs py-1 w-56 ${isBlocked ? 'border-red-300 text-red-700' : ''}`}
+            className={`input text-xs py-1 flex-1 sm:w-56 sm:flex-none ${isBlocked ? 'border-red-300 text-red-700' : ''}`}
             value={access.accessType}
             onChange={e => updateMutation.mutate({
               accessType: e.target.value,
@@ -113,7 +113,7 @@ function GiverAccessCard({ agencyId, access, ownCars }) {
             <option value="BLOCKED">⛔ Bloquer l'accès</option>
           </select>
           {!isBlocked && (
-            <button onClick={() => setExpanded(e => !e)} className="p-1.5 hover:bg-gray-100 rounded">
+            <button onClick={() => setExpanded(e => !e)} className="p-1.5 hover:bg-gray-100 rounded shrink-0">
               {expanded ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
             </button>
           )}
@@ -208,9 +208,9 @@ export default function Access() {
         </div>
 
         {data?.received.map(access => (
-          <div key={access.id} className="card flex items-center justify-between">
+          <div key={access.id} className="card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center">
+              <div className="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                 <Building2 className="w-4 h-4 text-green-600" />
               </div>
               <div>
@@ -226,7 +226,7 @@ export default function Access() {
               </div>
             </div>
             {access.accessType === 'SPECIFIC' && access.carAccesses.length > 0 && (
-              <div className="flex flex-wrap gap-1 max-w-sm">
+              <div className="flex flex-wrap gap-1">
                 {access.carAccesses.map(ca => (
                   <span key={ca.carId} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                     {ca.car?.brand} {ca.car?.model}
