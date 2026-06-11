@@ -117,6 +117,10 @@ export const downloadContractPdf = (agencyId, contractId) =>
   api.get(`/agencies/${agencyId}/contracts/${contractId}/pdf`, { responseType: 'blob' })
 export const downloadContractPdfSigned = (agencyId, contractId, signatures) =>
   api.post(`/agencies/${agencyId}/contracts/${contractId}/pdf`, signatures, { responseType: 'blob' })
+export const downloadContractInvoice = (agencyId, contractId) =>
+  api.get(`/agencies/${agencyId}/contracts/${contractId}/invoice`, { responseType: 'blob' })
+export const downloadContractInvoiceSigned = (agencyId, contractId, signatures) =>
+  api.post(`/agencies/${agencyId}/contracts/${contractId}/invoice`, signatures, { responseType: 'blob' })
 export const uploadContractPhotos = (agencyId, contractId, data) =>
   api.post(`/agencies/${agencyId}/contracts/${contractId}/photos`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
 export const deleteContractDocument = (agencyId, contractId, documentId) =>

@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getCars, getContracts, createContract, updateContract, deleteContract, downloadContractPdf, downloadContractPdfSigned, uploadContractPhotos, uploadContractDocument, deleteContractDocument, getClients, getClient, getPeriodicPayments, createPeriodicPayment, updatePeriodicPayment, deletePeriodicPayment, getAgencyMembers, getFileUrl } from '../../api'
+import { getCars, getContracts, createContract, updateContract, deleteContract, downloadContractPdf, downloadContractPdfSigned, downloadContractInvoice, downloadContractInvoiceSigned, uploadContractPhotos, uploadContractDocument, deleteContractDocument, getClients, getClient, getPeriodicPayments, createPeriodicPayment, updatePeriodicPayment, deletePeriodicPayment, getAgencyMembers, getFileUrl } from '../../api'
 import Modal from '../../components/Modal'
 import SinistresModal from './Sinistres'
 import SignatureCanvas from '../../components/SignatureCanvas'
-import { Plus, Edit2, Trash2, FileDown, Camera, Search, UserCheck, History, Filter, X, Car, ScanLine, CalendarRange, CheckCircle, Circle, ChevronDown, ChevronUp, FileSignature, Eye, Upload, AlertTriangle, PenLine, Building2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, FileDown, Camera, Search, UserCheck, History, Filter, X, Car, ScanLine, CalendarRange, CheckCircle, Circle, ChevronDown, ChevronUp, FileSignature, Eye, Upload, AlertTriangle, PenLine, Building2, Receipt } from 'lucide-react'
 import QRScanner from '../../components/QRScanner'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
@@ -587,6 +587,70 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
   )
 }
 
+function InvoiceModal({ agencyId, contract, onClose }) {
+  const clientRef = useRef(null)
+  const [loading, setLoading] = useState(false)
+
+  const handleDownload = async (withSignature) => {
+    setLoading(true)
+    try {
+      let res
+      if (withSignature) {
+        res = await downloadContractInvoiceSigned(agencyId, contract.id, {
+          signatureClient: clientRef.current?.getDataURL(),
+        })
+      } else {
+        res = await downloadContractInvoice(agencyId, contract.id)
+      }
+      const url = URL.createObjectURL(res.data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `facture-${contract.contractNumber}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Facture téléchargée')
+      onClose()
+    } catch {
+      toast.error('Erreur lors de la génération')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-800">
+        <p className="font-medium mb-1">Facture — {contract.contractNumber}</p>
+        <p>Client : <strong>{contract.clientName}</strong></p>
+        <p>Montant : <strong>{contract.rentalAmount?.toLocaleString()} {contract.currency}</strong> · Encaissé : <strong>{(contract.amountPaid || 0).toLocaleString()} {contract.currency}</strong></p>
+      </div>
+      <p className="text-sm text-gray-500">Le client peut signer ci-dessous pour confirmer la réception de la facture.</p>
+      <SignatureCanvas ref={clientRef} label={`Signature du client (${contract.clientName})`} />
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2 border-t border-gray-100">
+        <button type="button" onClick={onClose} className="btn-secondary w-full sm:w-fit justify-center">Annuler</button>
+        <button
+          type="button"
+          onClick={() => handleDownload(false)}
+          disabled={loading}
+          className="btn-secondary flex items-center gap-2 w-full sm:w-fit justify-center"
+        >
+          <FileDown className="w-4 h-4" />
+          Sans signature
+        </button>
+        <button
+          type="button"
+          onClick={() => handleDownload(true)}
+          disabled={loading}
+          className="btn-primary flex items-center gap-2 w-full sm:w-fit justify-center"
+        >
+          <Receipt className="w-4 h-4" />
+          {loading ? 'Génération...' : 'Télécharger avec signature'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function PhotoUploadModal({ agencyId, contract }) {
   const qc = useQueryClient()
   const [files, setFiles] = useState([])
@@ -1129,6 +1193,12 @@ export default function Contracts() {
       >
         <PenLine className="w-3.5 h-3.5 text-purple-500" />
       </button>
+      <button
+        onClick={() => setModal({ type: 'invoice', contract: c })}
+        className="p-1.5 hover:bg-green-50 rounded" title="Générer une facture"
+      >
+        <Receipt className="w-3.5 h-3.5 text-green-600" />
+      </button>
       <button onClick={() => setModal({ type: 'photos', contract: c })} className="p-1.5 hover:bg-gray-100 rounded" title="Photos de la voiture">
         <Camera className="w-3.5 h-3.5 text-green-500" />
       </button>
@@ -1369,6 +1439,15 @@ export default function Contracts() {
             agencyId={agencyId}
             contract={modal.contract}
             allCars={cars}
+          />
+        )}
+      </Modal>
+      <Modal isOpen={modal?.type === 'invoice'} onClose={() => setModal(null)} title={`Facture — ${modal?.contract?.contractNumber}`} size="md">
+        {modal?.contract && (
+          <InvoiceModal
+            agencyId={agencyId}
+            contract={modal.contract}
+            onClose={() => setModal(null)}
           />
         )}
       </Modal>

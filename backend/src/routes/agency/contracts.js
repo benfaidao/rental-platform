@@ -3,6 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const { authenticate, requireAgencyAccess } = require('../../middleware/auth');
 const upload = require('../../middleware/upload');
 const generateContractPdf = require('../../services/pdf');
+const generateInvoicePdf = require('../../services/invoice');
 
 const router = express.Router({ mergeParams: true });
 const prisma = new PrismaClient();
@@ -389,6 +390,30 @@ router.post('/:contractId/pdf', async (req, res) => {
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="contrat-${contract.contractNumber}.pdf"`);
   await generateContractPdf(contract, res, signatures);
+});
+
+router.get('/:contractId/invoice', async (req, res) => {
+  const contract = await prisma.rentalContract.findFirst({
+    where: { id: req.params.contractId, agencyId: req.params.agencyId },
+    include: { car: true, agency: true },
+  });
+  if (!contract) return res.status(404).json({ error: 'Contrat non trouvé' });
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="facture-${contract.contractNumber}.pdf"`);
+  await generateInvoicePdf(contract, res);
+});
+
+router.post('/:contractId/invoice', async (req, res) => {
+  const contract = await prisma.rentalContract.findFirst({
+    where: { id: req.params.contractId, agencyId: req.params.agencyId },
+    include: { car: true, agency: true },
+  });
+  if (!contract) return res.status(404).json({ error: 'Contrat non trouvé' });
+  const { signatureClient } = req.body;
+  const signatures = { client: signatureClient };
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="facture-${contract.contractNumber}.pdf"`);
+  await generateInvoicePdf(contract, res, signatures);
 });
 
 router.post('/:contractId/photos', upload.array('photos', 10), async (req, res) => {
