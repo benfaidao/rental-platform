@@ -97,7 +97,7 @@ async function generateContractPdf(contract, stream, signatures = {}) {
     ['Montant :', `${contract.rentalAmount} ${contract.currency}`],
     contract.montantTTC != null && ['Montant TTC :', `${contract.montantTTC} ${contract.currency}`],
     (contract.amountPaid != null) && ['Encaissé :', `${contract.amountPaid} ${contract.currency}`],
-    contract.guaranteeAmount > 0 && ['Garantie :', `${contract.guaranteeAmount} ${contract.currency}`],
+    contract.guaranteeAmount > 0 && ['Garantie encaissée :', `${contract.guaranteeAmount} ${contract.currency}`],
     ['Dépassement :', contract.allowOverage ? 'Autorisé' : 'Non autorisé'],
   ]);
 
