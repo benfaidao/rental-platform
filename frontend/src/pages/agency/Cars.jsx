@@ -103,7 +103,7 @@ function CarForm({ initial, onSubmit, loading }) {
       </div>
       <div><label className="label">Notes</label><textarea className="input" rows={2} value={form.notes} onChange={set('notes')} /></div>
       <div className="flex justify-end pt-2">
-        <button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button>
+        <button type="submit" className="btn-primary w-full sm:w-fit justify-center" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button>
       </div>
     </form>
   )
@@ -328,12 +328,12 @@ function CarDetailModal({ agencyId, carId }) {
   ]
 
   const renderContractRow = (c) => (
-    <div key={c.id} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-      <div>
-        <p className="text-sm font-medium">{c.clientName} <span className="text-xs text-gray-400">— {c.contractNumber}</span></p>
+    <div key={c.id} className="flex items-start justify-between gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium truncate">{c.clientName} <span className="text-xs text-gray-400">— {c.contractNumber}</span></p>
         <p className="text-xs text-gray-500">{fmtDate(c.startDate)} → {fmtDate(c.endDate)}</p>
       </div>
-      <div className="text-right">
+      <div className="text-right shrink-0">
         <span className={CONTRACT_STATUS_BADGE[c.status] || 'badge-gray'}>{CONTRACT_STATUS[c.status] || c.status}</span>
         <p className="text-xs text-gray-500 mt-1">{fmtMoney(c.montantTTC ?? c.rentalAmount)}</p>
       </div>
@@ -342,12 +342,12 @@ function CarDetailModal({ agencyId, carId }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-1 flex-wrap bg-gray-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 overflow-x-auto bg-gray-100 p-1 rounded-xl">
         {tabs.map(t => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${tab === t.key ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap shrink-0 ${tab === t.key ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}
           >
             <t.icon className="w-3.5 h-3.5" /> {t.label}
           </button>
@@ -416,9 +416,9 @@ function CarDetailModal({ agencyId, carId }) {
             <div className="space-y-2">
               {(!car.oilChanges || !car.oilChanges.length) && <p className="text-sm text-gray-400">Aucune vidange enregistrée</p>}
               {car.oilChanges?.map(o => (
-                <div key={o.id} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                  <span>{fmtDate(o.date)} — {o.mileage?.toLocaleString()} km {o.oilType ? `(${o.oilType})` : ''}</span>
-                  {o.cost != null && <span className="text-gray-500">{fmtMoney(o.cost)}</span>}
+                <div key={o.id} className="flex items-start justify-between gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                  <span className="min-w-0 flex-1">{fmtDate(o.date)} — {o.mileage?.toLocaleString()} km {o.oilType ? `(${o.oilType})` : ''}</span>
+                  {o.cost != null && <span className="text-gray-500 shrink-0">{fmtMoney(o.cost)}</span>}
                 </div>
               ))}
             </div>
@@ -428,9 +428,9 @@ function CarDetailModal({ agencyId, carId }) {
             <div className="space-y-2">
               {(!car.repairs || !car.repairs.length) && <p className="text-sm text-gray-400">Aucune réparation enregistrée</p>}
               {car.repairs?.map(r => (
-                <div key={r.id} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                  <span>{fmtDate(r.date)} — {r.description} {r.garage ? `(${r.garage})` : ''}</span>
-                  {r.cost != null && <span className="text-gray-500">{fmtMoney(r.cost)}</span>}
+                <div key={r.id} className="flex items-start justify-between gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                  <span className="min-w-0 flex-1">{fmtDate(r.date)} — {r.description} {r.garage ? `(${r.garage})` : ''}</span>
+                  {r.cost != null && <span className="text-gray-500 shrink-0">{fmtMoney(r.cost)}</span>}
                 </div>
               ))}
             </div>
@@ -440,9 +440,9 @@ function CarDetailModal({ agencyId, carId }) {
             <div className="space-y-2">
               {(!car.tireRecords || !car.tireRecords.length) && <p className="text-sm text-gray-400">Aucun changement de pneus enregistré</p>}
               {car.tireRecords?.map(t => (
-                <div key={t.id} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm">
-                  <span>{fmtDate(t.date)} {t.position ? `— ${t.position}` : ''} {t.brand ? `(${t.brand})` : ''}</span>
-                  {t.cost != null && <span className="text-gray-500">{fmtMoney(t.cost)}</span>}
+                <div key={t.id} className="flex items-start justify-between gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                  <span className="min-w-0 flex-1">{fmtDate(t.date)} {t.position ? `— ${t.position}` : ''} {t.brand ? `(${t.brand})` : ''}</span>
+                  {t.cost != null && <span className="text-gray-500 shrink-0">{fmtMoney(t.cost)}</span>}
                 </div>
               ))}
             </div>
@@ -458,7 +458,7 @@ function CarDetailModal({ agencyId, carId }) {
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-2">
                 <Search className="w-4 h-4 text-gray-400" />
-                <select className="input py-1.5 text-sm w-56" value={docTypeFilter} onChange={e => setDocTypeFilter(e.target.value)}>
+                <select className="input py-1.5 text-sm w-full sm:w-56" value={docTypeFilter} onChange={e => setDocTypeFilter(e.target.value)}>
                   <option value="">Tous les types de document</option>
                   {DOC_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
