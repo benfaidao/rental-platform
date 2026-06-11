@@ -231,23 +231,29 @@ function PeriodicPaymentsPanel({ agencyId, contractId, currency }) {
 
       <div className="space-y-1.5">
         {payments.map((p, i) => (
-          <div key={p.id} className={`flex items-center justify-between rounded-lg px-3 py-2 text-sm ${p.paidAt ? 'bg-green-50 border border-green-100' : 'bg-orange-50 border border-orange-100'}`}>
-            <div className="flex items-center gap-2">
+          <div key={p.id} className={`flex items-start justify-between gap-2 rounded-lg px-3 py-2 text-sm ${p.paidAt ? 'bg-green-50 border border-green-100' : 'bg-orange-50 border border-orange-100'}`}>
+            <div className="flex items-start gap-2 min-w-0 flex-1">
               {p.paidAt
-                ? <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
-                : <Circle className="w-4 h-4 text-orange-400 shrink-0" />}
-              <div>
-                <span className="font-medium">{p.amount.toLocaleString()} {currency}</span>
-                <span className="text-gray-500 ml-2 text-xs">{fmtDate(p.periodStart)} → {fmtDate(p.periodEnd)}</span>
-                {p.notes && <span className="text-gray-400 ml-2 text-xs">{p.notes}</span>}
-                {p.paidAt && <span className="text-green-600 ml-2 text-xs">payé le {fmtDate(p.paidAt)}</span>}
+                ? <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                : <Circle className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />}
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="font-medium">{p.amount.toLocaleString()} {currency}</span>
+                  <span className="text-gray-500 text-xs">{fmtDate(p.periodStart)} → {fmtDate(p.periodEnd)}</span>
+                </div>
+                {(p.notes || p.paidAt) && (
+                  <div className="flex flex-wrap gap-x-2 mt-0.5">
+                    {p.notes && <span className="text-gray-400 text-xs">{p.notes}</span>}
+                    {p.paidAt && <span className="text-green-600 text-xs">payé le {fmtDate(p.paidAt)}</span>}
+                  </div>
+                )}
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               {!p.paidAt && (
                 <button
                   onClick={() => updateMut.mutate({ id: p.id, data: { paidAt: format(new Date(), 'yyyy-MM-dd') } })}
-                  className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-2 py-0.5 rounded"
+                  className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-2 py-0.5 rounded whitespace-nowrap"
                 >
                   Marquer payé
                 </button>
@@ -255,9 +261,9 @@ function PeriodicPaymentsPanel({ agencyId, contractId, currency }) {
               {p.paidAt && (
                 <button
                   onClick={() => updateMut.mutate({ id: p.id, data: { paidAt: null } })}
-                  className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-0.5 rounded"
+                  className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-0.5 rounded whitespace-nowrap"
                 >
-                  Annuler paiement
+                  Annuler
                 </button>
               )}
               <button onClick={() => { if (confirm('Supprimer cette période ?')) deleteMut.mutate(p.id) }} className="p-1 hover:bg-red-50 rounded">
@@ -786,7 +792,39 @@ function HistoryTab({ agencyId }) {
         </>}
       </div>
 
-      <div className="card p-0 overflow-hidden">
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-3">
+        {isLoading && <div className="card text-center py-8 text-gray-400">Chargement...</div>}
+        {filtered.map(c => (
+          <div key={c.id} className="card space-y-2">
+            <div className="flex items-start justify-between gap-2">
+              <p className="font-mono text-xs font-medium">{c.contractNumber}</p>
+              <span className={STATUS_BADGE[c.status]}>{STATUS[c.status]}</span>
+            </div>
+            <div>
+              <p className="font-medium text-sm">{c.clientName}</p>
+              {c.clientPhone && <p className="text-xs text-gray-400">{c.clientPhone}</p>}
+            </div>
+            <p className="text-sm text-gray-600">{c.car?.brand} {c.car?.model} — <span className="text-xs text-gray-400">{c.car?.finalPlate || c.car?.wwPlate}</span></p>
+            <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>{fmtDate(c.startDate)} → {fmtDate(c.endDate)}</span>
+              <span className="text-gray-400 text-xs">{days(c)}j</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-sm">{(c.rentalAmount || 0).toLocaleString()} {c.currency}</span>
+              {c.amountPaid >= c.rentalAmount
+                ? <span className="badge-green">Soldé</span>
+                : c.amountPaid > 0
+                  ? <span className="badge-yellow">{(c.amountPaid || 0).toLocaleString()}</span>
+                  : <span className="badge-gray">Non encaissé</span>}
+            </div>
+          </div>
+        ))}
+        {!isLoading && !filtered.length && <div className="card text-center py-8 text-gray-400">Aucun résultat</div>}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block card p-0 overflow-hidden">
         <div className="overflow-x-auto"><table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
@@ -921,40 +959,67 @@ function ClientHistoryTab({ agencyId }) {
 
           {/* Contract list */}
           {contracts.length > 0 && (
-            <div className="card p-0 overflow-hidden">
-              <div className="overflow-x-auto"><table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    {['N° Contrat', 'Véhicule', 'Départ', 'Retour', 'Durée', 'Montant', 'Encaissé', 'Statut'].map(h => (
-                      <th key={h} className="text-left py-3 px-4 font-medium text-gray-600 text-xs">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {contracts.map(c => (
-                    <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
-                      <td className="py-3 px-4 font-mono text-xs font-medium">{c.contractNumber}</td>
-                      <td className="py-3 px-4">
-                        <p className="font-medium">{c.car?.brand} {c.car?.model}</p>
-                        <p className="text-xs text-gray-400">{c.car?.finalPlate || c.car?.wwPlate}</p>
-                      </td>
-                      <td className="py-3 px-4 text-gray-600">{fmtDate(c.startDate)}</td>
-                      <td className="py-3 px-4 text-gray-600">{fmtDate(c.endDate)}</td>
-                      <td className="py-3 px-4 text-gray-500">{days(c)}j</td>
-                      <td className="py-3 px-4 font-medium">{(c.rentalAmount || 0).toLocaleString()} {c.currency}</td>
-                      <td className="py-3 px-4">
-                        {c.amountPaid >= c.rentalAmount
-                          ? <span className="badge-green">Soldé</span>
-                          : c.amountPaid > 0
-                            ? <span className="badge-yellow">{(c.amountPaid || 0).toLocaleString()}</span>
-                            : <span className="badge-gray">Non encaissé</span>}
-                      </td>
-                      <td className="py-3 px-4"><span className={STATUS_BADGE[c.status]}>{STATUS[c.status]}</span></td>
+            <>
+              {/* Mobile cards */}
+              <div className="sm:hidden space-y-3">
+                {contracts.map(c => (
+                  <div key={c.id} className="card space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-mono text-xs font-medium">{c.contractNumber}</p>
+                      <span className={STATUS_BADGE[c.status]}>{STATUS[c.status]}</span>
+                    </div>
+                    <p className="text-sm text-gray-600">{c.car?.brand} {c.car?.model} — <span className="text-xs text-gray-400">{c.car?.finalPlate || c.car?.wwPlate}</span></p>
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span>{fmtDate(c.startDate)} → {fmtDate(c.endDate)}</span>
+                      <span className="text-gray-400 text-xs">{days(c)}j</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium text-sm">{(c.rentalAmount || 0).toLocaleString()} {c.currency}</span>
+                      {c.amountPaid >= c.rentalAmount
+                        ? <span className="badge-green">Soldé</span>
+                        : c.amountPaid > 0
+                          ? <span className="badge-yellow">{(c.amountPaid || 0).toLocaleString()}</span>
+                          : <span className="badge-gray">Non encaissé</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Desktop table */}
+              <div className="hidden sm:block card p-0 overflow-hidden">
+                <div className="overflow-x-auto"><table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      {['N° Contrat', 'Véhicule', 'Départ', 'Retour', 'Durée', 'Montant', 'Encaissé', 'Statut'].map(h => (
+                        <th key={h} className="text-left py-3 px-4 font-medium text-gray-600 text-xs">{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table></div>
-            </div>
+                  </thead>
+                  <tbody>
+                    {contracts.map(c => (
+                      <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
+                        <td className="py-3 px-4 font-mono text-xs font-medium">{c.contractNumber}</td>
+                        <td className="py-3 px-4">
+                          <p className="font-medium">{c.car?.brand} {c.car?.model}</p>
+                          <p className="text-xs text-gray-400">{c.car?.finalPlate || c.car?.wwPlate}</p>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">{fmtDate(c.startDate)}</td>
+                        <td className="py-3 px-4 text-gray-600">{fmtDate(c.endDate)}</td>
+                        <td className="py-3 px-4 text-gray-500">{days(c)}j</td>
+                        <td className="py-3 px-4 font-medium">{(c.rentalAmount || 0).toLocaleString()} {c.currency}</td>
+                        <td className="py-3 px-4">
+                          {c.amountPaid >= c.rentalAmount
+                            ? <span className="badge-green">Soldé</span>
+                            : c.amountPaid > 0
+                              ? <span className="badge-yellow">{(c.amountPaid || 0).toLocaleString()}</span>
+                              : <span className="badge-gray">Non encaissé</span>}
+                        </td>
+                        <td className="py-3 px-4"><span className={STATUS_BADGE[c.status]}>{STATUS[c.status]}</span></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table></div>
+              </div>
+            </>
           )}
 
           {/* Notes from contracts */}
