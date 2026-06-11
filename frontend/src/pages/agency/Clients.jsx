@@ -311,14 +311,15 @@ export default function Clients() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 self-end sm:self-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end border-t border-gray-100 pt-2 sm:border-0 sm:pt-0">
                 {c.idFileUrl && (
-                  <a href={getFileUrl(c.idFileUrl, agencyId)} target="_blank" rel="noreferrer" className="p-1.5 hover:bg-gray-100 rounded" title="Pièce d'identité">
-                    <ExternalLink className="w-3.5 h-3.5 text-blue-500" />
+                  <a href={getFileUrl(c.idFileUrl, agencyId)} target="_blank" rel="noreferrer" className="p-2 hover:bg-gray-100 rounded-lg" title="Pièce d'identité">
+                    <ExternalLink className="w-4 h-4 text-blue-500" />
                   </a>
                 )}
-                <button onClick={() => setHistoryClient(c)} className="p-2 hover:bg-blue-50 rounded-lg" title="Voir l'historique">
+                <button onClick={() => setHistoryClient(c)} className="p-2 hover:bg-blue-50 rounded-lg flex items-center gap-1.5 text-xs text-blue-500 font-medium" title="Voir l'historique">
                   <History className="w-4 h-4 text-blue-400" />
+                  <span className="sm:hidden">Historique</span>
                 </button>
                 <button onClick={() => openEdit(c)} className="p-2 hover:bg-gray-100 rounded-lg">
                   <Edit2 className="w-4 h-4 text-gray-500" />
