@@ -40,7 +40,7 @@ function CheckForm({ initial, onSubmit, loading, isIssued }) {
         <div><label className="label">Raison</label><input className="input" value={form.reason} onChange={set('reason')} /></div>
       </div>
       <div><label className="label">Commentaire</label><textarea className="input" rows={2} value={form.comment} onChange={set('comment')} /></div>
-      <div className="flex justify-end"><button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button></div>
+      <div className="flex justify-end"><button type="submit" className="btn-primary w-full sm:w-fit justify-center" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button></div>
     </form>
   )
 }
@@ -59,7 +59,38 @@ function CheckTable({ checks, onEdit, onDelete, isIssued }) {
         <span className="text-gray-500">Total: <strong>{total.toLocaleString()} MAD</strong></span>
         {totalUnused > 0 && <span className="text-yellow-600">Non exploités: <strong>{totalUnused.toLocaleString()} MAD</strong></span>}
       </div>
-      <div className="overflow-x-auto">
+
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-3">
+        {checks.map(c => (
+          <div key={c.id} className="card space-y-1.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="font-mono font-medium text-sm">{c.checkNumber}</p>
+                <p className="font-medium truncate">{c.payableTo}</p>
+                <p className="text-xs text-gray-500">
+                  {fmtDate(c.date)}{isIssued && c.encaissementDate ? ` · Encaissement: ${fmtDate(c.encaissementDate)}` : ''}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="font-bold text-sm">{c.amount.toLocaleString()} MAD</span>
+                <div className="flex gap-1">
+                  <button onClick={() => onEdit(c)} className="p-1 hover:bg-gray-100 rounded"><Edit2 className="w-3.5 h-3.5 text-gray-500" /></button>
+                  <button onClick={() => { if (confirm('Supprimer ?')) onDelete(c.id) }} className="p-1 hover:bg-red-50 rounded"><Trash2 className="w-3.5 h-3.5 text-red-400" /></button>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className={STATUS_BADGE[c.status]}>{STATUS[c.status]}</span>
+              {(c.reason || c.comment) && <span className="text-xs text-gray-400 self-center">{c.reason || c.comment}</span>}
+            </div>
+          </div>
+        ))}
+        {!checks.length && <p className="text-center py-8 text-gray-400">Aucun chèque</p>}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block overflow-x-auto">
       <table className="w-full text-sm bg-white rounded-xl shadow-sm border border-gray-100">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>{headers.map(h => <th key={h} className="text-left py-3 px-4 font-medium text-gray-600">{h}</th>)}</tr>

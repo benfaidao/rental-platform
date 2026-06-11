@@ -80,7 +80,7 @@ function Associates({ agencyId }) {
             <div><label className="label">Rôle</label><select className="input" value={form.role} onChange={set('role')}><option value="ASSOCIATE">Associé</option><option value="EMPLOYEE">Employé</option></select></div>
             <div><label className="label">Part (%)</label><input className="input" type="number" step="0.01" value={form.sharePercent} onChange={set('sharePercent')} /></div>
           </div>
-          <div className="flex justify-end"><button type="submit" className="btn-primary">Enregistrer</button></div>
+          <div className="flex justify-end"><button type="submit" className="btn-primary w-full sm:w-fit justify-center">Enregistrer</button></div>
         </form>
       </Modal>
     </div>
@@ -128,7 +128,30 @@ function Contributions({ agencyId }) {
           <Plus className="w-4 h-4" /> Nouvelle Cotisation
         </button>
       </div>
-      <div className="overflow-x-auto">
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-3">
+        {filteredContributions.map(c => (
+          <div key={c.id} className="card space-y-1">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium">{c.associate?.name}</p>
+                <p className="text-xs text-gray-500">{fmtDate(c.date)}{c.period ? ` · ${c.period}` : ''}</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="font-bold text-sm">{c.amount.toLocaleString()} MAD</span>
+                <button onClick={() => { if (confirm('Supprimer ?')) deleteMutation.mutate(c.id) }} className="p-1 hover:bg-red-50 rounded">
+                  <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                </button>
+              </div>
+            </div>
+            {c.notes && <p className="text-xs text-gray-400">{c.notes}</p>}
+          </div>
+        ))}
+        {!filteredContributions.length && <p className="text-center py-8 text-gray-400">Aucune cotisation{year ? ` en ${year}` : ''}</p>}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block overflow-x-auto">
       <table className="w-full text-sm bg-white rounded-xl shadow-sm border border-gray-100">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>{['Associé', 'Montant', 'Date', 'Période', 'Notes', ''].map(h => <th key={h} className="text-left py-3 px-4 font-medium text-gray-600">{h}</th>)}</tr>
@@ -157,7 +180,7 @@ function Contributions({ agencyId }) {
             <div><label className="label">Période</label><input className="input" placeholder="Ex: 2024-01" value={form.period} onChange={set('period')} /></div>
           </div>
           <div><label className="label">Notes</label><textarea className="input" rows={2} value={form.notes} onChange={set('notes')} /></div>
-          <div className="flex justify-end"><button type="submit" className="btn-primary" disabled={createMutation.isPending}>Enregistrer</button></div>
+          <div className="flex justify-end"><button type="submit" className="btn-primary w-full sm:w-fit justify-center" disabled={createMutation.isPending}>Enregistrer</button></div>
         </form>
       </Modal>
     </div>
@@ -333,7 +356,37 @@ function Transactions({ agencyId, isAdmin, user }) {
         </button>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile cards */}
+      <div className="sm:hidden space-y-3">
+        {transactions.map(t => (
+          <div key={t.id} className="card space-y-1.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium truncate">{t.description}</p>
+                <p className="text-xs text-gray-500">
+                  {fmtDate(t.date)}{(t.collectedByName || t.associate?.name) ? ` · ${t.collectedByName || t.associate?.name}` : ''}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="font-bold text-sm">{t.amount.toLocaleString()} {t.currency}</span>
+                {!t._isContribution && (
+                  <button onClick={() => { if (confirm('Supprimer ?')) deleteMutation.mutate(t.id) }} className="p-1 hover:bg-red-50 rounded">
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className={TRANSACTION_TYPES[t.type]?.badge}>{TRANSACTION_TYPES[t.type]?.label}</span>
+              {t.category && <span className="text-xs text-gray-400 self-center">{t.category}</span>}
+            </div>
+          </div>
+        ))}
+        {!transactions.length && <p className="text-center py-8 text-gray-400">Aucune transaction</p>}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block overflow-x-auto">
       <table className="w-full text-sm bg-white rounded-xl shadow-sm border border-gray-100">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>{['Type', 'Description', 'Montant', 'Date', 'Encaissé par', 'Catégorie', ''].map(h => <th key={h} className="text-left py-3 px-4 font-medium text-gray-600">{h}</th>)}</tr>
@@ -345,9 +398,7 @@ function Transactions({ agencyId, isAdmin, user }) {
               <td className="py-3 px-4 font-medium">{t.description}</td>
               <td className="py-3 px-4">{t.amount.toLocaleString()} {t.currency}</td>
               <td className="py-3 px-4 text-gray-500">{fmtDate(t.date)}</td>
-              <td className="py-3 px-4 text-gray-500">
-                {t.collectedByName || t.associate?.name || '-'}
-              </td>
+              <td className="py-3 px-4 text-gray-500">{t.collectedByName || t.associate?.name || '-'}</td>
               <td className="py-3 px-4 text-gray-500 text-xs">{t.category || '-'}</td>
               <td className="py-3 px-4">
                 {!t._isContribution && (
