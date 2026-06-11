@@ -4,6 +4,45 @@ import { useAuth } from '../contexts/AuthContext'
 import { login as apiLogin } from '../api'
 import toast from 'react-hot-toast'
 
+const features = [
+  {
+    icon: '📋',
+    title: 'Contrats complets',
+    desc: 'Créez, gérez et signez vos contrats en ligne. PDF généré automatiquement avec QR code.',
+  },
+  {
+    icon: '🚗',
+    title: 'Gestion de flotte',
+    desc: 'Suivez chaque véhicule : maintenance, assurance, contrôle technique, disponibilité en temps réel.',
+  },
+  {
+    icon: '📊',
+    title: 'Tableau de bord intelligent',
+    desc: 'Alertes automatiques, Gantt de disponibilité, solde en espèces et indicateurs clés d\'un seul coup d\'œil.',
+  },
+  {
+    icon: '💰',
+    title: 'Finance & comptabilité',
+    desc: 'Recettes, dépenses, chèques émis et reçus, cotisations associés et génération de factures.',
+  },
+  {
+    icon: '👥',
+    title: 'Gestion clients',
+    desc: 'Fiche client complète avec CIN, permis, historique de locations et upload de documents.',
+  },
+  {
+    icon: '🤝',
+    title: 'Collaboration inter-agences',
+    desc: 'Partagez votre flotte, répondez aux demandes de location et développez votre réseau.',
+  },
+]
+
+const stats = [
+  { value: '100%', label: 'Adapté mobile' },
+  { value: 'PDF', label: 'Contrats & Factures' },
+  { value: '∞', label: 'Véhicules & Clients' },
+]
+
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
@@ -23,63 +62,149 @@ export default function Login() {
         navigate(agencyId ? `/agency/${agencyId}` : '/')
       }
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Erreur de connexion')
+      toast.error(err.response?.data?.error || 'Identifiants incorrects')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-blue-700 flex flex-col items-center justify-center p-4">
-      <div className="text-center mb-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">Pilotez votre flotte comme un cockpit</h2>
-        <p className="text-blue-100 text-sm mt-2">Gérez vos véhicules, contrats et finances depuis une seule plateforme</p>
-        <p className="text-blue-100 text-sm mt-1">
-          Contactez-nous au{' '}
-          <a href="tel:+212672491389" className="text-white font-medium hover:underline">+212 672 491 389</a>
-          {' '}ou{' '}
-          <a href="tel:+33751970713" className="text-white font-medium hover:underline">+33 751 970 713</a>
-        </p>
-      </div>
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="text-5xl mb-4">🚗</div>
-          <h1 className="text-2xl font-bold text-gray-800">Gestion Location</h1>
-          <p className="text-gray-500 text-sm mt-1">Plateforme de gestion des agences</p>
+    <div className="min-h-screen flex flex-col lg:flex-row">
+
+      {/* ── Panneau marketing (gauche) ── */}
+      <div className="lg:w-3/5 bg-gradient-to-br from-[#0f2a5e] via-[#1a3f8f] to-[#1e56c0] flex flex-col justify-between p-8 lg:p-12 text-white">
+
+        {/* Logo / marque */}
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-3xl">🚗</span>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight leading-none">mobiliscar</h1>
+              <p className="text-blue-300 text-xs">.com</p>
+            </div>
+          </div>
+
+          <div className="mt-10 lg:mt-14">
+            <h2 className="text-3xl lg:text-4xl font-bold leading-tight">
+              Pilotez votre flotte<br />
+              <span className="text-blue-300">comme un cockpit.</span>
+            </h2>
+            <p className="text-blue-100 mt-4 text-base lg:text-lg max-w-lg">
+              La plateforme tout-en-un pour les agences de location de véhicules au Maroc et en Europe. Gérez votre flotte, vos clients et vos finances depuis n'importe quel appareil.
+            </p>
+          </div>
+
+          {/* Fonctionnalités */}
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {features.map(f => (
+              <div key={f.title} className="flex items-start gap-3 bg-white/8 rounded-xl p-3.5 backdrop-blur-sm border border-white/10">
+                <span className="text-2xl leading-none mt-0.5">{f.icon}</span>
+                <div>
+                  <p className="font-semibold text-sm">{f.title}</p>
+                  <p className="text-blue-200 text-xs mt-0.5 leading-relaxed">{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Stats */}
+          <div className="mt-8 flex gap-6 flex-wrap">
+            {stats.map(s => (
+              <div key={s.label} className="text-center">
+                <p className="text-2xl font-bold text-white">{s.value}</p>
+                <p className="text-blue-300 text-xs mt-0.5">{s.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="label">Email</label>
-            <input
-              type="email"
-              className="input"
-              placeholder="admin@rental.ma"
-              value={form.email}
-              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-              required
-            />
+        {/* Contact */}
+        <div className="mt-10 pt-6 border-t border-white/15">
+          <p className="text-blue-200 text-sm mb-2 font-medium">Pas encore client ? Contactez-nous :</p>
+          <div className="flex flex-wrap gap-4">
+            <a href="tel:+212672491389" className="flex items-center gap-2 text-white hover:text-blue-200 transition-colors text-sm font-medium">
+              <span>📞</span> +212 672 491 389
+            </a>
+            <a href="tel:+33751970713" className="flex items-center gap-2 text-white hover:text-blue-200 transition-colors text-sm font-medium">
+              <span>📞</span> +33 751 970 713
+            </a>
           </div>
-          <div>
-            <label className="label">Mot de passe</label>
-            <input
-              type="password"
-              className="input"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-              required
-            />
-          </div>
-          <button type="submit" disabled={loading} className="btn-primary w-full py-3">
-            {loading ? 'Connexion...' : 'Se connecter'}
-          </button>
-        </form>
+          <a
+            href="mailto:contact@mobiliscar.com"
+            className="inline-flex items-center gap-2 mt-3 text-blue-200 hover:text-white transition-colors text-sm"
+          >
+            <span>✉️</span> contact@mobiliscar.com
+          </a>
+        </div>
+      </div>
 
-        <div className="text-center mt-5">
-          <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
-            Mot de passe oublié ?
-          </Link>
+      {/* ── Panneau connexion (droite) ── */}
+      <div className="lg:w-2/5 bg-white flex items-center justify-center p-8 lg:p-12">
+        <div className="w-full max-w-sm">
+
+          {/* En-tête formulaire */}
+          <div className="mb-8">
+            <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-2xl mb-4 shadow-lg">
+              🔑
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900">Connexion</h3>
+            <p className="text-gray-500 text-sm mt-1">Accédez à votre espace agence</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="label">Adresse email</label>
+              <input
+                type="email"
+                className="input"
+                placeholder="vous@agence.ma"
+                value={form.email}
+                onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                required
+                autoComplete="email"
+              />
+            </div>
+            <div>
+              <label className="label">Mot de passe</label>
+              <input
+                type="password"
+                className="input"
+                placeholder="••••••••"
+                value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                required
+                autoComplete="current-password"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-60"
+            >
+              {loading ? 'Connexion en cours...' : 'Se connecter →'}
+            </button>
+          </form>
+
+          <div className="text-center mt-5">
+            <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+              Mot de passe oublié ?
+            </Link>
+          </div>
+
+          {/* Séparateur */}
+          <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+            <p className="text-xs text-gray-400">
+              Vous n'avez pas de compte ?{' '}
+              <a href="tel:+212672491389" className="text-blue-600 hover:underline font-medium">
+                Contactez-nous
+              </a>
+            </p>
+          </div>
+
+          {/* Branding bas */}
+          <p className="text-center text-xs text-gray-300 mt-6">
+            mobiliscar.com — Gestion de location de véhicules
+          </p>
         </div>
       </div>
     </div>
