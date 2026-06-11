@@ -93,11 +93,9 @@ async function generateContractPdf(contract, stream, signatures = {}) {
     contract.dropoffLocation && ['Restitution :', contract.dropoffLocation],
   ]);
 
-  const CONTRACT_STATUS = { PENDING: 'En attente', RESERVATION: 'Réservation', RESERVATION_CONFIRMED: 'Réservation confirmée', ACTIVE: 'En cours', COMPLETED: 'Terminé', CANCELLED: 'Annulé' };
   const finRows = buildRows([
     ['Montant :', `${contract.rentalAmount} ${contract.currency}`],
     contract.montantTTC != null && ['Montant TTC :', `${contract.montantTTC} ${contract.currency}`],
-    ['Statut :', CONTRACT_STATUS[contract.status] || contract.status],
     (contract.amountPaid != null) && ['Encaissé :', `${contract.amountPaid} ${contract.currency}`],
     contract.guaranteeAmount > 0 && ['Garantie :', `${contract.guaranteeAmount} ${contract.currency}`],
     ['Dépassement :', contract.allowOverage ? 'Autorisé' : 'Non autorisé'],
