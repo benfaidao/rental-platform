@@ -124,11 +124,11 @@ function PhotosPanel({ agencyId, sinistre }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-medium text-gray-700">{sinistre.photos?.length || 0} photo(s)</span>
         <button
           onClick={() => fileRef.current?.click()}
-          className="btn-secondary text-xs py-1.5 flex items-center gap-1"
+          className="btn-secondary text-xs py-1.5 flex items-center gap-1 shrink-0"
           disabled={uploading}
         >
           <Upload className="w-3.5 h-3.5" />
@@ -263,21 +263,21 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
               className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50"
               onClick={() => setExpanded(expanded === s.id ? null : s.id)}
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0" />
+              <div className="flex items-start gap-2 min-w-0">
+                <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     {s.title && (
                       <span className="text-sm font-semibold text-gray-900">{s.title}</span>
                     )}
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 truncate">
                       {s.car ? `${s.car.brand} ${s.car.model} — ${s.car.finalPlate || s.car.wwPlate || ''}` : '—'}
                     </span>
                     {s.contract && (
-                      <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">{s.contract.contractNumber}</span>
+                      <span className="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full shrink-0">{s.contract.contractNumber}</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 mt-0.5">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLORS[s.status]}`}>
                       {STATUS_LABELS[s.status]}
                     </span>
@@ -315,7 +315,7 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
                   <p className="text-sm text-gray-600 whitespace-pre-line">{s.description}</p>
                 )}
                 {s.collectedAmount > 0 && (
-                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                  <div className="flex flex-col sm:flex-row flex-wrap gap-x-6 gap-y-1 text-sm">
                     <div>
                       <span className="text-gray-500">Montant encaissé :</span>{' '}
                       <span className="font-semibold text-green-700">{s.collectedAmount} MAD</span>
