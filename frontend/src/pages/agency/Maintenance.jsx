@@ -97,7 +97,7 @@ function OilChanges({ agencyId, cars }) {
       {/* Mobile: cards */}
       <div className="sm:hidden space-y-3">
         {records.map(r => (
-          <div key={r.id} className="card space-y-1.5">
+          <div key={r.id} className="card p-4 space-y-1.5">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="font-medium">{r.car?.brand} {r.car?.model}</p>
@@ -214,7 +214,7 @@ function Tires({ agencyId, cars }) {
       {/* Mobile: cards */}
       <div className="sm:hidden space-y-3">
         {records.map(r => (
-          <div key={r.id} className="card space-y-1.5">
+          <div key={r.id} className="card p-4 space-y-1.5">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <p className="font-medium">{r.car?.brand} {r.car?.model}</p>
@@ -336,7 +336,7 @@ function Repairs({ agencyId, cars }) {
       </div>
       <div className="space-y-3">
         {records.map(r => (
-          <div key={r.id} className="card">
+          <div key={r.id} className="card p-4">
             <div className="flex justify-between items-start gap-2">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
