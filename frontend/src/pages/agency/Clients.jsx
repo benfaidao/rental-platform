@@ -140,7 +140,7 @@ function ClientHistoryModal({ agencyId, client, onClose }) {
       {!isLoading && (
         <div className="space-y-4">
           {contracts.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pb-2 border-b border-gray-100">
+            <div className="grid grid-cols-3 gap-3 pb-2 border-b border-gray-100">
               <div className="text-center">
                 <p className="text-xs text-gray-400">Nb de locations</p>
                 <p className="text-xl font-bold text-gray-800">{contracts.length}</p>
@@ -275,7 +275,7 @@ export default function Clients() {
           const idAlert = isExpired(c.idExpiry) || isExpiringSoon(c.idExpiry)
           const licAlert = isExpired(c.licenseExpiry) || isExpiringSoon(c.licenseExpiry)
           return (
-            <div key={c.id} className={`card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${idAlert || licAlert ? 'border-orange-200' : ''}`}>
+            <div key={c.id} className={`card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${idAlert || licAlert ? 'border-orange-200' : ''}`}>
               <div className="flex items-center gap-4 min-w-0">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${c.clientType === 'COMPANY' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
                   {c.clientType === 'COMPANY' ? <Building2 className="w-5 h-5" /> : `${c.firstName[0]}${c.lastName[0]}`}
