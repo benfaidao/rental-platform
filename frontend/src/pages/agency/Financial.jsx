@@ -49,7 +49,7 @@ function Associates({ agencyId }) {
       </div>
       <div className="grid gap-3">
         {associates.map(a => (
-          <div key={a.id} className="card flex items-center justify-between gap-3">
+          <div key={a.id} className="card p-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center font-bold text-blue-600 shrink-0">
                 {a.name[0].toUpperCase()}
@@ -237,9 +237,9 @@ function Transactions({ agencyId, isAdmin, user }) {
       {summary && (
         <>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-2">
-          <div className="card flex items-center gap-3 border-blue-100">
-            <div className="p-2 rounded-lg text-blue-600 bg-blue-50"><Home className="w-5 h-5" /></div>
-            <div>
+          <div className="card p-4 flex items-center gap-3 border-blue-100">
+            <div className="p-2 rounded-lg text-blue-600 bg-blue-50 shrink-0"><Home className="w-5 h-5" /></div>
+            <div className="min-w-0">
               <p className="text-xs text-gray-500">Locations encaissées</p>
               <p className="font-bold text-blue-700">{fmt(summary.rentalIncome)}</p>
               {summary.rentalTotal > 0 && (
@@ -255,26 +255,26 @@ function Transactions({ agencyId, isAdmin, user }) {
         </div>
 
         {/* Stats visibles par tous */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {[
             { label: 'Recettes', val: fmt(summary.income), icon: TrendingUp, color: 'text-green-600 bg-green-50' },
             { label: 'Dépenses espèces', val: fmt(summary.expense), icon: TrendingDown, color: 'text-red-600 bg-red-50' },
             { label: 'Dépenses banque', val: fmt(summary.bankExpense), icon: TrendingDown, color: 'text-purple-600 bg-purple-50' },
             { label: 'Versements compte', val: fmt(summary.accountPayment), icon: DollarSign, color: 'text-yellow-600 bg-yellow-50' },
-            { label: 'Bénéfices retirés (espèces)', val: fmt(summary.profitWithdrawal), icon: TrendingDown, color: 'text-orange-600 bg-orange-50' },
-            { label: 'Bénéfices retirés (banque)', val: fmt(summary.profitWithdrawalBank), icon: TrendingDown, color: 'text-orange-600 bg-orange-50' },
+            { label: 'Bénéfices (espèces)', val: fmt(summary.profitWithdrawal), icon: TrendingDown, color: 'text-orange-600 bg-orange-50' },
+            { label: 'Bénéfices (banque)', val: fmt(summary.profitWithdrawalBank), icon: TrendingDown, color: 'text-orange-600 bg-orange-50' },
           ].map(s => (
-            <div key={s.label} className="card flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${s.color}`}><s.icon className="w-5 h-5" /></div>
-              <div><p className="text-xs text-gray-500">{s.label}</p><p className="font-bold">{s.val}</p></div>
+            <div key={s.label} className="card p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+              <div className={`p-1.5 sm:p-2 rounded-lg shrink-0 ${s.color}`}><s.icon className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+              <div className="min-w-0"><p className="text-xs text-gray-500 leading-tight">{s.label}</p><p className="font-bold text-sm sm:text-base truncate">{s.val}</p></div>
             </div>
           ))}
         </div>
 
         {/* Solde personnel — non-admin */}
         {!isAdmin && user && (
-          <div className="card flex items-center gap-3 border-blue-100 bg-blue-50">
-            <div className="p-2 rounded-lg text-blue-600 bg-blue-100"><Users className="w-5 h-5" /></div>
+          <div className="card p-4 flex items-center gap-3 border-blue-100 bg-blue-50">
+            <div className="p-2 rounded-lg text-blue-600 bg-blue-100 shrink-0"><Users className="w-5 h-5" /></div>
             <div>
               <p className="text-xs text-gray-600">Mon encaissement ({user.firstName} {user.lastName})</p>
               <p className="font-bold text-blue-700">
@@ -339,8 +339,8 @@ function Transactions({ agencyId, isAdmin, user }) {
               )}
             </div>
             {/* Solde de banque */}
-            <div className="card flex items-center gap-3">
-              <div className={`p-2 rounded-lg ${(summary.bankBalance || 0) >= 0 ? 'text-emerald-600 bg-emerald-50' : 'text-red-600 bg-red-50'}`}>
+            <div className="card p-4 flex items-center gap-3">
+              <div className={`p-2 rounded-lg shrink-0 ${(summary.bankBalance || 0) >= 0 ? 'text-emerald-600 bg-emerald-50' : 'text-red-600 bg-red-50'}`}>
                 <DollarSign className="w-5 h-5" />
               </div>
               <div><p className="text-xs text-gray-500">Solde de banque</p><p className="font-bold">{fmt(summary.bankBalance)}</p></div>
