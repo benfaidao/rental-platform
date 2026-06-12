@@ -53,11 +53,19 @@
   }
 }
 
+input[type="date"].input,
+input[type="datetime-local"].input,
+input[type="time"].input {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  min-height: 2.75rem;
+}
+
 @media (max-width: 639px) {
   input[type="date"].input,
   input[type="datetime-local"].input,
   input[type="time"].input {
     width: auto;
-    max-width: 170px;
+    max-width: 200px;
   }
 }
