@@ -137,9 +137,9 @@ function OfferForm({ agencyId, request, onClose }) {
           <textarea className="input" rows={2} value={form.notes} onChange={set('notes')} placeholder="Conditions, disponibilité..." />
         </div>
       </div>
-      <div className="flex justify-end gap-2">
-        <button type="button" onClick={onClose} className="btn-secondary">Annuler</button>
-        <button type="submit" className="btn-primary" disabled={mutation.isPending}>
+      <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
+        <button type="button" onClick={onClose} className="btn-secondary w-full sm:w-fit justify-center">Annuler</button>
+        <button type="submit" className="btn-primary w-full sm:w-fit justify-center" disabled={mutation.isPending}>
           <Send className="w-4 h-4 inline mr-1" /> Envoyer l'offre
         </button>
       </div>
@@ -167,8 +167,8 @@ function MyRequestCard({ agencyId, request }) {
   const isOpen = request.status === 'OPEN'
 
   return (
-    <div className={`card border-l-4 ${isOpen ? 'border-l-blue-400' : request.status === 'FULFILLED' ? 'border-l-green-400' : 'border-l-red-300'}`}>
-      <div className="flex items-start justify-between gap-4">
+    <div className={`card p-4 border-l-4 ${isOpen ? 'border-l-blue-400' : request.status === 'FULFILLED' ? 'border-l-green-400' : 'border-l-red-300'}`}>
+      <div className="flex items-start justify-between gap-3">
         <div className="space-y-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-semibold">{request.clientName}</p>
@@ -210,7 +210,7 @@ function MyRequestCard({ agencyId, request }) {
         <div className="mt-4 border-t border-gray-100 pt-4 space-y-3">
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Offres reçues</p>
           {request.offers.map(offer => (
-            <div key={offer.id} className={`rounded-lg border px-4 py-3 flex items-center justify-between gap-4
+            <div key={offer.id} className={`rounded-lg border px-3 py-3 flex items-start justify-between gap-3
               ${offer.status === 'ACCEPTED' ? 'bg-green-50 border-green-200'
               : offer.status === 'REJECTED' ? 'bg-gray-50 border-gray-100 opacity-60'
               : 'bg-white border-gray-200'}`}>
@@ -262,9 +262,9 @@ function IncomingRequestCard({ agencyId, request }) {
   const myOffer = request.offers?.find(o => o.agencyId === agencyId)
 
   return (
-    <div className="card border-l-4 border-l-purple-400">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
+    <div className="card p-4 border-l-4 border-l-purple-400">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div className="space-y-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium text-sm text-purple-700 flex items-center gap-1">
               <Building2 className="w-3.5 h-3.5" /> {request.agency?.name}
@@ -288,7 +288,7 @@ function IncomingRequestCard({ agencyId, request }) {
 
         <button
           onClick={() => setShowOffer(v => !v)}
-          className={`flex-shrink-0 text-sm flex items-center gap-1 ${myOffer ? 'btn-secondary' : 'btn-primary'} py-1.5`}
+          className={`shrink-0 text-sm flex items-center justify-center gap-1 w-full sm:w-fit ${myOffer ? 'btn-secondary' : 'btn-primary'} py-1.5`}
         >
           <Send className="w-3.5 h-3.5" />
           {myOffer ? 'Modifier l\'offre' : 'Faire une offre'}
@@ -341,18 +341,18 @@ export default function RentalRequests() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-gray-800">Demandes de location</h1>
           <p className="text-sm text-gray-500 mt-0.5">Publiez une demande pour trouver un véhicule chez d'autres agences</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="btn-primary flex items-center gap-2">
+        <button onClick={() => setShowForm(true)} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit shrink-0">
           <Plus className="w-4 h-4" /> Nouvelle demande
         </button>
       </div>
 
       {/* Opt-in toggle */}
-      <div className="card flex items-center justify-between gap-4">
+      <div className="card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <p className="font-medium text-gray-700">Recevoir les demandes des autres agences</p>
           <p className="text-sm text-gray-500">
@@ -363,7 +363,7 @@ export default function RentalRequests() {
         </div>
         <button
           onClick={() => settingsMutation.mutate(!accepts)}
-          className={`flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg transition-colors ${accepts ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          className={`flex items-center justify-center gap-2 text-sm font-medium px-4 py-2 rounded-lg transition-colors w-full sm:w-fit shrink-0 ${accepts ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
         >
           {accepts
             ? <><ToggleRight className="w-5 h-5" /> Activé</>
