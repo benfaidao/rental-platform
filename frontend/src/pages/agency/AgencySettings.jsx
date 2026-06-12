@@ -343,7 +343,7 @@ export default function AgencySettings() {
             <div className="pt-2">
               <button
                 type="submit"
-                className="btn-primary flex items-center gap-2"
+                className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit"
                 disabled={agencyMutation.isPending}
               >
                 <Save className="w-4 h-4" />
@@ -504,7 +504,7 @@ export default function AgencySettings() {
           <div className="pt-2">
             <button
               type="submit"
-              className="btn-primary flex items-center gap-2"
+              className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit"
               disabled={userMutation.isPending}
             >
               <Save className="w-4 h-4" />
