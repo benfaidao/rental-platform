@@ -587,7 +587,7 @@ function AvailabilitySearch({ agencyId }) {
   }
 
   return (
-    <div className="card space-y-4">
+    <div className="card p-4 space-y-4">
       <div className="flex items-center gap-2">
         <Search className="w-4 h-4 text-blue-500" />
         <h3 className="font-semibold text-gray-700">Recherche de disponibilité</h3>
@@ -761,7 +761,7 @@ export default function Cars() {
           const hasAlert = hasInsuranceAlert || hasTechAlert
 
           return (
-            <div key={car.id} className={`card ${hasAlert ? 'border-orange-200' : ''}`}>
+            <div key={car.id} className={`card p-4 ${hasAlert ? 'border-orange-200' : ''}`}>
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div className="flex gap-4">
                   <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
@@ -808,7 +808,7 @@ export default function Cars() {
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2 lg:justify-end">
+                <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100 lg:pt-0 lg:border-0 lg:justify-end">
                   <button onClick={() => setDetailModal(car)} className="btn-secondary text-xs py-1.5 flex items-center gap-1" title="Voir les détails">
                     <Eye className="w-3 h-3 text-blue-500" /> Détails
                   </button>
