@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getCars, getCar, createCar, updateCar, deleteCar, uploadCarDocument, getCarDocuments, deleteCarDocument, getCarUnavailabilities, createCarUnavailability, deleteCarUnavailability, getCarAvailability, checkAvailability, getFileUrl } from '../../api'
 import Modal from '../../components/Modal'
@@ -769,7 +769,7 @@ export default function Cars() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold">{car.brand} {car.model}</h3>
+                      <Link to={`/agency/${agencyId}/cars/${car.id}`} className="font-semibold hover:text-blue-600 transition-colors">{car.brand} {car.model}</Link>
                       <span className={DISPLAY_STATUS_BADGES[car.displayStatus] || STATUS_BADGES[car.status]}>
                         {DISPLAY_STATUSES[car.displayStatus] || STATUSES[car.status]}
                       </span>

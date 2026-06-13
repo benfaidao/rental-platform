@@ -13,6 +13,7 @@ import Users from './pages/admin/Users'
 import PlatformSettings from './pages/admin/PlatformSettings'
 import AgencyDashboard from './pages/agency/AgencyDashboard'
 import Cars from './pages/agency/Cars'
+import CarDetail from './pages/agency/CarDetail'
 import Contracts from './pages/agency/Contracts'
 import Financial from './pages/agency/Financial'
 import Clients from './pages/agency/Clients'
@@ -91,6 +92,7 @@ export default function App() {
           <Route path="/agency/:agencyId" element={<AgencyGuard><Layout /></AgencyGuard>}>
             <Route index element={<AgencyDashboard />} />
             <Route path="cars" element={<Cars />} />
+            <Route path="cars/:carId" element={<CarDetail />} />
             <Route path="contracts" element={<Contracts />} />
             <Route path="maintenance" element={<Navigate to="cars" replace />} />
             <Route path="checks" element={<Navigate to="financial" replace />} />

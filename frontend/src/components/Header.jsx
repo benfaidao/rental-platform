@@ -21,7 +21,9 @@ export default function Header({ onMenuToggle }) {
 
   const segments = pathname.split('/')
   const last = segments[segments.length - 1]
-  const title = routeTitles[pathname] || routeTitles[last] || 'Gestion'
+  // /agency/:id/cars/:carId → titre "Véhicule"
+  const secondLast = segments[segments.length - 2]
+  const title = routeTitles[pathname] || routeTitles[last] || routeTitles[secondLast] || 'Gestion'
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4 flex items-center justify-between">
