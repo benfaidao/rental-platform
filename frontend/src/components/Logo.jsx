@@ -70,8 +70,8 @@ export default function Logo({ size = 'md', dark = false, className = '' }) {
       <LogoIcon size={icon} />
       <div>
         <div className={`font-bold tracking-tight ${name}`}>
-          <span className={textBase}>mobilis</span>
-          <span className={textAccent}>car</span>
+          <span className={textBase}>Mobilis</span>
+          <span className={textAccent}>Car</span>
         </div>
         <div className={`${dot} ${textDot} leading-none mt-0.5`}>.com</div>
       </div>

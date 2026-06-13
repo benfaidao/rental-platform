@@ -176,7 +176,7 @@ export default function Login() {
           </div>
 
           <p className="text-center text-xs text-gray-300 mt-4">
-            mobiliscar.com — Gestion de location de véhicules
+            MobilisCar.com — Gestion de location de véhicules
           </p>
         </div>
       </div>

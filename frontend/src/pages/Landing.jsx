@@ -77,32 +77,32 @@ export default function Landing() {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="bg-gradient-to-br from-[#0f2a5e] via-[#1a3f8f] to-[#1e56c0] text-white py-16 sm:py-24">
+      <section className="bg-gradient-to-br from-[#0f2a5e] via-[#1a3f8f] to-[#1e56c0] text-white py-10 sm:py-24">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
-          <span className="inline-block bg-white/15 text-blue-200 text-xs font-semibold px-3 py-1 rounded-full mb-6 tracking-wide uppercase">
+          <span className="inline-block bg-white/15 text-blue-200 text-xs font-semibold px-3 py-1 rounded-full mb-5 tracking-wide uppercase">
             Gestion de location de véhicules
           </span>
-          <h1 className="text-3xl sm:text-5xl font-bold leading-tight mb-6">
+          <h1 className="text-2xl sm:text-5xl font-bold leading-tight mb-4 sm:mb-6">
             Pilotez votre flotte<br />
             <span className="text-blue-300">comme un cockpit.</span>
           </h1>
-          <p className="text-blue-100 text-base sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            La plateforme tout-en-un pour les agences de location de véhicules. Contrats PDF, gestion de flotte, finances et collaboration inter-agences depuis n'importe quel appareil.
+          <p className="text-blue-100 text-sm sm:text-xl max-w-2xl mx-auto mb-7 sm:mb-10 leading-relaxed">
+            La plateforme tout-en-un pour les agences de location de véhicules. Contrats PDF, gestion de flotte, finances et collaboration inter-agences.
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="#demo" className="w-full sm:w-fit bg-white text-blue-700 font-semibold px-8 py-3 rounded-xl hover:bg-blue-50 transition-colors shadow-lg text-center">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a href="#demo" className="w-full sm:w-fit bg-white text-blue-700 font-semibold px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors shadow-lg text-center text-sm sm:text-base">
               Demander une démo gratuite →
             </a>
-            <Link to="/login" className="w-full sm:w-fit border border-white/40 text-white font-medium px-8 py-3 rounded-xl hover:bg-white/10 transition-colors text-center">
+            <Link to="/login" className="w-full sm:w-fit border border-white/40 text-white font-medium px-6 py-3 rounded-xl hover:bg-white/10 transition-colors text-center text-sm sm:text-base">
               J'ai déjà un compte
             </Link>
           </div>
 
           {/* Stats */}
-          <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl mx-auto">
+          <div className="mt-10 sm:mt-14 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-2xl mx-auto">
             {stats.map(s => (
               <div key={s.label}>
-                <p className="text-2xl sm:text-3xl font-bold text-white">{s.value}</p>
+                <p className="text-xl sm:text-3xl font-bold text-white">{s.value}</p>
                 <p className="text-blue-300 text-xs mt-0.5">{s.label}</p>
               </div>
             ))}
@@ -111,18 +111,18 @@ export default function Landing() {
       </section>
 
       {/* ── Features ── */}
-      <section className="py-16 sm:py-20 bg-gray-50">
+      <section className="py-12 sm:py-20 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Tout ce dont vous avez besoin</h2>
-            <p className="text-gray-500 mt-3 max-w-xl mx-auto">Une seule plateforme pour gérer l'intégralité de votre activité de location.</p>
+          <div className="text-center mb-8 sm:mb-12">
+            <h2 className="text-xl sm:text-3xl font-bold text-gray-900">Tout ce dont vous avez besoin</h2>
+            <p className="text-gray-500 mt-2 sm:mt-3 text-sm sm:text-base max-w-xl mx-auto">Une seule plateforme pour gérer l'intégralité de votre activité de location.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
             {features.map(f => (
-              <div key={f.title} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="text-3xl mb-4">{f.icon}</div>
-                <h3 className="font-bold text-gray-900 mb-2">{f.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{f.desc}</p>
+              <div key={f.title} className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100">
+                <div className="text-2xl sm:text-3xl mb-2 sm:mb-4">{f.icon}</div>
+                <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-1 sm:mb-2">{f.title}</h3>
+                <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -130,53 +130,54 @@ export default function Landing() {
       </section>
 
       {/* ── Demo form ── */}
-      <section id="demo" className="py-16 sm:py-20 bg-white">
+      <section id="demo" className="py-12 sm:py-20 bg-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="bg-gradient-to-br from-[#0f2a5e] to-[#1e56c0] rounded-3xl overflow-hidden shadow-2xl">
-            <div className="flex flex-col lg:flex-row">
+          <div className="bg-gradient-to-br from-[#0f2a5e] to-[#1e56c0] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl">
+            {/* Mobile : form d'abord, pitch dessous — Desktop : pitch gauche, form droite */}
+            <div className="flex flex-col-reverse lg:flex-row">
 
-              {/* Left — pitch */}
-              <div className="lg:w-2/5 p-8 sm:p-10 text-white flex flex-col justify-between">
+              {/* Pitch (affiché en bas sur mobile) */}
+              <div className="lg:w-2/5 p-6 sm:p-8 lg:p-10 text-white flex flex-col justify-between">
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold mb-4 leading-snug">
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 leading-snug">
                     Demandez un accès démo <span className="text-blue-300">gratuit</span>
                   </h2>
-                  <p className="text-blue-100 text-sm leading-relaxed mb-8">
+                  <p className="text-blue-100 text-sm leading-relaxed mb-5 hidden sm:block">
                     Nous configurons votre espace en moins de 24 h et vous guidons lors d'une démonstration personnalisée.
                   </p>
-                  <ul className="space-y-2">
+                  <ul className="space-y-1.5">
                     {benefits.map(b => (
-                      <li key={b} className="text-sm text-blue-100 flex items-start gap-2">{b}</li>
+                      <li key={b} className="text-sm text-blue-100">{b}</li>
                     ))}
                   </ul>
                 </div>
-                <div className="mt-8 pt-6 border-t border-white/20 space-y-2">
-                  <a href="tel:+212672491389" className="flex items-center gap-2 text-white text-sm hover:text-blue-200 transition-colors">
+                <div className="mt-6 pt-5 border-t border-white/20 flex flex-wrap gap-x-5 gap-y-1.5">
+                  <a href="tel:+212672491389" className="text-white text-sm hover:text-blue-200 transition-colors">
                     📞 +212 672 491 389
                   </a>
-                  <a href="tel:+33751970713" className="flex items-center gap-2 text-white text-sm hover:text-blue-200 transition-colors">
+                  <a href="tel:+33751970713" className="text-white text-sm hover:text-blue-200 transition-colors">
                     📞 +33 751 970 713
                   </a>
-                  <a href="mailto:contact@mobiliscar.com" className="flex items-center gap-2 text-blue-200 text-sm hover:text-white transition-colors">
+                  <a href="mailto:contact@mobiliscar.com" className="text-blue-200 text-sm hover:text-white transition-colors">
                     ✉️ contact@mobiliscar.com
                   </a>
                 </div>
               </div>
 
-              {/* Right — form */}
-              <div className="lg:w-3/5 bg-white p-8 sm:p-10">
+              {/* Formulaire (affiché en haut sur mobile) */}
+              <div className="lg:w-3/5 bg-white p-6 sm:p-8 lg:p-10">
                 {sent ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center py-10">
+                  <div className="flex flex-col items-center justify-center h-full text-center py-8">
                     <div className="text-5xl mb-4">🎉</div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Demande envoyée !</h3>
-                    <p className="text-gray-500 max-w-xs">Nous avons bien reçu votre demande et vous contacterons dans les plus brefs délais.</p>
+                    <p className="text-gray-500 max-w-xs text-sm">Nous avons bien reçu votre demande et vous contacterons dans les plus brefs délais.</p>
                     <a href="tel:+212672491389" className="mt-6 btn-primary text-sm">📞 Appeler directement</a>
                   </div>
                 ) : (
                   <>
-                    <h3 className="text-lg font-bold text-gray-900 mb-6">Vos coordonnées</h3>
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4 sm:mb-6">Vos coordonnées</h3>
+                    <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+                      <div className="grid grid-cols-2 gap-3 sm:gap-4">
                         <div>
                           <label className="label">Prénom *</label>
                           <input className="input" value={form.firstName} onChange={set('firstName')} required placeholder="Mohammed" />
@@ -185,7 +186,7 @@ export default function Landing() {
                           <label className="label">Nom</label>
                           <input className="input" value={form.lastName} onChange={set('lastName')} placeholder="Alaoui" />
                         </div>
-                        <div className="sm:col-span-2">
+                        <div className="col-span-2">
                           <label className="label">Nom de l'agence *</label>
                           <input className="input" value={form.agency} onChange={set('agency')} required placeholder="Auto Location Marrakech" />
                         </div>
@@ -197,7 +198,7 @@ export default function Landing() {
                           <label className="label">Email *</label>
                           <input className="input" type="email" value={form.email} onChange={set('email')} required placeholder="contact@agence.ma" />
                         </div>
-                        <div className="sm:col-span-2">
+                        <div className="col-span-2">
                           <label className="label">Ville</label>
                           <input className="input" value={form.city} onChange={set('city')} placeholder="Casablanca, Marrakech, Paris..." />
                         </div>
@@ -205,7 +206,7 @@ export default function Landing() {
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-60 mt-2"
+                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-60"
                       >
                         {submitting ? 'Envoi en cours...' : 'Demander ma démo gratuite →'}
                       </button>
@@ -228,7 +229,7 @@ export default function Landing() {
             <a href="tel:+33751970713" className="hover:text-white transition-colors">+33 751 970 713</a>
             <a href="mailto:contact@mobiliscar.com" className="hover:text-white transition-colors">contact@mobiliscar.com</a>
           </div>
-          <p className="text-xs">© {new Date().getFullYear()} Mobiliscar — Tous droits réservés</p>
+          <p className="text-xs">© {new Date().getFullYear()} MobilisCar — Tous droits réservés</p>
         </div>
       </footer>
     </div>
