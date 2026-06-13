@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
+const { OAuth2Client } = require('google-auth-library');
 const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
@@ -20,6 +21,50 @@ function getMailer() {
     auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
   });
 }
+
+router.post('/google', async (req, res) => {
+  const { credential } = req.body;
+  if (!credential) return res.status(400).json({ error: 'Token Google manquant' });
+
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  if (!clientId) return res.status(500).json({ error: 'Google OAuth non configuré' });
+
+  try {
+    const client = new OAuth2Client(clientId);
+    const ticket = await client.verifyIdToken({ idToken: credential, audience: clientId });
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, given_name: firstName, family_name: lastName } = payload;
+
+    let user = await prisma.user.findFirst({
+      where: { OR: [{ googleId }, { email }] },
+      include: { agencyUsers: { include: { agency: true } } },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'Aucun compte trouvé pour cet email. Contactez votre administrateur.' });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ error: 'Compte désactivé. Contactez votre administrateur.' });
+    }
+
+    // Link googleId if not yet stored
+    if (!user.googleId) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: { googleId },
+        include: { agencyUsers: { include: { agency: true } } },
+      });
+    }
+
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const { password: _, ...userWithoutPassword } = user;
+    res.json({ token, user: userWithoutPassword });
+  } catch (err) {
+    console.error('Google auth error:', err.message);
+    res.status(401).json({ error: 'Token Google invalide ou expiré' });
+  }
+});
 
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;

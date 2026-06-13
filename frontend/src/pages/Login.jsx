@@ -2,7 +2,11 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { login as apiLogin } from '../api'
+import { GoogleLogin } from '@react-oauth/google'
+import axios from 'axios'
 import toast from 'react-hot-toast'
+
+const API = import.meta.env.VITE_API_URL || '/api'
 
 const features = [
   {
@@ -46,8 +50,28 @@ const stats = [
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+
+  const redirect = (user) => {
+    if (user.role === 'SUPER_ADMIN') return navigate('/admin')
+    const agencyId = user.agencyUsers?.[0]?.agencyId
+    navigate(agencyId ? `/agency/${agencyId}` : '/')
+  }
+
+  const handleGoogle = async (credentialResponse) => {
+    setGoogleLoading(true)
+    try {
+      const res = await axios.post(`${API}/auth/google`, { credential: credentialResponse.credential })
+      login(res.data.token, res.data.user)
+      redirect(res.data.user)
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Connexion Google échouée')
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -55,12 +79,7 @@ export default function Login() {
     try {
       const res = await apiLogin(form)
       login(res.data.token, res.data.user)
-      if (res.data.user.role === 'SUPER_ADMIN') {
-        navigate('/admin')
-      } else {
-        const agencyId = res.data.user.agencyUsers?.[0]?.agencyId
-        navigate(agencyId ? `/agency/${agencyId}` : '/')
-      }
+      redirect(res.data.user)
     } catch (err) {
       toast.error(err.response?.data?.error || 'Identifiants incorrects')
     } finally {
@@ -190,6 +209,26 @@ export default function Login() {
               Mot de passe oublié ?
             </Link>
           </div>
+
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
+            <>
+              <div className="flex items-center gap-3 my-6">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-xs text-gray-400">ou</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+              <div className={`flex justify-center ${googleLoading ? 'opacity-60 pointer-events-none' : ''}`}>
+                <GoogleLogin
+                  onSuccess={handleGoogle}
+                  onError={() => toast.error('Connexion Google annulée')}
+                  text="signin_with"
+                  shape="rectangular"
+                  locale="fr"
+                  width="320"
+                />
+              </div>
+            </>
+          )}
 
           {/* Trust badges */}
           <div className="mt-8 grid grid-cols-3 gap-2 text-center">

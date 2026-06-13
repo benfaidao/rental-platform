@@ -46,6 +46,7 @@ jobs:
           push: true
           build-args: |
             VITE_API_URL=/api
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
           tags: |
             ghcr.io/${{ env.IMAGE_OWNER }}/rental-platform-frontend:latest
             ghcr.io/${{ env.IMAGE_OWNER }}/rental-platform-frontend:${{ github.sha }}

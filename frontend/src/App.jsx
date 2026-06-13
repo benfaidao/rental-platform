@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { SocketProvider } from './contexts/SocketContext'
 import Login from './pages/Login'
@@ -61,6 +62,7 @@ function DefaultRedirect() {
 
 export default function App() {
   return (
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID || ''}>
     <AuthProvider>
       <SocketProvider>
       <BrowserRouter>
@@ -99,5 +101,6 @@ export default function App() {
       </BrowserRouter>
       </SocketProvider>
     </AuthProvider>
+    </GoogleOAuthProvider>
   )
 }
