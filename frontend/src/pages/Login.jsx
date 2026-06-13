@@ -9,19 +9,11 @@ import toast from 'react-hot-toast'
 
 const API = import.meta.env.VITE_API_URL || '/api'
 
-const features = [
-  { icon: '📋', title: 'Contrats complets', desc: 'Créez, gérez et signez vos contrats en ligne. PDF généré automatiquement avec QR code.' },
-  { icon: '🚗', title: 'Gestion de flotte', desc: 'Suivez chaque véhicule : maintenance, assurance, contrôle technique, disponibilité en temps réel.' },
-  { icon: '📊', title: 'Tableau de bord intelligent', desc: "Alertes automatiques, Gantt de disponibilité, solde en espèces et indicateurs clés d'un seul coup d'œil." },
-  { icon: '💰', title: 'Finance & comptabilité', desc: 'Recettes, dépenses, chèques émis et reçus, cotisations associés et génération de factures.' },
-  { icon: '👥', title: 'Gestion clients', desc: 'Fiche client complète avec CIN, permis, historique de locations et upload de documents.' },
-  { icon: '🤝', title: 'Collaboration inter-agences', desc: 'Partagez votre flotte, répondez aux demandes de location et développez votre réseau.' },
-]
-
-const stats = [
-  { value: '100%', label: 'Adapté mobile' },
-  { value: 'PDF', label: 'Contrats & Factures' },
-  { value: '∞', label: 'Véhicules & Clients' },
+const trustFeatures = [
+  { icon: '🏠', title: 'Tout centralisé', desc: 'Gérez tout en un seul endroit' },
+  { icon: '🔒', title: 'Données sécurisées', desc: 'Hébergé en Europe & sauvegarde incluse' },
+  { icon: '🔔', title: 'Alertes intelligentes', desc: 'Ne manquez aucun rappel important' },
+  { icon: '📊', title: 'Rapports avancés', desc: 'Analysez et développez votre agence' },
 ]
 
 export default function Login() {
@@ -187,21 +179,25 @@ export default function Login() {
           {/* Logo */}
           <Logo size="lg" dark className="mb-2" />
 
-          <div className="mt-14">
-            <h2 className="text-4xl font-bold leading-tight">
-              Pilotez votre flotte<br />
-              <span className="text-blue-300">comme un cockpit.</span>
+          <div className="mt-10">
+            <span className="inline-flex items-center gap-1.5 bg-white/15 text-blue-200 text-xs font-semibold px-3 py-1 rounded-full mb-5 tracking-wide">
+              🔒 Plateforme sécurisée &amp; professionnelle
+            </span>
+            <h2 className="text-3xl xl:text-4xl font-bold leading-tight">
+              Pilotez toute votre<br />
+              <span className="text-blue-300">activité location</span><br />
+              depuis un espace sécurisé.
             </h2>
-            <p className="text-blue-100 mt-4 text-lg max-w-lg">
-              La plateforme tout-en-un pour les agences de location de véhicules au Maroc et en Europe. Gérez votre flotte, vos clients et vos finances depuis n'importe quel appareil.
+            <p className="text-blue-100 mt-4 text-sm leading-relaxed max-w-md">
+              Réservations, véhicules, clients, contrats, paiements, entretien et rapports — tout centralisé avec des données sécurisées.
             </p>
           </div>
 
-          {/* Fonctionnalités */}
-          <div className="mt-10 grid grid-cols-2 gap-4">
-            {features.map(f => (
-              <div key={f.title} className="flex items-start gap-3 bg-white/8 rounded-xl p-3.5 backdrop-blur-sm border border-white/10">
-                <span className="text-2xl leading-none mt-0.5">{f.icon}</span>
+          {/* Trust features */}
+          <div className="mt-8 grid grid-cols-2 gap-3">
+            {trustFeatures.map(f => (
+              <div key={f.title} className="flex items-start gap-3 bg-white/8 rounded-xl p-3.5 border border-white/10">
+                <span className="text-xl leading-none mt-0.5 shrink-0">{f.icon}</span>
                 <div>
                   <p className="font-semibold text-sm">{f.title}</p>
                   <p className="text-blue-200 text-xs mt-0.5 leading-relaxed">{f.desc}</p>
@@ -210,19 +206,21 @@ export default function Login() {
             ))}
           </div>
 
-          {/* Stats */}
-          <div className="mt-8 flex gap-6 flex-wrap">
-            {stats.map(s => (
-              <div key={s.label} className="text-center">
-                <p className="text-2xl font-bold text-white">{s.value}</p>
-                <p className="text-blue-300 text-xs mt-0.5">{s.label}</p>
-              </div>
-            ))}
+          {/* RGPD / sécurité */}
+          <div className="mt-6 bg-white/8 rounded-xl p-4 border border-white/10 flex items-start gap-3">
+            <span className="text-xl shrink-0">🛡️</span>
+            <div>
+              <p className="font-semibold text-sm">Votre sécurité est notre priorité</p>
+              <p className="text-blue-200 text-xs mt-1 leading-relaxed">
+                Vos données sont confidentielles et ne seront jamais partagées.<br />
+                <span className="text-blue-300 font-medium">Hébergé en Europe — Conforme RGPD</span>
+              </p>
+            </div>
           </div>
         </div>
 
         {/* Contact */}
-        <div className="mt-10 pt-6 border-t border-white/15">
+        <div className="mt-8 pt-6 border-t border-white/15">
           <p className="text-blue-200 text-sm mb-2 font-medium">Pas encore client ? Contactez-nous :</p>
           <div className="flex flex-wrap gap-4">
             <a href="tel:+212672491389" className="flex items-center gap-2 text-white hover:text-blue-200 transition-colors text-sm font-medium">
