@@ -21,7 +21,7 @@ function StatCard({ label, value, sub, icon: Icon, color }) {
     purple: 'bg-purple-50 text-purple-600',
   }
   return (
-    <div className="card flex items-start gap-2.5 sm:gap-4">
+    <div className="card p-4 flex items-start gap-2.5 sm:gap-4">
       <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${colors[color]}`}><Icon className="w-5 h-5 sm:w-6 sm:h-6" /></div>
       <div className="min-w-0">
         <p className="text-xs sm:text-sm text-gray-500 leading-tight">{label}</p>
@@ -35,7 +35,7 @@ function StatCard({ label, value, sub, icon: Icon, color }) {
 function AlertsSection({ title, items, icon: Icon, renderItem }) {
   if (!items?.length) return null
   return (
-    <div className="card">
+    <div className="card p-4">
       <div className="flex items-center gap-2 mb-4">
         <Icon className="w-5 h-5 text-orange-500" />
         <h3 className="font-semibold">{title} <span className="ml-1 text-sm text-orange-500">({items.length})</span></h3>
@@ -65,7 +65,7 @@ function fmtCountdown(d) {
 function UpcomingStartsSection({ contracts, agencyId }) {
   if (!contracts?.length) return null
   return (
-    <div className="card border-blue-200">
+    <div className="card p-4 border-blue-200">
       <div className="flex items-center gap-2 mb-4">
         <CalendarClock className="w-5 h-5 text-blue-500" />
         <h3 className="font-semibold text-blue-900">
@@ -107,7 +107,7 @@ function UpcomingStartsSection({ contracts, agencyId }) {
 function TechInspectionSection({ cars }) {
   const hasItems = cars?.length > 0
   return (
-    <div className={`card ${hasItems ? 'border-amber-200' : 'border-gray-100'}`}>
+    <div className={`card p-4 ${hasItems ? 'border-amber-200' : 'border-gray-100'}`}>
       <div className="flex items-center gap-2 mb-4">
         <AlertTriangle className={`w-5 h-5 ${hasItems ? 'text-amber-500' : 'text-gray-300'}`} />
         <h3 className={`font-semibold ${hasItems ? 'text-amber-900' : 'text-gray-500'}`}>
@@ -177,7 +177,7 @@ function AvailabilitySearch({ agencyId }) {
   }
 
   return (
-    <div className="card space-y-4">
+    <div className="card p-4 space-y-4">
       <div className="flex items-center gap-2">
         <Search className="w-4 h-4 text-blue-500" />
         <h3 className="font-semibold text-gray-700">Voitures disponibles sur une période</h3>
@@ -260,7 +260,7 @@ function MiniGantt({ agencyId }) {
   const monthLabel = format(current, 'MMMM yyyy', { locale: fr })
 
   return (
-    <div className="card">
+    <div className="card p-4">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
           <CalendarDays className="w-4 h-4 text-blue-500" />
@@ -342,7 +342,7 @@ export default function AgencyDashboard() {
   return (
     <div className="space-y-6">
       {billingAlert && (
-        <div className="card border-red-200 bg-red-50">
+        <div className="card p-4 border-red-200 bg-red-50">
           <div className="flex items-start gap-2">
             <AlertTriangle className="w-5 h-5 text-red-500" />
             <div>
@@ -376,8 +376,8 @@ export default function AgencyDashboard() {
       <TechInspectionSection cars={alerts.carsTechExpiring} />
 
       {alerts.contractsReturningSoon?.length > 0 && (
-        <div className="card border-orange-200 bg-orange-50">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="card p-4 border-orange-200 bg-orange-50">
+          <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-5 h-5 text-orange-500" />
             <h3 className="font-semibold text-orange-800">
               Retours attendus dans les 3 jours <span className="ml-1 text-sm text-orange-500">({alerts.contractsReturningSoon.length})</span>
@@ -453,7 +453,7 @@ export default function AgencyDashboard() {
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 py-2 border-b border-gray-50 last:border-0">
               <div>
                 <p className="font-medium">{c.car?.brand} {c.car?.model} <span className="text-gray-400 text-xs">{c.car?.finalPlate || c.car?.wwPlate}</span></p>
-                <p className="text-xs text-gray-400">{c.kmSince.toLocaleString()} km depuis dernière vidange · actuel : {c.currentMileage.toLocaleString()} km</p>
+                <p className="text-xs text-gray-400">{c.kmSince.toLocaleString()} km depuis dernière vidange<span className="hidden sm:inline"> · actuel : {c.currentMileage.toLocaleString()} km</span></p>
               </div>
               <span className={`text-sm font-semibold ${c.kmRemaining <= 0 ? 'text-red-600' : c.kmRemaining <= 500 ? 'text-orange-600' : 'text-yellow-600'}`}>
                 {c.kmRemaining <= 0 ? `Dépassé de ${Math.abs(c.kmRemaining).toLocaleString()} km` : `${c.kmRemaining.toLocaleString()} km restants`}
