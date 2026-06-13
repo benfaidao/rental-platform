@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import Logo, { LogoIcon } from '../components/Logo'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
@@ -63,13 +64,7 @@ export default function Landing() {
       {/* ── Navbar ── */}
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🚗</span>
-            <div>
-              <span className="text-lg font-bold text-gray-900 leading-none">mobiliscar</span>
-              <span className="text-blue-500 text-xs">.com</span>
-            </div>
-          </div>
+          <Logo size="md" />
           <div className="flex items-center gap-3">
             <a href="tel:+212672491389" className="hidden sm:flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900">
               📞 +212 672 491 389
@@ -227,10 +222,7 @@ export default function Landing() {
       {/* ── Footer ── */}
       <footer className="bg-gray-900 text-gray-400 py-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🚗</span>
-            <span className="font-bold text-white">mobiliscar.com</span>
-          </div>
+          <Logo size="sm" dark />
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             <a href="tel:+212672491389" className="hover:text-white transition-colors">+212 672 491 389</a>
             <a href="tel:+33751970713" className="hover:text-white transition-colors">+33 751 970 713</a>

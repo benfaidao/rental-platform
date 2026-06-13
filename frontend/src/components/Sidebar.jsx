@@ -1,4 +1,5 @@
-import { NavLink, useParams, useNavigate } from 'react-router-dom'
+import { NavLink, useParams, useNavigate, Link } from 'react-router-dom'
+import Logo from './Logo'
 import { useAuth } from '../contexts/AuthContext'
 import { useSocket } from '../contexts/SocketContext'
 import { useQuery } from '@tanstack/react-query'
@@ -59,11 +60,10 @@ export default function Sidebar({ onClose }) {
 
   return (
     <div className="w-64 h-full bg-gray-900 text-white flex flex-col">
-      <div className="p-5 border-b border-gray-700">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-lg">🚗</div>
-          <span className="font-bold text-sm">Location Véhicules</span>
-        </div>
+      <div className="p-4 border-b border-gray-700">
+        <Link to="/">
+          <Logo size="sm" dark />
+        </Link>
       </div>
 
       {!isSuperAdmin && agencies.length > 1 && (

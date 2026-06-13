@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import Logo from '../components/Logo'
 import { useAuth } from '../contexts/AuthContext'
 import { login as apiLogin } from '../api'
 import { GoogleLogin } from '@react-oauth/google'
@@ -71,12 +72,8 @@ export default function Login() {
         <div className="w-full max-w-sm">
 
           {/* Logo — mobile uniquement (le panneau gauche est caché sur mobile) */}
-          <div className="flex lg:hidden items-center gap-2 mb-8">
-            <span className="text-2xl">🚗</span>
-            <div>
-              <span className="text-lg font-bold text-gray-900 leading-none">mobiliscar</span>
-              <span className="text-blue-500 text-xs">.com</span>
-            </div>
+          <div className="lg:hidden mb-8">
+            <Logo size="md" />
           </div>
 
           {/* En-tête formulaire */}
@@ -188,13 +185,7 @@ export default function Login() {
       <div className="hidden lg:flex lg:w-3/5 lg:order-1 bg-gradient-to-br from-[#0f2a5e] via-[#1a3f8f] to-[#1e56c0] flex-col justify-between p-12 text-white">
         <div>
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">🚗</span>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight leading-none">mobiliscar</h1>
-              <p className="text-blue-300 text-xs">.com</p>
-            </div>
-          </div>
+          <Logo size="lg" dark className="mb-2" />
 
           <div className="mt-14">
             <h2 className="text-4xl font-bold leading-tight">
