@@ -65,10 +65,10 @@ export default function Landing() {
       <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Logo size="md" />
-          <div className="flex items-center gap-3">
-            <a href="tel:+212672491389" className="hidden sm:flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900">
-              📞 +212 672 491 389
-            </a>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link to="/demande-acces" className="hidden sm:block text-sm text-blue-600 hover:underline font-medium">
+              Demander l'accès
+            </Link>
             <Link to="/login" className="btn-primary text-sm py-2 px-4">
               Se connecter →
             </Link>
@@ -90,9 +90,9 @@ export default function Landing() {
             La plateforme tout-en-un pour les agences de location de véhicules. Contrats PDF, gestion de flotte, finances et collaboration inter-agences.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <a href="#demo" className="w-full sm:w-fit bg-white text-blue-700 font-semibold px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors shadow-lg text-center text-sm sm:text-base">
-              Demander une démo gratuite →
-            </a>
+            <Link to="/demande-acces" className="w-full sm:w-fit bg-white text-blue-700 font-semibold px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors shadow-lg text-center text-sm sm:text-base">
+              Demander l'accès gratuitement →
+            </Link>
             <Link to="/login" className="w-full sm:w-fit border border-white/40 text-white font-medium px-6 py-3 rounded-xl hover:bg-white/10 transition-colors text-center text-sm sm:text-base">
               J'ai déjà un compte
             </Link>
