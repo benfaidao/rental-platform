@@ -164,7 +164,7 @@ export default function Login() {
           {/* Contact mobile */}
           <div className="flex lg:hidden flex-wrap justify-center gap-x-4 gap-y-1 mt-4">
             <a href="tel:+212672491389" className="text-xs text-gray-400 hover:text-gray-600">📞 +212 672 491 389</a>
-            <a href="tel:+33751970713" className="text-xs text-gray-400 hover:text-gray-600">📞 +33 751 970 713</a>
+            <a href="https://wa.me/33751970713" target="_blank" rel="noopener noreferrer" className="text-xs text-gray-400 hover:text-green-600">💬 WhatsApp</a>
           </div>
 
           <p className="text-center text-xs text-gray-300 mt-4">
@@ -226,8 +226,8 @@ export default function Login() {
             <a href="tel:+212672491389" className="flex items-center gap-2 text-white hover:text-blue-200 transition-colors text-sm font-medium">
               <span>📞</span> +212 672 491 389
             </a>
-            <a href="tel:+33751970713" className="flex items-center gap-2 text-white hover:text-blue-200 transition-colors text-sm font-medium">
-              <span>📞</span> +33 751 970 713
+            <a href="https://wa.me/33751970713" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white hover:text-green-300 transition-colors text-sm font-medium">
+              <span>💬</span> WhatsApp
             </a>
           </div>
           <a href="mailto:contact@mobiliscar.com" className="inline-flex items-center gap-2 mt-3 text-blue-200 hover:text-white transition-colors text-sm">

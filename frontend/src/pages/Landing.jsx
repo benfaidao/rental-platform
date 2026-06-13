@@ -155,8 +155,8 @@ export default function Landing() {
                   <a href="tel:+212672491389" className="text-white text-sm hover:text-blue-200 transition-colors">
                     📞 +212 672 491 389
                   </a>
-                  <a href="tel:+33751970713" className="text-white text-sm hover:text-blue-200 transition-colors">
-                    📞 +33 751 970 713
+                  <a href="https://wa.me/33751970713" target="_blank" rel="noopener noreferrer" className="text-white text-sm hover:text-blue-200 transition-colors">
+                    💬 WhatsApp
                   </a>
                   <a href="mailto:contact@mobiliscar.com" className="text-blue-200 text-sm hover:text-white transition-colors">
                     ✉️ contact@mobiliscar.com
@@ -226,10 +226,15 @@ export default function Landing() {
           <Logo size="sm" dark />
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
             <a href="tel:+212672491389" className="hover:text-white transition-colors">+212 672 491 389</a>
-            <a href="tel:+33751970713" className="hover:text-white transition-colors">+33 751 970 713</a>
+            <a href="https://wa.me/33751970713" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">💬 WhatsApp</a>
             <a href="mailto:contact@mobiliscar.com" className="hover:text-white transition-colors">contact@mobiliscar.com</a>
           </div>
-          <p className="text-xs">© {new Date().getFullYear()} MobilisCar — Tous droits réservés</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+            <Link to="/conditions-utilisation" className="hover:text-white transition-colors">CGU</Link>
+            <Link to="/politique-confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>
+            <Link to="/annulation-remboursement" className="hover:text-white transition-colors">Annulation</Link>
+            <span>© {new Date().getFullYear()} MobilisCar</span>
+          </div>
         </div>
       </footer>
     </div>

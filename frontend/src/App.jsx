@@ -24,6 +24,9 @@ import AgencySettings from './pages/agency/AgencySettings'
 import ContractView from './pages/ContractView'
 import Landing from './pages/Landing'
 import DemandeAcces from './pages/DemandeAcces'
+import ConditionsUtilisation from './pages/ConditionsUtilisation'
+import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite'
+import AnnulationRemboursement from './pages/AnnulationRemboursement'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children, adminOnly = false }) {
@@ -74,6 +77,9 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/" element={<Landing />} />
           <Route path="/demande-acces" element={<DemandeAcces />} />
+          <Route path="/conditions-utilisation" element={<ConditionsUtilisation />} />
+          <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+          <Route path="/annulation-remboursement" element={<AnnulationRemboursement />} />
           <Route path="/admin" element={<PrivateRoute adminOnly><Layout /></PrivateRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="agencies" element={<Agencies />} />

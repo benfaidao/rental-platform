@@ -132,8 +132,8 @@ export default function DemandeAcces() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
           <Link to="/"><Logo size="md" /></Link>
           <div className="flex items-center gap-3">
-            <a href="tel:+212672491389" className="hidden sm:block text-sm text-gray-600 hover:text-gray-900">
-              📞 +212 672 491 389
+            <a href="https://wa.me/33751970713" target="_blank" rel="noopener noreferrer" className="hidden sm:block text-sm text-gray-600 hover:text-green-600 transition-colors">
+              💬 WhatsApp
             </a>
             <Link to="/login" className="btn-primary text-sm py-2 px-4">
               Se connecter →
@@ -164,8 +164,81 @@ export default function DemandeAcces() {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section className="py-10 sm:py-16 bg-gray-50 border-b border-gray-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-8 sm:mb-10">
+            <h2 className="text-xl sm:text-3xl font-bold text-gray-900">Tarifs simples et transparents</h2>
+            <p className="text-gray-500 mt-2 text-sm sm:text-base">Sans frais cachés — sans engagement — résiliable à tout moment</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            {/* Starter */}
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 flex flex-col">
+              <div className="mb-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Starter</p>
+                <div className="flex items-end gap-1">
+                  <span className="text-3xl sm:text-4xl font-bold text-gray-900">199</span>
+                  <span className="text-gray-500 text-sm mb-1">MAD/mois</span>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Jusqu'à 5 véhicules</p>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-600 flex-1 mb-6">
+                {['Contrats PDF illimités', 'Gestion de flotte', 'Tableau de bord', 'Gestion clients', 'Support email'].map(f => (
+                  <li key={f} className="flex items-center gap-2"><span className="text-green-500 shrink-0">✓</span>{f}</li>
+                ))}
+              </ul>
+              <a href="#formulaire" className="block text-center py-2.5 border border-blue-600 text-blue-600 hover:bg-blue-50 font-medium rounded-xl text-sm transition-colors">
+                Commencer →
+              </a>
+            </div>
+            {/* Pro — mise en avant */}
+            <div className="bg-gradient-to-b from-[#1a3f8f] to-[#1e56c0] rounded-2xl p-5 sm:p-6 flex flex-col text-white relative overflow-hidden shadow-xl">
+              <div className="absolute top-4 right-4">
+                <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2.5 py-1 rounded-full">Populaire</span>
+              </div>
+              <div className="mb-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-blue-200 mb-1">Pro</p>
+                <div className="flex items-end gap-1">
+                  <span className="text-3xl sm:text-4xl font-bold">349</span>
+                  <span className="text-blue-200 text-sm mb-1">MAD/mois</span>
+                </div>
+                <p className="text-xs text-blue-300 mt-1">Jusqu'à 20 véhicules</p>
+              </div>
+              <ul className="space-y-2 text-sm text-blue-100 flex-1 mb-6">
+                {['Tout Starter inclus', 'Finance & Comptabilité', 'Gestion des chèques', 'Cotisations associés', 'Support téléphone & email'].map(f => (
+                  <li key={f} className="flex items-center gap-2"><span className="text-yellow-400 shrink-0">✓</span>{f}</li>
+                ))}
+              </ul>
+              <a href="#formulaire" className="block text-center py-2.5 bg-white text-blue-700 hover:bg-blue-50 font-semibold rounded-xl text-sm transition-colors">
+                Commencer →
+              </a>
+            </div>
+            {/* Business */}
+            <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 flex flex-col">
+              <div className="mb-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1">Business</p>
+                <div className="flex items-end gap-1">
+                  <span className="text-3xl sm:text-4xl font-bold text-gray-900">599</span>
+                  <span className="text-gray-500 text-sm mb-1">MAD/mois</span>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">Véhicules illimités</p>
+              </div>
+              <ul className="space-y-2 text-sm text-gray-600 flex-1 mb-6">
+                {['Tout Pro inclus', 'Réseau inter-agences', 'Utilisateurs illimités', 'Export & rapports avancés', 'Support prioritaire'].map(f => (
+                  <li key={f} className="flex items-center gap-2"><span className="text-green-500 shrink-0">✓</span>{f}</li>
+                ))}
+              </ul>
+              <a href="#formulaire" className="block text-center py-2.5 border border-blue-600 text-blue-600 hover:bg-blue-50 font-medium rounded-xl text-sm transition-colors">
+                Commencer →
+              </a>
+            </div>
+          </div>
+          <p className="text-center text-xs text-gray-400 mt-5">Prix HT — Paiement mensuel ou annuel (−15 %) — Essai gratuit 14 jours</p>
+        </div>
+      </section>
+
       {/* Main — form + pitch */}
-      <section className="py-10 sm:py-14">
+      <section id="formulaire" className="py-10 sm:py-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {sent ? (
             <div className="max-w-lg mx-auto text-center py-16">
@@ -178,15 +251,15 @@ export default function DemandeAcces() {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 xl:gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-12">
 
-              {/* Left pitch */}
-              <div className="lg:col-span-2 space-y-6">
-                <div>
+              {/* Pitch gauche — caché sur mobile, formulaire affiché en premier */}
+              <div className="lg:col-span-2 order-2 lg:order-1 space-y-6">
+                <div className="hidden lg:block">
                   <h2 className="text-xl font-bold text-gray-900 mb-2">Ce qui est inclus</h2>
                   <p className="text-gray-500 text-sm">Un accès complet à toutes les fonctionnalités dès le premier jour.</p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
+                <div className="hidden lg:grid grid-cols-1 gap-3">
                   {included.map(f => (
                     <div key={f.title} className="flex items-start gap-3 p-3.5 rounded-xl bg-gray-50 border border-gray-100">
                       <span className="text-xl shrink-0">{f.icon}</span>
@@ -198,7 +271,17 @@ export default function DemandeAcces() {
                   ))}
                 </div>
 
-                {/* Security block */}
+                {/* Compact feature grid — mobile only */}
+                <div className="grid grid-cols-2 gap-2 lg:hidden">
+                  {included.map(f => (
+                    <div key={f.title} className="flex items-center gap-2 p-3 rounded-xl bg-gray-50 border border-gray-100">
+                      <span className="text-lg shrink-0">{f.icon}</span>
+                      <p className="font-medium text-xs text-gray-700">{f.title}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bloc sécurité */}
                 <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 space-y-2">
                   <p className="font-semibold text-blue-900 text-sm flex items-center gap-2">🛡️ Vos données en sécurité</p>
                   <p className="text-xs text-blue-700 leading-relaxed">
@@ -211,18 +294,18 @@ export default function DemandeAcces() {
                 <div className="space-y-1.5 text-sm">
                   <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">Besoin d'aide ?</p>
                   <a href="tel:+212672491389" className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors">📞 +212 672 491 389</a>
-                  <a href="tel:+33751970713" className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors">📞 +33 751 970 713</a>
+                  <a href="https://wa.me/33751970713" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-gray-700 hover:text-green-600 transition-colors">💬 WhatsApp +33 751 970 713</a>
                   <a href="mailto:contact@mobiliscar.com" className="flex items-center gap-2 text-gray-700 hover:text-blue-600 transition-colors">✉️ contact@mobiliscar.com</a>
                 </div>
               </div>
 
-              {/* Right form */}
-              <div className="lg:col-span-3">
-                <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+              {/* Formulaire — affiché en premier sur mobile */}
+              <div className="lg:col-span-3 order-1 lg:order-2">
+                <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-8 shadow-sm">
                   <h2 className="text-lg font-bold text-gray-900 mb-1">Vos informations</h2>
-                  <p className="text-sm text-gray-500 mb-6">Tous les champs marqués * sont obligatoires.</p>
+                  <p className="text-sm text-gray-500 mb-5">Tous les champs marqués * sont obligatoires.</p>
 
-                  <form onSubmit={handleSubmit} className="space-y-4">
+                  <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="label">Prénom *</label>
@@ -232,11 +315,11 @@ export default function DemandeAcces() {
                         <label className="label">Nom *</label>
                         <input className="input" value={form.lastName} onChange={set('lastName')} required placeholder="Alaoui" />
                       </div>
-                      <div>
+                      <div className="col-span-2 sm:col-span-1">
                         <label className="label">Email professionnel *</label>
                         <input className="input" type="email" value={form.email} onChange={set('email')} required placeholder="contact@agence.ma" />
                       </div>
-                      <div>
+                      <div className="col-span-2 sm:col-span-1">
                         <label className="label">Téléphone *</label>
                         <input className="input" type="tel" value={form.phone} onChange={set('phone')} required placeholder="+212 6 12 34 56 78" />
                       </div>
@@ -249,13 +332,13 @@ export default function DemandeAcces() {
                         <input className="input" value={form.city} onChange={set('city')} required placeholder="Casablanca" />
                       </div>
                       <div>
-                        <label className="label">Nombre de véhicules</label>
+                        <label className="label">Nb. véhicules</label>
                         <select className="input" value={form.vehicles} onChange={set('vehicles')}>
                           <option value="">Choisir...</option>
-                          <option value="1-5">1 à 5 véhicules</option>
-                          <option value="6-15">6 à 15 véhicules</option>
-                          <option value="16-30">16 à 30 véhicules</option>
-                          <option value="31+">Plus de 30 véhicules</option>
+                          <option value="1-5">1 à 5</option>
+                          <option value="6-15">6 à 15</option>
+                          <option value="16-30">16 à 30</option>
+                          <option value="31+">Plus de 30</option>
                         </select>
                       </div>
                       <div className="col-span-2">
@@ -265,7 +348,7 @@ export default function DemandeAcces() {
                           rows={3}
                           value={form.message}
                           onChange={set('message')}
-                          placeholder="Décrivez vos besoins spécifiques, questions particulières..."
+                          placeholder="Décrivez vos besoins spécifiques..."
                         />
                       </div>
                     </div>
@@ -371,12 +454,17 @@ export default function DemandeAcces() {
       <footer className="bg-gray-900 text-gray-400 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <Logo size="sm" dark />
-          <div className="flex flex-wrap gap-x-6 gap-y-1.5 text-sm">
+          <div className="flex flex-wrap gap-x-5 gap-y-1.5 text-sm">
             <a href="tel:+212672491389" className="hover:text-white transition-colors">+212 672 491 389</a>
-            <a href="tel:+33751970713" className="hover:text-white transition-colors">+33 751 970 713</a>
+            <a href="https://wa.me/33751970713" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">💬 WhatsApp</a>
             <a href="mailto:contact@mobiliscar.com" className="hover:text-white transition-colors">contact@mobiliscar.com</a>
           </div>
-          <p className="text-xs">© {new Date().getFullYear()} MobilisCar — Tous droits réservés</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs">
+            <Link to="/conditions-utilisation" className="hover:text-white transition-colors">CGU</Link>
+            <Link to="/politique-confidentialite" className="hover:text-white transition-colors">Confidentialité</Link>
+            <Link to="/annulation-remboursement" className="hover:text-white transition-colors">Annulation</Link>
+            <span>© {new Date().getFullYear()} MobilisCar</span>
+          </div>
         </div>
       </footer>
     </div>
