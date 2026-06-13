@@ -10,6 +10,7 @@ const routeTitles = {
   'dashboard': 'Tableau de bord',
   'cars': 'Véhicules',
   'contracts': 'Contrats de Location',
+  'new': 'Nouveau Contrat',
   'maintenance': 'Maintenance',
   'checks': 'Gestion des Chèques',
   'financial': 'Finances',

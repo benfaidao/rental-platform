@@ -15,6 +15,7 @@ import AgencyDashboard from './pages/agency/AgencyDashboard'
 import Cars from './pages/agency/Cars'
 import CarDetail from './pages/agency/CarDetail'
 import Contracts from './pages/agency/Contracts'
+import NewContract from './pages/agency/NewContract'
 import Financial from './pages/agency/Financial'
 import Clients from './pages/agency/Clients'
 import Partners from './pages/agency/Partners'
@@ -94,6 +95,7 @@ export default function App() {
             <Route path="cars" element={<Cars />} />
             <Route path="cars/:carId" element={<CarDetail />} />
             <Route path="contracts" element={<Contracts />} />
+            <Route path="contracts/new" element={<NewContract />} />
             <Route path="maintenance" element={<Navigate to="cars" replace />} />
             <Route path="checks" element={<Navigate to="financial" replace />} />
             <Route path="financial" element={<Financial />} />

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useParams, useSearchParams } from 'react-router-dom'
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getCars, getContracts, createContract, updateContract, deleteContract, downloadContractPdf, downloadContractPdfSigned, downloadContractInvoice, downloadContractInvoiceSigned, uploadContractPhotos, uploadContractDocument, deleteContractDocument, getClients, getClient, getPeriodicPayments, createPeriodicPayment, updatePeriodicPayment, deletePeriodicPayment, getAgencyMembers, getFileUrl } from '../../api'
 import Modal from '../../components/Modal'
@@ -587,6 +587,339 @@ function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
   )
 }
 
+function SummaryRow({ label, value }) {
+  return (
+    <div className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+      <span className="text-sm text-gray-500 w-36 shrink-0">{label}</span>
+      <span className="text-sm font-medium text-gray-800 break-words">{value || '-'}</span>
+    </div>
+  )
+}
+
+function ContractWizard({ cars, agencyId, onSubmit, loading }) {
+  const STEPS = ['Véhicule', 'Client', 'Dates & Lieux', 'Tarif & Caution', 'Validation']
+  const [step, setStep] = useState(0)
+  const [form, setForm] = useState({
+    carId: '', clientId: '', clientType: 'INDIVIDUAL', clientName: '', clientPhone: '', clientEmail: '',
+    clientIdNumber: '', clientIdExpiry: '', clientAddress: '',
+    startDate: '', endDate: '', rentalAmount: '', currency: 'MAD',
+    guaranteeAmount: '', guaranteeCheck: false, guaranteeCheckNumber: '', guaranteeCheckAmount: '',
+    isSubRental: false, subrenterName: '',
+    startMileage: '', notes: '', amountPaid: '', collectedBy: '', collectedAt: '',
+    rentalType: 'STANDARD', periodUnit: 'MONTH', intervalType: 'CLOSED', allowOverage: false,
+    startTime: '', endTime: '', pickupLocation: '', dropoffLocation: '',
+    clientLicenseNumber: '', clientLicenseExpiry: '',
+    secondDriverName: '', secondDriverIdNumber: '', secondDriverIdExpiry: '',
+    secondDriverLicense: '', secondDriverLicenseExpiry: '',
+  })
+  const [hasSecondDriver, setHasSecondDriver] = useState(false)
+  const [carSearch, setCarSearch] = useState('')
+  const [scannerOpen, setScannerOpen] = useState(false)
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
+
+  const handleQRScan = (text) => {
+    const match = text.match(/^rental:car:(.+)$/)
+    if (!match) return
+    const found = cars.find(c => c.id === match[1])
+    if (found) { setForm(f => ({ ...f, carId: found.id })); setCarSearch(`${found.brand} ${found.model}`) }
+  }
+
+  const handleClientSelect = (client) => {
+    setForm(f => ({
+      ...f,
+      clientId: client.id,
+      clientType: client.clientType || 'INDIVIDUAL',
+      clientName: client.clientType === 'COMPANY' && client.companyName ? client.companyName : `${client.firstName} ${client.lastName}`,
+      clientPhone: client.phone || f.clientPhone,
+      clientEmail: client.email || f.clientEmail,
+      clientIdNumber: client.idNumber || f.clientIdNumber,
+      clientIdExpiry: client.idExpiry ? client.idExpiry.split('T')[0] : f.clientIdExpiry,
+      clientAddress: client.address || f.clientAddress,
+      clientLicenseNumber: client.clientType === 'COMPANY' ? '' : (client.licenseNumber || f.clientLicenseNumber),
+      clientLicenseExpiry: client.clientType === 'COMPANY' ? '' : (client.licenseExpiry ? client.licenseExpiry.split('T')[0] : f.clientLicenseExpiry),
+    }))
+  }
+
+  const filteredCars = cars
+    .filter(c => c.status === 'AVAILABLE' || c.id === form.carId)
+    .filter(c => !carSearch || `${c.brand} ${c.model} ${c.finalPlate || ''} ${c.wwPlate || ''}`.toLowerCase().includes(carSearch.toLowerCase()))
+
+  const canNext = () => {
+    if (step === 0) return !!form.carId
+    if (step === 1) return !!form.clientName
+    if (step === 2) return !!form.startDate && !!form.endDate
+    if (step === 3) return !!form.rentalAmount
+    return true
+  }
+
+  const selectedCar = cars.find(c => c.id === form.carId)
+
+  const renderStep = () => {
+    switch (step) {
+      case 0:
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="label">Véhicule *</label>
+              <div className="flex gap-2 mb-1">
+                <input className="input flex-1" placeholder="Rechercher un véhicule..." value={carSearch} onChange={e => setCarSearch(e.target.value)} />
+                <button type="button" onClick={() => setScannerOpen(true)} className="btn-secondary flex items-center gap-1.5 px-3 shrink-0">
+                  <ScanLine className="w-4 h-4" /> QR
+                </button>
+              </div>
+              <select className="input" value={form.carId} onChange={set('carId')} size={Math.min(filteredCars.length + 1, 6)}>
+                <option value="">Choisir un véhicule</option>
+                {filteredCars.map(c => (
+                  <option key={c.id} value={c.id}>{c.brand} {c.model} — {c.finalPlate || c.wwPlate}</option>
+                ))}
+              </select>
+            </div>
+            <QRScanner isOpen={scannerOpen} onClose={() => setScannerOpen(false)} onResult={handleQRScan} />
+          </div>
+        )
+
+      case 1:
+        return (
+          <div className="space-y-4">
+            <ClientSearch agencyId={agencyId} onSelect={handleClientSelect} />
+            {form.clientType === 'COMPANY' && (
+              <p className="text-xs text-purple-600 bg-purple-50 rounded-lg px-3 py-2 flex items-center gap-1.5">
+                <Building2 className="w-3.5 h-3.5 shrink-0" /> Client Entreprise — permis de conduire non obligatoire
+              </p>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><label className="label">Nom {form.clientType === 'COMPANY' ? '(entreprise)' : 'complet'} *</label><input className="input" value={form.clientName} onChange={set('clientName')} /></div>
+              <div><label className="label">CIN / Passeport</label><input className="input" value={form.clientIdNumber} onChange={set('clientIdNumber')} /></div>
+              <div><label className="label">Expiration CIN / Passeport</label><input className="input" type="date" value={form.clientIdExpiry} onChange={set('clientIdExpiry')} /></div>
+              {form.clientType !== 'COMPANY' && (
+                <div><label className="label">N° Permis de conduire</label><input className="input" value={form.clientLicenseNumber} onChange={set('clientLicenseNumber')} /></div>
+              )}
+              {form.clientType !== 'COMPANY' && (
+                <div><label className="label">Expiration permis de conduire</label><input className="input" type="date" value={form.clientLicenseExpiry} onChange={set('clientLicenseExpiry')} /></div>
+              )}
+              <div><label className="label">Téléphone</label><input className="input" value={form.clientPhone} onChange={set('clientPhone')} /></div>
+              <div><label className="label">Email</label><input className="input" type="email" value={form.clientEmail} onChange={set('clientEmail')} /></div>
+            </div>
+            <div><label className="label">Adresse</label><input className="input" value={form.clientAddress} onChange={set('clientAddress')} /></div>
+            <div className="border-t pt-4">
+              <button type="button" onClick={() => setHasSecondDriver(v => !v)} className="w-full flex items-center justify-between gap-2 py-1 text-left">
+                <span className="font-medium text-gray-700">2ème conducteur</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${hasSecondDriver ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {hasSecondDriver ? 'Actif' : 'Ajouter'}
+                </span>
+              </button>
+              {hasSecondDriver && (
+                <div className="mt-3 space-y-3 bg-gray-50 rounded-xl p-3 sm:p-4">
+                  <div><label className="label">Nom complet</label><input className="input" value={form.secondDriverName} onChange={set('secondDriverName')} placeholder="Nom et prénom" /></div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div><label className="label">N° CIN / Passeport</label><input className="input" value={form.secondDriverIdNumber} onChange={set('secondDriverIdNumber')} /></div>
+                    <div><label className="label">Expiration CIN</label><input className="input" type="date" value={form.secondDriverIdExpiry} onChange={set('secondDriverIdExpiry')} /></div>
+                    <div><label className="label">N° Permis de conduire</label><input className="input" value={form.secondDriverLicense} onChange={set('secondDriverLicense')} /></div>
+                    <div><label className="label">Expiration permis</label><input className="input" type="date" value={form.secondDriverLicenseExpiry} onChange={set('secondDriverLicenseExpiry')} /></div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )
+
+      case 2:
+        return (
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-700">Type de location</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="label">Type</label>
+                <select className="input" value={form.rentalType} onChange={set('rentalType')}>
+                  {Object.entries(RENTAL_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">Intervalle</label>
+                <select className="input" value={form.intervalType} onChange={set('intervalType')}>
+                  {Object.entries(INTERVAL_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                </select>
+              </div>
+              {form.rentalType === 'PERIODIC' && (
+                <div>
+                  <label className="label">Périodicité</label>
+                  <select className="input" value={form.periodUnit} onChange={set('periodUnit')}>
+                    {Object.entries(PERIOD_UNITS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                  </select>
+                </div>
+              )}
+              <div className="flex items-center gap-2 pt-5">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={!form.allowOverage} onChange={e => setForm(f => ({ ...f, allowOverage: !e.target.checked }))} className="rounded" />
+                  <span className="text-sm">Dépassement non autorisé</span>
+                </label>
+              </div>
+            </div>
+            <h4 className="font-medium text-gray-700">Dates</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><label className="label">Date départ *</label><input className="input" type="date" value={form.startDate} onChange={set('startDate')} /></div>
+              <div><label className="label">Heure départ</label><input className="input" type="time" value={form.startTime} onChange={set('startTime')} /></div>
+              <div>
+                <label className="label">{form.intervalType === 'OPEN' ? 'Date retour estimée *' : 'Date retour *'}</label>
+                <input className="input" type="date" value={form.endDate} min={form.startDate || undefined} onChange={set('endDate')} />
+              </div>
+              <div><label className="label">Heure retour</label><input className="input" type="time" value={form.endTime} onChange={set('endTime')} /></div>
+              <div><label className="label">Km départ</label><input className="input" type="number" value={form.startMileage} onChange={set('startMileage')} /></div>
+            </div>
+            <h4 className="font-medium text-gray-700">Lieux</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><label className="label">Lieu de récupération</label><input className="input" placeholder="Adresse, agence, aéroport..." value={form.pickupLocation} onChange={set('pickupLocation')} /></div>
+              <div><label className="label">Lieu de restitution</label><input className="input" placeholder="Adresse, agence, aéroport..." value={form.dropoffLocation} onChange={set('dropoffLocation')} /></div>
+            </div>
+          </div>
+        )
+
+      case 3:
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="label">{form.rentalType === 'PERIODIC' ? `Montant par ${form.periodUnit === 'WEEK' ? 'semaine' : 'mois'} *` : 'Montant location *'}</label>
+                <input className="input" type="number" step="0.01" value={form.rentalAmount} onChange={set('rentalAmount')} />
+              </div>
+              <div>
+                <label className="label">Devise</label>
+                <select className="input" value={form.currency} onChange={set('currency')}>
+                  {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">Montant encaissé ({form.currency || 'MAD'})</label>
+                <input className="input" type="number" step="0.01" min="0" value={form.amountPaid ?? ''} onChange={set('amountPaid')} placeholder="0.00" />
+              </div>
+              <div>
+                <label className="label">Caution encaissée ({form.currency || 'MAD'})</label>
+                <input className="input" type="number" step="0.01" min="0" value={form.guaranteeAmount ?? ''} onChange={set('guaranteeAmount')} placeholder="0.00" />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.guaranteeCheck} onChange={set('guaranteeCheck')} className="rounded" />
+                <span className="text-sm">Chèque de garantie</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.isSubRental} onChange={set('isSubRental')} className="rounded" />
+                <span className="text-sm">Sous-location</span>
+              </label>
+            </div>
+            {form.guaranteeCheck && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><label className="label">Montant du chèque ({form.currency || 'MAD'})</label><input className="input" type="number" step="0.01" min="0" value={form.guaranteeCheckAmount ?? ''} onChange={set('guaranteeCheckAmount')} placeholder="0.00" /></div>
+                <div><label className="label">N° du chèque</label><input className="input" value={form.guaranteeCheckNumber ?? ''} onChange={set('guaranteeCheckNumber')} /></div>
+              </div>
+            )}
+            {form.isSubRental && (
+              <div><label className="label">Loueur (sous-location)</label><input className="input" value={form.subrenterName} onChange={set('subrenterName')} /></div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="label">Encaissé par</label>
+                <CollectedByInput agencyId={agencyId} value={form.collectedBy ?? ''} onChange={(v) => setForm(f => ({ ...f, collectedBy: v }))} />
+              </div>
+              <div>
+                <label className="label">Date d'encaissement</label>
+                <input className="input" type="date" value={form.collectedAt ?? ''} onChange={set('collectedAt')} />
+              </div>
+            </div>
+            <div><label className="label">Notes</label><textarea className="input" rows={2} value={form.notes} onChange={set('notes')} /></div>
+          </div>
+        )
+
+      case 4:
+        return (
+          <div className="space-y-3">
+            <p className="text-sm text-gray-500 mb-4">Vérifiez les informations avant de créer le contrat.</p>
+            <SummaryRow label="Véhicule" value={selectedCar ? `${selectedCar.brand} ${selectedCar.model} — ${selectedCar.finalPlate || selectedCar.wwPlate}` : ''} />
+            <SummaryRow label="Client" value={form.clientName} />
+            <SummaryRow label="CIN / Passeport" value={form.clientIdNumber} />
+            <SummaryRow label="Téléphone" value={form.clientPhone} />
+            <SummaryRow label="Date départ" value={form.startDate ? fmtDate(form.startDate) : ''} />
+            <SummaryRow label="Date retour" value={form.endDate ? fmtDate(form.endDate) : ''} />
+            {(form.pickupLocation || form.dropoffLocation) && (
+              <SummaryRow label="Lieux" value={[form.pickupLocation, form.dropoffLocation].filter(Boolean).join(' → ')} />
+            )}
+            <SummaryRow label="Montant location" value={form.rentalAmount ? `${form.rentalAmount} ${form.currency}` : ''} />
+            <SummaryRow label="Montant encaissé" value={form.amountPaid ? `${form.amountPaid} ${form.currency}` : `0 ${form.currency}`} />
+            <SummaryRow label="Caution" value={form.guaranteeAmount ? `${form.guaranteeAmount} ${form.currency}` : `0 ${form.currency}`} />
+            {form.notes && <SummaryRow label="Notes" value={form.notes} />}
+          </div>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Indicateur d'étapes */}
+      <div className="flex items-center">
+        {STEPS.map((s, i) => (
+          <div key={i} className="flex items-center flex-1 last:flex-none">
+            <button
+              type="button"
+              onClick={() => i < step && setStep(i)}
+              className={`flex flex-col items-center gap-1 ${i < step ? 'cursor-pointer' : 'cursor-default'}`}
+            >
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                i === step ? 'bg-blue-600 text-white' : i < step ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400'
+              }`}>
+                {i < step ? '✓' : i + 1}
+              </div>
+              <span className={`text-xs hidden sm:block whitespace-nowrap ${i === step ? 'text-blue-600 font-medium' : i < step ? 'text-green-600' : 'text-gray-400'}`}>{s}</span>
+            </button>
+            {i < STEPS.length - 1 && (
+              <div className={`flex-1 h-0.5 mx-1 transition-colors ${i < step ? 'bg-green-400' : 'bg-gray-200'}`} />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Titre de l'étape sur mobile */}
+      <h4 className="font-semibold text-gray-800 sm:hidden">{STEPS[step]}</h4>
+
+      {/* Contenu de l'étape */}
+      <div>{renderStep()}</div>
+
+      {/* Navigation */}
+      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+        <button
+          type="button"
+          onClick={() => setStep(s => s - 1)}
+          disabled={step === 0}
+          className="btn-secondary disabled:opacity-40"
+        >
+          Précédent
+        </button>
+        {step < STEPS.length - 1 ? (
+          <button
+            type="button"
+            onClick={() => setStep(s => s + 1)}
+            disabled={!canNext()}
+            className="btn-primary disabled:opacity-40"
+          >
+            Suivant
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onSubmit(form)}
+            disabled={loading}
+            className="btn-primary"
+          >
+            {loading ? 'Enregistrement...' : 'Créer le contrat'}
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function InvoiceModal({ agencyId, contract, onClose }) {
   const clientRef = useRef(null)
   const [loading, setLoading] = useState(false)
@@ -1107,6 +1440,7 @@ function ClientHistoryTab({ agencyId }) {
 export default function Contracts() {
   const { agencyId } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
   const qc = useQueryClient()
   const [tab, setTab] = useState('contracts')
   const [modal, setModal] = useState(null)
@@ -1120,9 +1454,10 @@ export default function Contracts() {
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
     if (carId) {
-      setPrefillData({ carId, startDate: startDate || '', endDate: endDate || '' })
-      setModal({ type: 'create' })
-      setSearchParams({}, { replace: true })
+      const params = new URLSearchParams({ carId })
+      if (startDate) params.set('startDate', startDate)
+      if (endDate) params.set('endDate', endDate)
+      navigate(`/agency/${agencyId}/contracts/new?${params.toString()}`, { replace: true })
     }
   }, [])
 
@@ -1278,7 +1613,7 @@ export default function Contracts() {
           <button onClick={() => setContractScannerOpen(true)} className="btn-secondary flex items-center gap-1.5 px-3 shrink-0" title="Scanner QR contrat">
             <ScanLine className="w-4 h-4" /> QR
           </button>
-          <button onClick={() => setModal({ type: 'create' })} className="btn-primary flex items-center gap-2 shrink-0 whitespace-nowrap">
+          <button onClick={() => navigate(`/agency/${agencyId}/contracts/new`)} className="btn-primary flex items-center gap-2 shrink-0 whitespace-nowrap">
             <Plus className="w-4 h-4" /> Nouveau Contrat
           </button>
         </div>
@@ -1388,8 +1723,7 @@ export default function Contracts() {
       </>}
 
       <Modal isOpen={modal?.type === 'create'} onClose={() => { setModal(null); setPrefillData(null) }} title="Nouveau Contrat" size="xl">
-        <ContractForm
-          initial={prefillData || undefined}
+        <ContractWizard
           cars={cars}
           agencyId={agencyId}
           onSubmit={createMutation.mutate}
