@@ -191,13 +191,27 @@ export default function Login() {
             </Link>
           </div>
 
+          {/* Trust badges */}
+          <div className="mt-8 grid grid-cols-3 gap-2 text-center">
+            {[
+              { icon: '🔒', label: 'Données sécurisées' },
+              { icon: '📞', label: 'Support inclus' },
+              { icon: '✅', label: 'Sans engagement' },
+            ].map(b => (
+              <div key={b.label} className="bg-gray-50 rounded-xl py-3 px-2">
+                <div className="text-lg mb-1">{b.icon}</div>
+                <p className="text-xs text-gray-500 leading-tight">{b.label}</p>
+              </div>
+            ))}
+          </div>
+
           {/* Séparateur */}
-          <div className="mt-10 pt-6 border-t border-gray-100 text-center">
+          <div className="mt-8 pt-6 border-t border-gray-100 text-center">
             <p className="text-xs text-gray-400">
-              Vous n'avez pas de compte ?{' '}
-              <a href="tel:+212672491389" className="text-blue-600 hover:underline font-medium">
-                Contactez-nous
-              </a>
+              Pas encore client ?{' '}
+              <Link to="/" className="text-blue-600 hover:underline font-medium">
+                Demander une démo gratuite
+              </Link>
             </p>
           </div>
 

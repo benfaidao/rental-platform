@@ -21,6 +21,7 @@ import Chat from './pages/agency/Chat'
 import RentalRequests from './pages/agency/RentalRequests'
 import AgencySettings from './pages/agency/AgencySettings'
 import ContractView from './pages/ContractView'
+import Landing from './pages/Landing'
 import Layout from './components/Layout'
 
 function PrivateRoute({ children, adminOnly = false }) {
@@ -68,7 +69,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<DefaultRedirect />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/admin" element={<PrivateRoute adminOnly><Layout /></PrivateRoute>}>
             <Route index element={<AdminDashboard />} />
             <Route path="agencies" element={<Agencies />} />
