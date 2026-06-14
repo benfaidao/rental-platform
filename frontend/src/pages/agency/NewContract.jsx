@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  getCars, createContract, getClients, getAgencyMembers,
+  getCars, createContract, getClients, getAgencyMembers, uploadContractDocument,
+  downloadContractPdfSigned,
 } from '../../api'
 import QRScanner from '../../components/QRScanner'
+import SignatureCanvas from '../../components/SignatureCanvas'
 import {
   ArrowLeft, Check, User, Car, Shield, Settings, CreditCard, FileCheck,
   ScanLine, UserCheck, Building2, ChevronRight,
@@ -56,10 +58,26 @@ function ClientSearch({ agencyId, onSelect }) {
           {clients.map(c => (
             <button key={c.id} type="button"
               className="w-full text-left px-4 py-3 hover:bg-blue-50 text-sm border-b border-gray-50 last:border-0"
-              onClick={() => { onSelect(c); setSearch(`${c.firstName} ${c.lastName}`); setOpen(false) }}
+              onClick={() => {
+                onSelect(c)
+                setSearch(c.clientType === 'COMPANY' && c.companyName ? c.companyName : `${c.firstName} ${c.lastName}`)
+                setOpen(false)
+              }}
             >
-              <p className="font-medium text-gray-800">{c.firstName} {c.lastName}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{[c.phone, c.idNumber].filter(Boolean).join(' · ')}</p>
+              <div className="flex items-center gap-2">
+                <p className="font-medium text-gray-800">
+                  {c.clientType === 'COMPANY' && c.companyName ? c.companyName : `${c.firstName} ${c.lastName}`}
+                </p>
+                {c.clientType === 'COMPANY' && (
+                  <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-medium shrink-0">Entreprise</span>
+                )}
+              </div>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {c.clientType === 'COMPANY'
+                  ? [c.firstName && c.lastName ? `${c.firstName} ${c.lastName}` : null, c.phone].filter(Boolean).join(' · ')
+                  : [c.phone, c.idNumber].filter(Boolean).join(' · ')
+                }
+              </p>
             </button>
           ))}
         </div>
@@ -115,6 +133,12 @@ export default function NewContract() {
   const [scannerOpen, setScannerOpen] = useState(false)
   const [carSearch, setCarSearch] = useState('')
   const [hasSecondDriver, setHasSecondDriver] = useState(false)
+  const [licenseFile, setLicenseFile] = useState(null)
+  const [secondDriverLicenseFile, setSecondDriverLicenseFile] = useState(null)
+
+  const clientSigRef = useRef(null)
+  const driver2SigRef = useRef(null)
+  const agencySigRef = useRef(null)
 
   const prefillCarId = searchParams.get('carId') || ''
   const prefillStart = searchParams.get('startDate') || ''
@@ -132,7 +156,7 @@ export default function NewContract() {
     startDate: prefillStart, startTime: '', endDate: prefillEnd, endTime: '',
     pickupLocation: '', dropoffLocation: '', startMileage: '',
     // Cautions
-    guaranteeAmount: '', guaranteeCheck: false,
+    guaranteeAmount: '', guaranteeCollectedAmount: '', guaranteeCheck: false,
     guaranteeCheckAmount: '', guaranteeCheckNumber: '',
     isSubRental: false, subrenterName: '',
     // Options
@@ -151,9 +175,47 @@ export default function NewContract() {
 
   const createMut = useMutation({
     mutationFn: (data) => createContract(agencyId, data),
-    onSuccess: () => {
+    onSuccess: async (response) => {
+      const contractId = response.data.id
+
+      const uploads = []
+      if (licenseFile) {
+        const fd = new FormData()
+        fd.append('file', licenseFile)
+        fd.append('type', 'LICENSE')
+        uploads.push(uploadContractDocument(agencyId, contractId, fd))
+      }
+      if (secondDriverLicenseFile) {
+        const fd = new FormData()
+        fd.append('file', secondDriverLicenseFile)
+        fd.append('type', 'LICENSE_DRIVER2')
+        uploads.push(uploadContractDocument(agencyId, contractId, fd))
+      }
+      if (uploads.length) {
+        try { await Promise.all(uploads) } catch {}
+      }
+
+      const clientSig = clientSigRef.current?.isEmpty() ? undefined : clientSigRef.current?.getDataURL()
+      const driver2Sig = driver2SigRef.current?.isEmpty() ? undefined : driver2SigRef.current?.getDataURL()
+      const agencySig = agencySigRef.current?.isEmpty() ? undefined : agencySigRef.current?.getDataURL()
+      if (clientSig || driver2Sig || agencySig) {
+        try {
+          const res = await downloadContractPdfSigned(agencyId, contractId, {
+            signatureClient: clientSig,
+            signatureDriver2: driver2Sig,
+            signatureAgency: agencySig,
+          })
+          const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `contrat-${response.data.contractNumber}.pdf`
+          a.click()
+          URL.revokeObjectURL(url)
+        } catch {}
+      }
+
       qc.invalidateQueries(['contracts', agencyId])
-      toast.success('Contrat créé avec succès')
+      toast.success('Réservation créée avec succès')
       navigate(`/agency/${agencyId}/contracts`)
     },
     onError: (e) => toast.error(e.response?.data?.error || 'Erreur lors de la création'),
@@ -226,6 +288,7 @@ export default function NewContract() {
       dropoffLocation: form.dropoffLocation || undefined,
       startMileage: form.startMileage ? parseInt(form.startMileage) : undefined,
       guaranteeAmount: form.guaranteeAmount !== '' ? parseFloat(form.guaranteeAmount) : 0,
+      guaranteeCollectedAmount: form.guaranteeCollectedAmount !== '' ? parseFloat(form.guaranteeCollectedAmount) : undefined,
       guaranteeCheck: form.guaranteeCheck,
       guaranteeCheckAmount: form.guaranteeCheck && form.guaranteeCheckAmount ? parseFloat(form.guaranteeCheckAmount) : undefined,
       guaranteeCheckNumber: form.guaranteeCheck ? (form.guaranteeCheckNumber || undefined) : undefined,
@@ -271,6 +334,22 @@ export default function NewContract() {
         {form.clientType !== 'COMPANY' && <>
           <div><label className="label">N° Permis de conduire</label><input className="input" value={form.clientLicenseNumber} onChange={set('clientLicenseNumber')} /></div>
           <div><label className="label">Expiration permis</label><input className="input" type="date" value={form.clientLicenseExpiry} onChange={set('clientLicenseExpiry')} /></div>
+          <div className="sm:col-span-2">
+            <label className="label">Photo / scan du permis</label>
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className={`flex-1 flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 border-dashed transition-colors ${licenseFile ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-blue-300 bg-gray-50'}`}>
+                <span className="text-sm text-gray-500 truncate flex-1">
+                  {licenseFile ? licenseFile.name : 'Choisir une image ou un PDF…'}
+                </span>
+                {licenseFile && (
+                  <button type="button" onClick={e => { e.preventDefault(); setLicenseFile(null) }}
+                    className="text-xs text-red-500 hover:text-red-700 shrink-0">Supprimer</button>
+                )}
+              </div>
+              <input type="file" accept="image/*,application/pdf" className="hidden"
+                onChange={e => setLicenseFile(e.target.files[0] || null)} />
+            </label>
+          </div>
         </>}
         <div className="sm:col-span-2"><label className="label">Adresse</label><input className="input" value={form.clientAddress} onChange={set('clientAddress')} /></div>
       </div>
@@ -290,6 +369,22 @@ export default function NewContract() {
             <div><label className="label text-xs">Expiration CIN</label><input className="input" type="date" value={form.secondDriverIdExpiry} onChange={set('secondDriverIdExpiry')} /></div>
             <div><label className="label text-xs">N° Permis</label><input className="input" value={form.secondDriverLicense} onChange={set('secondDriverLicense')} /></div>
             <div><label className="label text-xs">Expiration permis</label><input className="input" type="date" value={form.secondDriverLicenseExpiry} onChange={set('secondDriverLicenseExpiry')} /></div>
+            <div className="sm:col-span-2">
+              <label className="label text-xs">Photo / scan du permis (2ème conducteur)</label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <div className={`flex-1 flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 border-dashed transition-colors ${secondDriverLicenseFile ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-blue-300 bg-gray-50'}`}>
+                  <span className="text-xs text-gray-500 truncate flex-1">
+                    {secondDriverLicenseFile ? secondDriverLicenseFile.name : 'Choisir une image ou un PDF…'}
+                  </span>
+                  {secondDriverLicenseFile && (
+                    <button type="button" onClick={e => { e.preventDefault(); setSecondDriverLicenseFile(null) }}
+                      className="text-xs text-red-500 hover:text-red-700 shrink-0">Supprimer</button>
+                  )}
+                </div>
+                <input type="file" accept="image/*,application/pdf" className="hidden"
+                  onChange={e => setSecondDriverLicenseFile(e.target.files[0] || null)} />
+              </label>
+            </div>
           </div>
         )}
       </div>
@@ -335,9 +430,22 @@ export default function NewContract() {
 
     // STEP 2 — Cautions
     <div key="caution" className="space-y-5">
-      <div>
-        <label className="label">Montant de la caution ({form.currency || 'MAD'})</label>
-        <input className="input sm:max-w-xs" type="number" step="0.01" min="0" value={form.guaranteeAmount} onChange={set('guaranteeAmount')} placeholder="0.00" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="label">Montant de la caution ({form.currency || 'MAD'})</label>
+          <input className="input" type="number" step="0.01" min="0" value={form.guaranteeAmount} onChange={set('guaranteeAmount')} placeholder="0.00" />
+        </div>
+        <div>
+          <label className="label">Caution encaissée ({form.currency || 'MAD'})</label>
+          <input className="input" type="number" step="0.01" min="0" value={form.guaranteeCollectedAmount} onChange={set('guaranteeCollectedAmount')} placeholder="0.00" />
+          {parseFloat(form.guaranteeCollectedAmount) > 0 && parseFloat(form.guaranteeAmount) > 0 && (
+            <p className={`text-xs mt-1.5 ${parseFloat(form.guaranteeCollectedAmount) >= parseFloat(form.guaranteeAmount) ? 'text-green-600' : 'text-orange-500'}`}>
+              {parseFloat(form.guaranteeCollectedAmount) >= parseFloat(form.guaranteeAmount)
+                ? 'Caution intégralement encaissée'
+                : `Reste : ${fmtMoney(parseFloat(form.guaranteeAmount) - parseFloat(form.guaranteeCollectedAmount), form.currency || 'MAD')}`}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="space-y-3">
@@ -501,6 +609,7 @@ export default function NewContract() {
         <div className="bg-white border border-gray-200 rounded-xl p-4">
           <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Cautions & Options</h4>
           <RecapRow label="Caution" value={form.guaranteeAmount ? fmtMoney(form.guaranteeAmount, form.currency) : '0'} />
+          <RecapRow label="Caution encaissée" value={form.guaranteeCollectedAmount ? fmtMoney(form.guaranteeCollectedAmount, form.currency) : '0'} />
           {form.guaranteeCheck && <RecapRow label="Chèque garantie" value={`N° ${form.guaranteeCheckNumber || '-'} — ${fmtMoney(form.guaranteeCheckAmount, form.currency)}`} />}
           {form.isSubRental && <RecapRow label="Sous-location" value={form.subrenterName || 'Oui'} />}
           <RecapRow label="Type" value={RENTAL_TYPES[form.rentalType]} />
@@ -523,6 +632,20 @@ export default function NewContract() {
           <RecapRow label="Date encaissement" value={form.collectedAt ? fmtDate(form.collectedAt) : ''} />
         </div>
       </div>
+
+      <div className="border-t pt-5 space-y-4">
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 mb-1">Signatures</h4>
+          <p className="text-xs text-gray-400 mb-4">Les signatures sont optionnelles. Si renseignées, le PDF signé sera téléchargé automatiquement après la création du contrat.</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <SignatureCanvas ref={clientSigRef} label={`Signature du client${form.clientName ? ` (${form.clientName})` : ''}`} />
+          {hasSecondDriver && form.secondDriverName && (
+            <SignatureCanvas ref={driver2SigRef} label={`Signature du 2ème conducteur (${form.secondDriverName})`} />
+          )}
+          <SignatureCanvas ref={agencySigRef} label="Signature de l'agence" />
+        </div>
+      </div>
     </div>,
   ]
 
@@ -533,10 +656,10 @@ export default function NewContract() {
       {/* Top bar */}
       <div className="flex items-center gap-3 mb-6">
         <Link to={`/agency/${agencyId}/contracts`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Retour aux contrats
+          <ArrowLeft className="w-4 h-4" /> Retour aux réservations
         </Link>
         <span className="text-gray-300">/</span>
-        <span className="text-sm font-medium text-gray-700">Nouveau contrat</span>
+        <span className="text-sm font-medium text-gray-700">Nouvelle réservation</span>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 flex-1">
@@ -630,7 +753,7 @@ export default function NewContract() {
                   className="btn-primary flex items-center gap-2 px-6"
                 >
                   <FileCheck className="w-4 h-4" />
-                  {createMut.isPending ? 'Création...' : 'Créer le contrat'}
+                  {createMut.isPending ? 'Création de la réservation...' : 'Créer la réservation'}
                 </button>
               )}
             </div>

@@ -21,7 +21,7 @@ const adminLinks = [
 
 const agencyLinks = (agencyId) => [
   { to: `/agency/${agencyId}`, label: 'Tableau de bord', icon: LayoutDashboard, end: true },
-  { to: `/agency/${agencyId}/contracts`, label: 'Contrats', icon: FileText },
+  { to: `/agency/${agencyId}/contracts`, label: 'Réservations', icon: FileText },
   { to: `/agency/${agencyId}/clients`, label: 'Clients', icon: UserCheck },
   { to: `/agency/${agencyId}/cars`, label: 'Véhicules', icon: Car },
   { to: `/agency/${agencyId}/financial`, label: 'Finances', icon: DollarSign },

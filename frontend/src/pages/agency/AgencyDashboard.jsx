@@ -360,7 +360,7 @@ export default function AgencyDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard label="Disponibles aujourd'hui" value={stats.carsAvailableToday ?? stats.availableCars} sub={`${stats.totalCars} au total`} icon={Car} color="green" />
         <StatCard label="En location" value={stats.rentedCars} icon={Car} color="orange" />
-        <StatCard label="Contrats actifs" value={stats.activeContracts} sub={`${stats.pendingContracts} en attente`} icon={FileText} color="blue" />
+        <StatCard label="Réservations actives" value={stats.activeContracts} sub={`${stats.pendingContracts} en attente`} icon={FileText} color="blue" />
         <StatCard label="Solde en espèces" value={fmt(stats.cashBalance ?? stats.balance)} sub={`Revenus: ${fmt(stats.totalIncome)}`} icon={DollarSign} color="purple" />
       </div>
 
@@ -403,7 +403,7 @@ export default function AgencyDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <AlertsSection
-          title="Contrats se terminant bientôt"
+          title="Réservations se terminant bientôt"
           items={alerts.contractsEndingSoon}
           icon={Clock}
           renderItem={(c) => (

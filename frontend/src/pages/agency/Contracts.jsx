@@ -56,7 +56,7 @@ function SignaturePdfModal({ agencyId, contract, onClose, onSigned }) {
       fd.append('notes', 'Signé en ligne')
       await uploadContractDocument(agencyId, contract.id, fd)
 
-      toast.success('Contrat signé téléchargé et sauvegardé')
+      toast.success('Réservation signée téléchargée et sauvegardée')
       onSigned?.()
       onClose()
     } catch {
@@ -104,7 +104,7 @@ function SignedContractModal({ agencyId, contract, onRefresh }) {
       fd.append('file', file)
       fd.append('type', 'SIGNED_CONTRACT')
       await uploadContractDocument(agencyId, contract.id, fd)
-      toast.success('Contrat signé uploadé')
+      toast.success('Réservation signée uploadée')
       setFile(null)
       onRefresh()
     } catch {
@@ -152,7 +152,7 @@ function SignedContractModal({ agencyId, contract, onRefresh }) {
       ) : (
         <div className="text-center py-4 text-gray-400">
           <FileSignature className="w-10 h-10 mx-auto mb-2 opacity-30" />
-          <p className="text-sm">Aucun contrat signé uploadé</p>
+          <p className="text-sm">Aucune réservation signée uploadée</p>
         </div>
       )}
 
@@ -167,7 +167,7 @@ function SignedContractModal({ agencyId, contract, onRefresh }) {
         />
         <button type="submit" disabled={!file || uploading} className="btn-primary flex items-center gap-2 w-full justify-center">
           <Upload className="w-4 h-4" />
-          {uploading ? 'Upload en cours...' : 'Uploader le contrat signé'}
+          {uploading ? 'Upload en cours...' : 'Uploader la réservation signée'}
         </button>
       </form>
     </div>
@@ -833,7 +833,7 @@ function ContractWizard({ cars, agencyId, onSubmit, loading }) {
       case 4:
         return (
           <div className="space-y-3">
-            <p className="text-sm text-gray-500 mb-4">Vérifiez les informations avant de créer le contrat.</p>
+            <p className="text-sm text-gray-500 mb-4">Vérifiez les informations avant de créer la réservation.</p>
             <SummaryRow label="Véhicule" value={selectedCar ? `${selectedCar.brand} ${selectedCar.model} — ${selectedCar.finalPlate || selectedCar.wwPlate}` : ''} />
             <SummaryRow label="Client" value={form.clientName} />
             <SummaryRow label="CIN / Passeport" value={form.clientIdNumber} />
@@ -912,7 +912,7 @@ function ContractWizard({ cars, agencyId, onSubmit, loading }) {
             disabled={loading}
             className="btn-primary"
           >
-            {loading ? 'Enregistrement...' : 'Créer le contrat'}
+            {loading ? 'Enregistrement...' : 'Créer la réservation'}
           </button>
         )}
       </div>
@@ -1155,7 +1155,7 @@ function HistoryTab({ agencyId }) {
         <div className="flex flex-wrap gap-3">
           <div className="relative flex-1 min-w-[10rem] sm:flex-initial">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input className="input pl-9 w-full sm:w-48 text-sm" placeholder="N° contrat, client..." value={search} onChange={e => setSearch(e.target.value)} />
+            <input className="input pl-9 w-full sm:w-48 text-sm" placeholder="N° réservation, client..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <ClientCombo agencyId={agencyId} value={clientFilter} onChange={setClientFilter} />
           <select className="input flex-1 min-w-[10rem] sm:flex-initial sm:w-48 text-sm" value={carFilter} onChange={e => setCarFilter(e.target.value)}>
@@ -1180,7 +1180,7 @@ function HistoryTab({ agencyId }) {
       </div>
 
       <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm items-center">
-        <span className="text-gray-500">{filtered.length} contrat(s)</span>
+        <span className="text-gray-500">{filtered.length} réservation(s)</span>
         {filtered.length > 0 && <>
           <span className="text-gray-700 font-medium">Total : {totalAmount.toLocaleString('fr-MA')} MAD</span>
           <span className={`font-medium ${totalPaid < totalAmount ? 'text-orange-600' : 'text-green-700'}`}>
@@ -1225,7 +1225,7 @@ function HistoryTab({ agencyId }) {
         <div className="overflow-x-auto"><table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
-              {['N° Contrat', 'Client', 'Véhicule', 'Départ', 'Retour', 'Durée', 'Montant', 'Encaissé', 'Statut'].map(h => (
+              {['N° Réservation', 'Client', 'Véhicule', 'Départ', 'Retour', 'Durée', 'Montant', 'Encaissé', 'Statut'].map(h => (
                 <th key={h} className="text-left py-3 px-4 font-medium text-gray-600">{h}</th>
               ))}
             </tr>
@@ -1351,7 +1351,7 @@ function ClientHistoryTab({ agencyId }) {
           </div>
 
           {contracts.length === 0 && (
-            <p className="text-center text-gray-400 py-6">Aucun contrat pour ce client</p>
+            <p className="text-center text-gray-400 py-6">Aucune réservation pour ce client</p>
           )}
 
           {/* Contract list */}
@@ -1386,7 +1386,7 @@ function ClientHistoryTab({ agencyId }) {
                 <div className="overflow-x-auto"><table className="w-full text-sm">
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
-                      {['N° Contrat', 'Véhicule', 'Départ', 'Retour', 'Durée', 'Montant', 'Encaissé', 'Statut'].map(h => (
+                      {['N° Réservation', 'Véhicule', 'Départ', 'Retour', 'Durée', 'Montant', 'Encaissé', 'Statut'].map(h => (
                         <th key={h} className="text-left py-3 px-4 font-medium text-gray-600 text-xs">{h}</th>
                       ))}
                     </tr>
@@ -1422,7 +1422,7 @@ function ClientHistoryTab({ agencyId }) {
           {/* Notes from contracts */}
           {contracts.some(c => c.notes) && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-600">Notes des contrats</p>
+              <p className="text-sm font-medium text-gray-600">Notes des réservations</p>
               {contracts.filter(c => c.notes).map(c => (
                 <div key={c.id} className="bg-gray-50 rounded-lg px-4 py-2 text-sm">
                   <span className="text-xs text-gray-400 font-mono mr-2">{c.contractNumber}</span>
@@ -1472,7 +1472,7 @@ export default function Contracts() {
 
   const createMutation = useMutation({
     mutationFn: (data) => createContract(agencyId, data),
-    onSuccess: () => { qc.invalidateQueries(['contracts', agencyId]); setModal(null); toast.success('Contrat créé') },
+    onSuccess: () => { qc.invalidateQueries(['contracts', agencyId]); setModal(null); toast.success('Réservation créée') },
     onError: (err) => toast.error(err.response?.data?.error || 'Erreur'),
   })
 
@@ -1542,7 +1542,7 @@ export default function Contracts() {
           <CalendarRange className="w-3.5 h-3.5 text-blue-500" />
         </button>
       )}
-      <button onClick={() => setModal({ type: 'signed', contract: c })} className={`p-1.5 rounded ${c.documents?.length > 0 ? 'hover:bg-green-50' : 'hover:bg-gray-100'}`} title="Contrat signé">
+      <button onClick={() => setModal({ type: 'signed', contract: c })} className={`p-1.5 rounded ${c.documents?.length > 0 ? 'hover:bg-green-50' : 'hover:bg-gray-100'}`} title="Réservation signée">
         <FileSignature className={`w-3.5 h-3.5 ${c.documents?.length > 0 ? 'text-green-500' : 'text-gray-400'}`} />
       </button>
       <button onClick={() => setModal({ type: 'sinistres', contract: c })} className="p-1.5 hover:bg-orange-50 rounded" title="Sinistres">
@@ -1551,7 +1551,7 @@ export default function Contracts() {
       <button onClick={() => setModal({ type: 'edit', contract: c })} className="p-1.5 hover:bg-gray-100 rounded" title="Modifier">
         <Edit2 className="w-3.5 h-3.5 text-gray-500" />
       </button>
-      <button onClick={() => { if (confirm('Supprimer ce contrat ?')) deleteMutation.mutate(c.id) }} className="p-1.5 hover:bg-red-50 rounded" title="Supprimer">
+      <button onClick={() => { if (confirm('Supprimer cette réservation ?')) deleteMutation.mutate(c.id) }} className="p-1.5 hover:bg-red-50 rounded" title="Supprimer">
         <Trash2 className="w-3.5 h-3.5 text-red-400" />
       </button>
     </div>
@@ -1580,7 +1580,7 @@ export default function Contracts() {
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 w-full sm:w-fit overflow-x-auto">
         <button onClick={() => setTab('contracts')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${tab === 'contracts' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
-          <FileDown className="w-4 h-4" /> Contrats
+          <FileDown className="w-4 h-4" /> Réservations
         </button>
         <button onClick={() => setTab('history')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${tab === 'history' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
@@ -1610,11 +1610,11 @@ export default function Contracts() {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input className="input pl-9 w-full sm:w-56" placeholder="Rechercher..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <button onClick={() => setContractScannerOpen(true)} className="btn-secondary flex items-center gap-1.5 px-3 shrink-0" title="Scanner QR contrat">
+          <button onClick={() => setContractScannerOpen(true)} className="btn-secondary flex items-center gap-1.5 px-3 shrink-0" title="Scanner QR réservation">
             <ScanLine className="w-4 h-4" /> QR
           </button>
           <button onClick={() => navigate(`/agency/${agencyId}/contracts/new`)} className="btn-primary flex items-center gap-2 shrink-0 whitespace-nowrap">
-            <Plus className="w-4 h-4" /> Nouveau Contrat
+            <Plus className="w-4 h-4" /> Nouvelle réservation
           </button>
         </div>
       </div>
@@ -1664,7 +1664,7 @@ export default function Contracts() {
           </div>
         ))}
         {!isLoading && !filtered.length && (
-          <div className="card text-center py-8 text-gray-400">Aucun contrat</div>
+          <div className="card text-center py-8 text-gray-400">Aucune réservation</div>
         )}
       </div>
 
@@ -1673,7 +1673,7 @@ export default function Contracts() {
         <div className="overflow-x-auto"><table className="w-full text-sm">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
-              {['N° Contrat', 'Client', 'Véhicule', 'Départ', 'Retour', 'Créé le', 'Montant', 'Encaissement', 'Statut', ''].map(h => (
+              {['N° Réservation', 'Client', 'Véhicule', 'Départ', 'Retour', 'Créé le', 'Montant', 'Encaissement', 'Statut', ''].map(h => (
                 <th key={h} className="text-left py-3 px-4 font-medium text-gray-600">{h}</th>
               ))}
             </tr>
@@ -1714,7 +1714,7 @@ export default function Contracts() {
               </tr>
             ))}
             {!isLoading && !filtered.length && (
-              <tr><td colSpan={10} className="py-8 text-center text-gray-400">Aucun contrat</td></tr>
+              <tr><td colSpan={10} className="py-8 text-center text-gray-400">Aucune réservation</td></tr>
             )}
           </tbody>
         </table></div>
@@ -1722,7 +1722,7 @@ export default function Contracts() {
 
       </>}
 
-      <Modal isOpen={modal?.type === 'create'} onClose={() => { setModal(null); setPrefillData(null) }} title="Nouveau Contrat" size="xl">
+      <Modal isOpen={modal?.type === 'create'} onClose={() => { setModal(null); setPrefillData(null) }} title="Nouvelle réservation" size="xl">
         <ContractWizard
           cars={cars}
           agencyId={agencyId}
@@ -1730,7 +1730,7 @@ export default function Contracts() {
           loading={createMutation.isPending}
         />
       </Modal>
-      <Modal isOpen={modal?.type === 'edit'} onClose={() => setModal(null)} title="Modifier Contrat" size="xl">
+      <Modal isOpen={modal?.type === 'edit'} onClose={() => setModal(null)} title="Modifier la réservation" size="xl">
         {modal?.contract && (
           <ContractForm
             initial={{
@@ -1758,7 +1758,7 @@ export default function Contracts() {
           <PeriodicPaymentsPanel agencyId={agencyId} contractId={modal.contract.id} currency={modal.contract.currency} />
         )}
       </Modal>
-      <Modal isOpen={modal?.type === 'signed'} onClose={() => setModal(null)} title={`Contrat signé — ${modal?.contract?.contractNumber}`} size="md">
+      <Modal isOpen={modal?.type === 'signed'} onClose={() => setModal(null)} title={`Réservation signée — ${modal?.contract?.contractNumber}`} size="md">
         {modal?.contract && (
           <SignedContractModal
             agencyId={agencyId}
@@ -1785,7 +1785,7 @@ export default function Contracts() {
           />
         )}
       </Modal>
-      <Modal isOpen={modal?.type === 'signature'} onClose={() => setModal(null)} title={`Signer le contrat — ${modal?.contract?.contractNumber}`} size="lg">
+      <Modal isOpen={modal?.type === 'signature'} onClose={() => setModal(null)} title={`Signer la réservation — ${modal?.contract?.contractNumber}`} size="lg">
         {modal?.contract && (
           <SignaturePdfModal
             agencyId={agencyId}

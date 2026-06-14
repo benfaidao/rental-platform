@@ -169,7 +169,7 @@ router.get('/:contractId', async (req, res) => {
 router.post('/', async (req, res) => {
   const {
     carId, clientId, clientName, clientPhone, clientEmail, clientIdNumber, clientIdExpiry, clientAddress,
-    startDate, endDate, rentalAmount, guaranteeAmount, currency, guaranteeCheck,
+    startDate, endDate, rentalAmount, guaranteeAmount, guaranteeCollectedAmount, currency, guaranteeCheck,
     guaranteeCheckNumber, guaranteeCheckAmount, isSubRental, subrenterName, startMileage, notes, amountPaid,
     collectedBy, collectedAt, montantTTC,
     rentalType, periodUnit, intervalType, allowOverage,
@@ -246,6 +246,7 @@ router.post('/', async (req, res) => {
       endDate: new Date(endDate),
       rentalAmount: parseFloat(rentalAmount),
       guaranteeAmount: parseFloat(guaranteeAmount || 0),
+      guaranteeCollectedAmount: guaranteeCollectedAmount ? parseFloat(guaranteeCollectedAmount) : null,
       currency: currency || 'MAD',
       guaranteeCheck: !!guaranteeCheck,
       guaranteeCheckNumber: guaranteeCheckNumber || null,
@@ -295,7 +296,7 @@ router.post('/', async (req, res) => {
 router.put('/:contractId', async (req, res) => {
   const {
     clientName, clientPhone, clientEmail, clientIdNumber, clientIdExpiry, clientAddress,
-    startDate, endDate, rentalAmount, guaranteeAmount, currency, guaranteeCheck,
+    startDate, endDate, rentalAmount, guaranteeAmount, guaranteeCollectedAmount, currency, guaranteeCheck,
     guaranteeCheckNumber, guaranteeCheckAmount, isSubRental, subrenterName, status, startMileage,
     endMileage, notes, amountPaid, collectedBy, collectedAt, montantTTC, intervalType, allowOverage,
     startTime, endTime, pickupLocation, dropoffLocation,
@@ -321,6 +322,7 @@ router.put('/:contractId', async (req, res) => {
       endDate: endDate ? new Date(endDate) : undefined,
       rentalAmount: rentalAmount ? parseFloat(rentalAmount) : undefined,
       guaranteeAmount: guaranteeAmount !== undefined ? parseFloat(guaranteeAmount) : undefined,
+      guaranteeCollectedAmount: guaranteeCollectedAmount !== undefined ? (guaranteeCollectedAmount ? parseFloat(guaranteeCollectedAmount) : null) : undefined,
       currency, guaranteeCheck,
       guaranteeCheckNumber: guaranteeCheckNumber !== undefined ? (guaranteeCheckNumber || null) : undefined,
       guaranteeCheckAmount: guaranteeCheckAmount !== undefined ? (guaranteeCheckAmount ? parseFloat(guaranteeCheckAmount) : null) : undefined,
