@@ -30,6 +30,7 @@ export default function EditCar() {
 
   const [form, setForm] = useState(null)
   const [newPhotoFiles, setNewPhotoFiles] = useState([])
+  const [mainNewPhotoIdx, setMainNewPhotoIdx] = useState(null)
   const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function EditCar() {
             const fd = new FormData()
             fd.append('file', newPhotoFiles[i])
             fd.append('type', 'PHOTO')
+            if (i === mainNewPhotoIdx) fd.append('isMainPhoto', 'true')
             await uploadCarDocument(agencyId, carId, fd)
           }
           qc.invalidateQueries(['carDocs', carId])
@@ -77,6 +79,7 @@ export default function EditCar() {
         } finally {
           setUploading(false)
           setNewPhotoFiles([])
+          setMainNewPhotoIdx(null)
         }
       }
       qc.invalidateQueries(['cars', agencyId])
@@ -242,18 +245,36 @@ export default function EditCar() {
           {/* New photos to upload */}
           {newPhotoFiles.length > 0 && (
             <div>
-              <p className="text-xs text-gray-500 mb-2">Photos à ajouter ({newPhotoFiles.length})</p>
+              <p className="text-xs text-gray-500 mb-2">Photos à ajouter ({newPhotoFiles.length}) — cliquez sur <Star className="w-3 h-3 inline text-yellow-500" /> pour définir la principale</p>
               <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                 {newPhotoFiles.map((file, idx) => (
-                  <div key={idx} className="relative rounded-lg overflow-hidden border-2 border-blue-200 aspect-square">
+                  <div key={idx} className={`relative rounded-lg overflow-hidden border-2 aspect-square ${idx === mainNewPhotoIdx ? 'border-yellow-400' : 'border-blue-200'}`}>
                     <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
                     <button
                       type="button"
-                      onClick={() => setNewPhotoFiles(prev => prev.filter((_, i) => i !== idx))}
+                      onClick={() => setMainNewPhotoIdx(prev => prev === idx ? null : idx)}
+                      className={`absolute top-1 left-1 p-0.5 rounded-full ${idx === mainNewPhotoIdx ? 'bg-yellow-400 text-white' : 'bg-black/40 text-white hover:bg-yellow-400'}`}
+                      title="Définir comme photo principale"
+                    >
+                      <Star className="w-3 h-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setNewPhotoFiles(prev => prev.filter((_, i) => i !== idx))
+                        setMainNewPhotoIdx(prev => {
+                          if (prev === idx) return null
+                          if (prev !== null && prev > idx) return prev - 1
+                          return prev
+                        })
+                      }}
                       className="absolute top-1 right-1 p-0.5 rounded-full bg-black/40 text-white hover:bg-red-500"
                     >
                       <X className="w-3 h-3" />
                     </button>
+                    {idx === mainNewPhotoIdx && (
+                      <span className="absolute bottom-0 left-0 right-0 bg-yellow-400/90 text-white text-[10px] text-center py-0.5 font-medium">Principale</span>
+                    )}
                   </div>
                 ))}
               </div>
