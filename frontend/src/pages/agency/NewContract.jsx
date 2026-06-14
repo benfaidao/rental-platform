@@ -35,114 +35,106 @@ const STEPS = [
 
 // ─── License Scan Field ───────────────────────────────────────────────────────
 
-function LicenseScanField({ file, onChange, label = 'Photo / scan du permis' }) {
+function LicenseScanField({ files = [], onChange, label = 'Photo / scan du permis', maxFiles = 2 }) {
   const cameraRef = useRef(null)
   const fileRef = useRef(null)
-  const [preview, setPreview] = useState(null)
-  const [enlarged, setEnlarged] = useState(false)
+  const [enlarged, setEnlarged] = useState(null) // index de la photo agrandie
 
-  const handleFile = (f) => {
-    if (!f) { setPreview(null); onChange(null); return }
-    onChange(f)
-    if (f.type.startsWith('image/')) {
-      setPreview(URL.createObjectURL(f))
-    } else {
-      setPreview(null)
+  // Cache URL par File pour éviter de recréer les object URLs à chaque render
+  const urlCache = useRef(new Map())
+  const getPreviews = () => files.map(f => {
+    if (!f?.type?.startsWith('image/')) return null
+    if (!urlCache.current.has(f)) urlCache.current.set(f, URL.createObjectURL(f))
+    return urlCache.current.get(f)
+  })
+  const previews = getPreviews()
+
+  // Nettoyer les URLs des fichiers supprimés
+  useEffect(() => {
+    const current = new Set(files)
+    for (const [file, url] of urlCache.current) {
+      if (!current.has(file)) { URL.revokeObjectURL(url); urlCache.current.delete(file) }
     }
+  }, [files])
+  useEffect(() => () => { urlCache.current.forEach(u => URL.revokeObjectURL(u)) }, [])
+
+  const addFile = (f) => {
+    if (!f || files.length >= maxFiles) return
+    onChange([...files, f])
   }
 
-  // Cleanup object URL on unmount / change
-  const prevPreview = useRef(null)
-  if (preview !== prevPreview.current) {
-    if (prevPreview.current) URL.revokeObjectURL(prevPreview.current)
-    prevPreview.current = preview
-  }
+  const removeFile = (idx) => onChange(files.filter((_, i) => i !== idx))
+
+  const canAdd = files.length < maxFiles
+  const isAdding = files.length > 0
 
   return (
     <div className="space-y-2">
       <label className="label">{label}</label>
 
-      {/* Buttons row */}
-      <div className="flex gap-2">
-        {/* Camera button — opens rear camera directly on mobile */}
-        <button
-          type="button"
-          onClick={() => cameraRef.current?.click()}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100 transition-colors flex-1 justify-center"
-        >
-          <Camera className="w-4 h-4" /> Caméra
-        </button>
-        <input
-          ref={cameraRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={e => handleFile(e.target.files[0] || null)}
-        />
-
-        {/* File/gallery picker */}
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600 text-sm font-medium hover:bg-gray-100 transition-colors flex-1 justify-center"
-        >
-          <Upload className="w-4 h-4" /> Fichier / Galerie
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*,application/pdf"
-          className="hidden"
-          onChange={e => handleFile(e.target.files[0] || null)}
-        />
-      </div>
-
-      {/* Preview */}
-      {file && (
-        <div className="relative">
-          {preview ? (
-            <div className="relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
-              <img
-                src={preview}
-                alt="Permis scanné"
-                className="w-full max-h-48 object-contain cursor-zoom-in"
-                onClick={() => setEnlarged(true)}
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                <ZoomIn className="w-6 h-6 text-white drop-shadow" />
-              </div>
-              <button
-                type="button"
-                onClick={() => handleFile(null)}
-                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow"
-              >
-                <XIcon className="w-3 h-3" />
-              </button>
+      {/* Previews recto / verso */}
+      {files.length > 0 && (
+        <div className={`grid gap-2 ${files.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          {files.map((f, idx) => (
+            <div key={idx} className="relative">
+              {previews[idx] ? (
+                <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                  <img
+                    src={previews[idx]}
+                    alt={idx === 0 ? 'Recto' : 'Verso'}
+                    className="w-full h-28 object-contain cursor-zoom-in"
+                    onClick={() => setEnlarged(idx)}
+                  />
+                  <span className="absolute top-1 left-1 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded-md font-medium">
+                    {idx === 0 ? 'Recto' : 'Verso'}
+                  </span>
+                  <button type="button" onClick={() => removeFile(idx)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow">
+                    <XIcon className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+                  <span className="text-[10px] font-semibold text-gray-400 uppercase shrink-0">{idx === 0 ? 'R' : 'V'}</span>
+                  <span className="text-xs text-green-700 truncate flex-1">{f.name}</span>
+                  <button type="button" onClick={() => removeFile(idx)} className="text-red-400 hover:text-red-600 shrink-0">
+                    <XIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2">
-              <span className="text-sm text-green-700 truncate flex-1">{file.name}</span>
-              <button type="button" onClick={() => handleFile(null)} className="text-red-400 hover:text-red-600 ml-2 shrink-0">
-                <XIcon className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+          ))}
         </div>
       )}
 
-      {/* Enlarged overlay */}
-      {enlarged && preview && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
-          onClick={() => setEnlarged(false)}
-        >
-          <img src={preview} alt="Permis" className="max-w-full max-h-full rounded-xl shadow-2xl" />
-          <button
-            type="button"
-            className="absolute top-4 right-4 bg-white/20 text-white rounded-full p-2 hover:bg-white/30"
-            onClick={() => setEnlarged(false)}
+      {/* Boutons d'ajout */}
+      {canAdd && (
+        <div className="flex gap-2">
+          <button type="button" onClick={() => cameraRef.current?.click()}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100 transition-colors flex-1 justify-center"
           >
+            <Camera className="w-4 h-4" />
+            {isAdding ? 'Scanner le verso' : 'Caméra'}
+          </button>
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
+            onChange={e => { addFile(e.target.files[0] || null); e.target.value = '' }} />
+
+          <button type="button" onClick={() => fileRef.current?.click()}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600 text-sm font-medium hover:bg-gray-100 transition-colors flex-1 justify-center"
+          >
+            <Upload className="w-4 h-4" />
+            {isAdding ? 'Verso (galerie)' : 'Fichier / Galerie'}
+          </button>
+          <input ref={fileRef} type="file" accept="image/*,application/pdf" className="hidden"
+            onChange={e => { addFile(e.target.files[0] || null); e.target.value = '' }} />
+        </div>
+      )}
+
+      {/* Zoom plein écran */}
+      {enlarged !== null && previews[enlarged] && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setEnlarged(null)}>
+          <img src={previews[enlarged]} alt="" className="max-w-full max-h-full rounded-xl shadow-2xl" />
+          <button type="button" className="absolute top-4 right-4 bg-white/20 text-white rounded-full p-2 hover:bg-white/30" onClick={() => setEnlarged(null)}>
             <XIcon className="w-5 h-5" />
           </button>
         </div>
@@ -252,10 +244,10 @@ export default function NewContract() {
   const [scannerOpen, setScannerOpen] = useState(false)
   const [carSearch, setCarSearch] = useState('')
   const [hasSecondDriver, setHasSecondDriver] = useState(false)
-  const [idFile, setIdFile] = useState(null)
-  const [licenseFile, setLicenseFile] = useState(null)
-  const [secondDriverIdFile, setSecondDriverIdFile] = useState(null)
-  const [secondDriverLicenseFile, setSecondDriverLicenseFile] = useState(null)
+  const [idFiles, setIdFiles] = useState([])
+  const [licenseFiles, setLicenseFiles] = useState([])
+  const [secondDriverIdFiles, setSecondDriverIdFiles] = useState([])
+  const [secondDriverLicenseFiles, setSecondDriverLicenseFiles] = useState([])
   const [selectedOptions, setSelectedOptions] = useState([]) // [{ optionId, name, pricePerDay, quantity }]
   const [manualPrice, setManualPrice] = useState(false)
 
@@ -319,28 +311,20 @@ export default function NewContract() {
       const contractId = response.data.id
 
       const uploads = []
-      if (idFile) {
-        const fd = new FormData()
-        fd.append('file', idFile)
-        fd.append('type', 'ID_CARD')
+      for (const f of idFiles) {
+        const fd = new FormData(); fd.append('file', f); fd.append('type', 'ID_CARD')
         uploads.push(uploadContractDocument(agencyId, contractId, fd))
       }
-      if (licenseFile) {
-        const fd = new FormData()
-        fd.append('file', licenseFile)
-        fd.append('type', 'LICENSE')
+      for (const f of licenseFiles) {
+        const fd = new FormData(); fd.append('file', f); fd.append('type', 'LICENSE')
         uploads.push(uploadContractDocument(agencyId, contractId, fd))
       }
-      if (secondDriverIdFile) {
-        const fd = new FormData()
-        fd.append('file', secondDriverIdFile)
-        fd.append('type', 'ID_CARD_DRIVER2')
+      for (const f of secondDriverIdFiles) {
+        const fd = new FormData(); fd.append('file', f); fd.append('type', 'ID_CARD_DRIVER2')
         uploads.push(uploadContractDocument(agencyId, contractId, fd))
       }
-      if (secondDriverLicenseFile) {
-        const fd = new FormData()
-        fd.append('file', secondDriverLicenseFile)
-        fd.append('type', 'LICENSE_DRIVER2')
+      for (const f of secondDriverLicenseFiles) {
+        const fd = new FormData(); fd.append('file', f); fd.append('type', 'LICENSE_DRIVER2')
         uploads.push(uploadContractDocument(agencyId, contractId, fd))
       }
       if (uploads.length) {
@@ -583,13 +567,13 @@ export default function NewContract() {
         <div><label className="label">CIN / Passeport</label><input className="input" value={form.clientIdNumber} onChange={set('clientIdNumber')} /></div>
         <div><label className="label">Expiration CIN / Passeport</label><input className="input" type="date" value={form.clientIdExpiry} onChange={set('clientIdExpiry')} /></div>
         <div className="sm:col-span-2">
-          <LicenseScanField file={idFile} onChange={setIdFile} label="Photo / scan CIN ou Passeport" />
+          <LicenseScanField files={idFiles} onChange={setIdFiles} label="Photo / scan CIN ou Passeport" />
         </div>
         {form.clientType !== 'COMPANY' && <>
           <div><label className="label">N° Permis de conduire</label><input className="input" value={form.clientLicenseNumber} onChange={set('clientLicenseNumber')} /></div>
           <div><label className="label">Expiration permis</label><input className="input" type="date" value={form.clientLicenseExpiry} onChange={set('clientLicenseExpiry')} /></div>
           <div className="sm:col-span-2">
-            <LicenseScanField file={licenseFile} onChange={setLicenseFile} />
+            <LicenseScanField files={licenseFiles} onChange={setLicenseFiles} />
           </div>
         </>}
         <div className="sm:col-span-2"><label className="label">Adresse</label><input className="input" value={form.clientAddress} onChange={set('clientAddress')} /></div>
@@ -610,8 +594,8 @@ export default function NewContract() {
             <div><label className="label text-xs">Expiration CIN</label><input className="input" type="date" value={form.secondDriverIdExpiry} onChange={set('secondDriverIdExpiry')} /></div>
             <div className="sm:col-span-2">
               <LicenseScanField
-                file={secondDriverIdFile}
-                onChange={setSecondDriverIdFile}
+                files={secondDriverIdFiles}
+                onChange={setSecondDriverIdFiles}
                 label="Photo / scan CIN (2ème conducteur)"
               />
             </div>
@@ -619,8 +603,8 @@ export default function NewContract() {
             <div><label className="label text-xs">Expiration permis</label><input className="input" type="date" value={form.secondDriverLicenseExpiry} onChange={set('secondDriverLicenseExpiry')} /></div>
             <div className="sm:col-span-2">
               <LicenseScanField
-                file={secondDriverLicenseFile}
-                onChange={setSecondDriverLicenseFile}
+                files={secondDriverLicenseFiles}
+                onChange={setSecondDriverLicenseFiles}
                 label="Photo / scan du permis (2ème conducteur)"
               />
             </div>
