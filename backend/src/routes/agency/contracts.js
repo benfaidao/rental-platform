@@ -64,7 +64,7 @@ router.get('/', async (req, res) => {
       car: { select: { id: true, brand: true, model: true, finalPlate: true, wwPlate: true } },
       client: { select: { id: true, firstName: true, lastName: true } },
       bookedByAgency: { select: { id: true, name: true } },
-      periodicPayments: { orderBy: { periodStart: 'asc' } },
+      periodicPayments: { orderBy: { createdAt: 'asc' }, include: { collectedBy: { select: { id: true, firstName: true, lastName: true } } } },
       documents: { where: { type: 'SIGNED_CONTRACT' }, select: { id: true, url: true, filename: true, createdAt: true } },
       photos: { orderBy: { createdAt: 'asc' } },
     },
@@ -109,7 +109,8 @@ router.get('/:contractId/payments', async (req, res) => {
 
   const payments = await prisma.periodicPayment.findMany({
     where: { contractId: req.params.contractId },
-    orderBy: { periodStart: 'asc' },
+    include: { collectedBy: { select: { id: true, firstName: true, lastName: true } } },
+    orderBy: { createdAt: 'asc' },
   });
   res.json(payments);
 });
@@ -120,36 +121,46 @@ router.post('/:contractId/payments', async (req, res) => {
   });
   if (!contract) return res.status(404).json({ error: 'Contrat non trouvé' });
 
-  const { periodStart, periodEnd, amount, paidAt, notes } = req.body;
+  const { label, periodStart, periodEnd, dueDate, amount, paidAt, method, collectedByUserId, notes } = req.body;
   const payment = await prisma.periodicPayment.create({
     data: {
       contractId: req.params.contractId,
-      periodStart: new Date(periodStart),
-      periodEnd: new Date(periodEnd),
+      label: label || null,
+      periodStart: periodStart ? new Date(periodStart) : null,
+      periodEnd: periodEnd ? new Date(periodEnd) : null,
+      dueDate: dueDate ? new Date(dueDate) : null,
       amount: parseFloat(amount),
       paidAt: paidAt ? new Date(paidAt) : null,
+      method: method || null,
+      collectedByUserId: collectedByUserId || null,
       notes: notes || null,
     },
+    include: { collectedBy: { select: { id: true, firstName: true, lastName: true } } },
   });
   res.status(201).json(payment);
 });
 
 router.put('/:contractId/payments/:paymentId', async (req, res) => {
-  const { paidAt, amount, notes } = req.body;
+  const { paidAt, amount, notes, method, collectedByUserId, label, dueDate } = req.body;
   const payment = await prisma.periodicPayment.update({
     where: { id: req.params.paymentId },
     data: {
+      label: label !== undefined ? (label || null) : undefined,
+      dueDate: dueDate !== undefined ? (dueDate ? new Date(dueDate) : null) : undefined,
       paidAt: paidAt !== undefined ? (paidAt ? new Date(paidAt) : null) : undefined,
       amount: amount !== undefined ? parseFloat(amount) : undefined,
-      notes: notes !== undefined ? notes : undefined,
+      method: method !== undefined ? (method || null) : undefined,
+      collectedByUserId: collectedByUserId !== undefined ? (collectedByUserId || null) : undefined,
+      notes: notes !== undefined ? (notes || null) : undefined,
     },
+    include: { collectedBy: { select: { id: true, firstName: true, lastName: true } } },
   });
   res.json(payment);
 });
 
 router.delete('/:contractId/payments/:paymentId', async (req, res) => {
   await prisma.periodicPayment.delete({ where: { id: req.params.paymentId } });
-  res.json({ message: 'Période supprimée' });
+  res.json({ message: 'Encaissement supprimé' });
 });
 
 router.get('/:contractId', async (req, res) => {
@@ -159,7 +170,7 @@ router.get('/:contractId', async (req, res) => {
       car: true,
       photos: true,
       documents: true,
-      periodicPayments: { orderBy: { periodStart: 'asc' } },
+      periodicPayments: { orderBy: { createdAt: 'asc' }, include: { collectedBy: { select: { id: true, firstName: true, lastName: true } } } },
     },
   });
   if (!contract) return res.status(404).json({ error: 'Contrat non trouvé' });
@@ -319,6 +330,7 @@ router.put('/:contractId', async (req, res) => {
     clientLicenseNumber, clientLicenseExpiry,
     secondDriverName, secondDriverIdNumber, secondDriverIdExpiry,
     secondDriverLicense, secondDriverLicenseExpiry,
+    guaranteeReturnedAt, guaranteeReturnedBy,
   } = req.body;
 
   let resolvedStatus = status;
@@ -364,6 +376,8 @@ router.put('/:contractId', async (req, res) => {
       secondDriverIdExpiry: secondDriverIdExpiry !== undefined ? (secondDriverIdExpiry ? new Date(secondDriverIdExpiry) : null) : undefined,
       secondDriverLicense: secondDriverLicense !== undefined ? (secondDriverLicense || null) : undefined,
       secondDriverLicenseExpiry: secondDriverLicenseExpiry !== undefined ? (secondDriverLicenseExpiry ? new Date(secondDriverLicenseExpiry) : null) : undefined,
+      guaranteeReturnedAt: guaranteeReturnedAt !== undefined ? (guaranteeReturnedAt ? new Date(guaranteeReturnedAt) : null) : undefined,
+      guaranteeReturnedBy: guaranteeReturnedBy !== undefined ? (guaranteeReturnedBy?.trim() || null) : undefined,
     },
     include: { car: true },
   });
@@ -388,7 +402,7 @@ router.get('/:contractId/pdf', async (req, res) => {
     include: {
       car: true,
       agency: true,
-      periodicPayments: { orderBy: { periodStart: 'asc' } },
+      periodicPayments: { orderBy: { createdAt: 'asc' }, include: { collectedBy: { select: { id: true, firstName: true, lastName: true } } } },
     },
   });
   if (!contract) return res.status(404).json({ error: 'Contrat non trouvé' });
@@ -401,7 +415,7 @@ router.get('/:contractId/pdf', async (req, res) => {
 router.post('/:contractId/pdf', async (req, res) => {
   const contract = await prisma.rentalContract.findFirst({
     where: { id: req.params.contractId, agencyId: req.params.agencyId },
-    include: { car: true, agency: true, periodicPayments: { orderBy: { periodStart: 'asc' } } },
+    include: { car: true, agency: true, periodicPayments: { orderBy: { createdAt: 'asc' } } },
   });
   if (!contract) return res.status(404).json({ error: 'Contrat non trouvé' });
   const { signatureClient, signatureDriver2, signatureAgency } = req.body;

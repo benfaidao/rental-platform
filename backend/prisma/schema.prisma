@@ -90,6 +90,7 @@ model User {
   passwordResets     PasswordResetToken[]
   emailChangeRequests EmailChangeRequest[]
   sinistresCollected Sinistre[]
+  paymentsCollected  PeriodicPayment[] @relation("PaymentCollector")
 
   @@map("users")
 }
@@ -371,6 +372,8 @@ model RentalContract {
   guaranteeAmount          Float    @default(0)
   guaranteeCollectedAmount Float?
   guaranteeCollectedBy     String?
+  guaranteeReturnedAt      DateTime?
+  guaranteeReturnedBy      String?
   currency                 String   @default("MAD")
   guaranteeCheck           Boolean  @default(false)
   guaranteeCheckNumber     String?
@@ -419,16 +422,21 @@ model RentalContract {
 }
 
 model PeriodicPayment {
-  id          String    @id @default(cuid())
-  contractId  String
-  periodStart DateTime
-  periodEnd   DateTime
-  amount      Float
-  paidAt      DateTime?
-  notes       String?
-  createdAt   DateTime  @default(now())
+  id                String    @id @default(cuid())
+  contractId        String
+  label             String?
+  periodStart       DateTime?
+  periodEnd         DateTime?
+  dueDate           DateTime?
+  amount            Float
+  paidAt            DateTime?
+  method            String?
+  collectedByUserId String?
+  notes             String?
+  createdAt         DateTime  @default(now())
 
-  contract RentalContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contract    RentalContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  collectedBy User?          @relation("PaymentCollector", fields: [collectedByUserId], references: [id], onDelete: SetNull)
 
   @@map("periodic_payments")
 }

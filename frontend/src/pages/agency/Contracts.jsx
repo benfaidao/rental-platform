@@ -5,7 +5,7 @@ import { getCars, getContracts, createContract, updateContract, deleteContract, 
 import Modal from '../../components/Modal'
 import SinistresModal from './Sinistres'
 import SignatureCanvas from '../../components/SignatureCanvas'
-import { Plus, Edit2, Trash2, FileDown, Camera, Search, UserCheck, History, Filter, X, Car, ScanLine, CalendarRange, CheckCircle, Circle, ChevronDown, ChevronUp, FileSignature, Eye, Upload, AlertTriangle, PenLine, Building2, Receipt } from 'lucide-react'
+import { Plus, Edit2, Trash2, FileDown, Camera, Search, UserCheck, History, Filter, X, Car, ScanLine, CalendarRange, CheckCircle, Circle, ChevronDown, ChevronUp, FileSignature, Eye, Upload, AlertTriangle, PenLine, Building2, Receipt, Banknote, RotateCcw, User } from 'lucide-react'
 import QRScanner from '../../components/QRScanner'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
@@ -174,10 +174,25 @@ function SignedContractModal({ agencyId, contract, onRefresh }) {
   )
 }
 
-function PeriodicPaymentsPanel({ agencyId, contractId, currency }) {
+const PAYMENT_LABELS = ['Acompte', 'Solde', 'Loyer', 'Avoir', 'Remboursement']
+const PAYMENT_METHODS = ['Espèces', 'Virement', 'Chèque', 'Carte bancaire']
+
+const emptyPaymentForm = { label: 'Acompte', amount: '', dueDate: '', paidAt: '', method: '', collectedByUserId: '', notes: '' }
+
+function EncaissementsPanel({ agencyId, contractId, contract }) {
   const qc = useQueryClient()
+  const currency = contract.currency || 'MAD'
   const [showAdd, setShowAdd] = useState(false)
-  const [addForm, setAddForm] = useState({ periodStart: '', periodEnd: '', amount: '', paidAt: '', notes: '' })
+  const [markPayId, setMarkPayId] = useState(null)
+  const [markForm, setMarkForm] = useState({ paidAt: format(new Date(), 'yyyy-MM-dd'), method: 'Espèces', collectedByUserId: '' })
+  const [showGuaranteeReturn, setShowGuaranteeReturn] = useState(false)
+  const [returnForm, setReturnForm] = useState({ guaranteeReturnedAt: format(new Date(), 'yyyy-MM-dd'), guaranteeReturnedBy: '' })
+  const [addForm, setAddForm] = useState(emptyPaymentForm)
+
+  const { data: members = [] } = useQuery({
+    queryKey: ['agency-members', agencyId],
+    queryFn: () => getAgencyMembers(agencyId).then(r => r.data),
+  })
 
   const { data: payments = [] } = useQuery({
     queryKey: ['periodicPayments', contractId],
@@ -186,94 +201,234 @@ function PeriodicPaymentsPanel({ agencyId, contractId, currency }) {
 
   const createMut = useMutation({
     mutationFn: (data) => createPeriodicPayment(agencyId, contractId, data),
-    onSuccess: () => { qc.invalidateQueries(['periodicPayments', contractId]); setShowAdd(false); setAddForm({ periodStart: '', periodEnd: '', amount: '', paidAt: '', notes: '' }); toast.success('Période ajoutée') },
+    onSuccess: () => { qc.invalidateQueries(['periodicPayments', contractId]); setShowAdd(false); setAddForm(emptyPaymentForm); toast.success('Encaissement ajouté') },
   })
   const updateMut = useMutation({
     mutationFn: ({ id, data }) => updatePeriodicPayment(agencyId, contractId, id, data),
-    onSuccess: () => { qc.invalidateQueries(['periodicPayments', contractId]); toast.success('Mis à jour') },
+    onSuccess: () => { qc.invalidateQueries(['periodicPayments', contractId]); setMarkPayId(null); toast.success('Mis à jour') },
   })
   const deleteMut = useMutation({
     mutationFn: (id) => deletePeriodicPayment(agencyId, contractId, id),
     onSuccess: () => { qc.invalidateQueries(['periodicPayments', contractId]); toast.success('Supprimé') },
   })
+  const guaranteeReturnMut = useMutation({
+    mutationFn: (data) => updateContract(agencyId, contractId, data),
+    onSuccess: () => { qc.invalidateQueries(['contracts', agencyId]); setShowGuaranteeReturn(false); toast.success('Caution rendue') },
+  })
 
-  const totalAmount = payments.reduce((s, p) => s + p.amount, 0)
-  const totalPaid = payments.filter(p => p.paidAt).reduce((s, p) => s + p.amount, 0)
+  const totalEncaisse = payments.filter(p => p.paidAt).reduce((s, p) => s + p.amount, 0)
+  const totalAttendu = payments.reduce((s, p) => s + p.amount, 0)
+
+  const guaranteeAmount = contract.guaranteeCollectedAmount || contract.guaranteeAmount || 0
+  const guaranteeReturned = !!contract.guaranteeReturnedAt
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex gap-4 text-sm">
-          <span className="text-gray-500">Total : <strong>{totalAmount.toLocaleString()} {currency}</strong></span>
-          <span className="text-green-600">Payé : <strong>{totalPaid.toLocaleString()} {currency}</strong></span>
-          {totalAmount - totalPaid > 0 && <span className="text-orange-500">Reste : <strong>{(totalAmount - totalPaid).toLocaleString()} {currency}</strong></span>}
+    <div className="space-y-5">
+      {/* ── Récapitulatif ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="bg-gray-50 rounded-xl p-3 text-center">
+          <p className="text-xs text-gray-500 mb-1">Montant location</p>
+          <p className="font-bold text-gray-800">{(contract.rentalAmount || 0).toLocaleString()} {currency}</p>
         </div>
-        <button onClick={() => setShowAdd(v => !v)} className="btn-secondary text-xs py-1 flex items-center gap-1">
-          <Plus className="w-3.5 h-3.5" /> Période
-        </button>
+        <div className="bg-green-50 rounded-xl p-3 text-center">
+          <p className="text-xs text-gray-500 mb-1">Total encaissé</p>
+          <p className="font-bold text-green-700">{totalEncaisse.toLocaleString()} {currency}</p>
+        </div>
+        {totalAttendu - totalEncaisse > 0 && (
+          <div className="bg-orange-50 rounded-xl p-3 text-center col-span-2 sm:col-span-1">
+            <p className="text-xs text-gray-500 mb-1">Reste à encaisser</p>
+            <p className="font-bold text-orange-600">{(totalAttendu - totalEncaisse).toLocaleString()} {currency}</p>
+          </div>
+        )}
       </div>
 
-      {showAdd && (
-        <form onSubmit={e => { e.preventDefault(); createMut.mutate(addForm) }} className="bg-gray-50 rounded-xl p-3 space-y-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div><label className="label text-xs">Début période *</label><input className="input py-1 text-sm" type="date" required value={addForm.periodStart} onChange={e => setAddForm(f => ({ ...f, periodStart: e.target.value }))} /></div>
-            <div><label className="label text-xs">Fin période *</label><input className="input py-1 text-sm" type="date" required value={addForm.periodEnd} onChange={e => setAddForm(f => ({ ...f, periodEnd: e.target.value }))} /></div>
-            <div><label className="label text-xs">Montant *</label><input className="input py-1 text-sm" type="number" required value={addForm.amount} onChange={e => setAddForm(f => ({ ...f, amount: e.target.value }))} /></div>
-            <div><label className="label text-xs">Date paiement</label><input className="input py-1 text-sm" type="date" value={addForm.paidAt} onChange={e => setAddForm(f => ({ ...f, paidAt: e.target.value }))} /></div>
-          </div>
-          <div><label className="label text-xs">Notes</label><input className="input py-1 text-sm" value={addForm.notes} onChange={e => setAddForm(f => ({ ...f, notes: e.target.value }))} /></div>
-          <div className="flex gap-2">
-            <button type="submit" className="btn-primary text-xs py-1">Ajouter</button>
-            <button type="button" onClick={() => setShowAdd(false)} className="btn-secondary text-xs py-1">Annuler</button>
-          </div>
-        </form>
-      )}
+      {/* ── Liste des encaissements ── */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-gray-700">Encaissements</h4>
+          <button onClick={() => setShowAdd(v => !v)} className="btn-secondary text-xs py-1 flex items-center gap-1">
+            <Plus className="w-3.5 h-3.5" /> Ajouter
+          </button>
+        </div>
 
-      <div className="space-y-1.5">
-        {payments.map((p, i) => (
-          <div key={p.id} className={`flex items-start justify-between gap-2 rounded-lg px-3 py-2 text-sm ${p.paidAt ? 'bg-green-50 border border-green-100' : 'bg-orange-50 border border-orange-100'}`}>
-            <div className="flex items-start gap-2 min-w-0 flex-1">
-              {p.paidAt
-                ? <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-                : <Circle className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />}
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-baseline gap-x-2">
-                  <span className="font-medium">{p.amount.toLocaleString()} {currency}</span>
-                  <span className="text-gray-500 text-xs">{fmtDate(p.periodStart)} → {fmtDate(p.periodEnd)}</span>
-                </div>
-                {(p.notes || p.paidAt) && (
-                  <div className="flex flex-wrap gap-x-2 mt-0.5">
-                    {p.notes && <span className="text-gray-400 text-xs">{p.notes}</span>}
-                    {p.paidAt && <span className="text-green-600 text-xs">payé le {fmtDate(p.paidAt)}</span>}
-                  </div>
-                )}
+        {showAdd && (
+          <form onSubmit={e => { e.preventDefault(); createMut.mutate(addForm) }} className="bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div>
+                <label className="label text-xs">Type</label>
+                <select className="input py-1 text-sm" value={addForm.label} onChange={e => setAddForm(f => ({ ...f, label: e.target.value }))}>
+                  {PAYMENT_LABELS.map(l => <option key={l} value={l}>{l}</option>)}
+                  <option value="">Autre</option>
+                </select>
+              </div>
+              <div>
+                <label className="label text-xs">Montant *</label>
+                <input className="input py-1 text-sm" type="number" step="0.01" required value={addForm.amount} onChange={e => setAddForm(f => ({ ...f, amount: e.target.value }))} placeholder="0.00" />
+              </div>
+              <div>
+                <label className="label text-xs">Date prévue</label>
+                <input className="input py-1 text-sm" type="date" value={addForm.dueDate} onChange={e => setAddForm(f => ({ ...f, dueDate: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label text-xs">Date encaissement</label>
+                <input className="input py-1 text-sm" type="date" value={addForm.paidAt} onChange={e => setAddForm(f => ({ ...f, paidAt: e.target.value }))} />
+              </div>
+              <div>
+                <label className="label text-xs">Mode</label>
+                <select className="input py-1 text-sm" value={addForm.method} onChange={e => setAddForm(f => ({ ...f, method: e.target.value }))}>
+                  <option value="">--</option>
+                  {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label text-xs">Encaissé par</label>
+                <select className="input py-1 text-sm" value={addForm.collectedByUserId} onChange={e => setAddForm(f => ({ ...f, collectedByUserId: e.target.value }))}>
+                  <option value="">--</option>
+                  {members.map(m => <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>)}
+                </select>
               </div>
             </div>
-            <div className="flex items-center gap-1 shrink-0">
-              {!p.paidAt && (
-                <button
-                  onClick={() => updateMut.mutate({ id: p.id, data: { paidAt: format(new Date(), 'yyyy-MM-dd') } })}
-                  className="text-xs bg-green-100 hover:bg-green-200 text-green-700 px-2 py-0.5 rounded whitespace-nowrap"
-                >
-                  Marquer payé
-                </button>
-              )}
-              {p.paidAt && (
-                <button
-                  onClick={() => updateMut.mutate({ id: p.id, data: { paidAt: null } })}
-                  className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-0.5 rounded whitespace-nowrap"
-                >
-                  Annuler
-                </button>
-              )}
-              <button onClick={() => { if (confirm('Supprimer cette période ?')) deleteMut.mutate(p.id) }} className="p-1 hover:bg-red-50 rounded">
-                <Trash2 className="w-3 h-3 text-red-400" />
-              </button>
+            <div><label className="label text-xs">Notes</label><input className="input py-1 text-sm" value={addForm.notes} onChange={e => setAddForm(f => ({ ...f, notes: e.target.value }))} /></div>
+            <div className="flex gap-2">
+              <button type="submit" className="btn-primary text-xs py-1" disabled={createMut.isPending}>Ajouter</button>
+              <button type="button" onClick={() => { setShowAdd(false); setAddForm(emptyPaymentForm) }} className="btn-secondary text-xs py-1">Annuler</button>
             </div>
-          </div>
-        ))}
-        {payments.length === 0 && <p className="text-xs text-gray-400 text-center py-2">Aucune période enregistrée</p>}
+          </form>
+        )}
+
+        <div className="space-y-1.5">
+          {payments.map(p => (
+            <div key={p.id} className={`rounded-lg px-3 py-2.5 text-sm border ${p.paidAt ? 'bg-green-50 border-green-100' : 'bg-orange-50 border-orange-100'}`}>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2 min-w-0 flex-1">
+                  {p.paidAt
+                    ? <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                    : <Circle className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-baseline gap-x-2">
+                      <span className="font-semibold">{p.amount.toLocaleString()} {currency}</span>
+                      {p.label && <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-medium">{p.label}</span>}
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 mt-0.5 text-xs text-gray-500">
+                      {p.dueDate && !p.paidAt && <span>Prévu le {fmtDate(p.dueDate)}</span>}
+                      {p.paidAt && <span className="text-green-600 font-medium">Encaissé le {fmtDate(p.paidAt)}</span>}
+                      {p.method && <span>{p.method}</span>}
+                      {p.collectedBy && <span className="flex items-center gap-0.5"><User className="w-3 h-3" />{p.collectedBy.firstName} {p.collectedBy.lastName}</span>}
+                      {p.notes && <span className="text-gray-400">{p.notes}</span>}
+                    </div>
+
+                    {/* Marquer comme encaissé */}
+                    {!p.paidAt && markPayId === p.id && (
+                      <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                        <div><label className="label text-[10px]">Date</label><input className="input py-0.5 text-xs" type="date" value={markForm.paidAt} onChange={e => setMarkForm(f => ({ ...f, paidAt: e.target.value }))} /></div>
+                        <div>
+                          <label className="label text-[10px]">Mode</label>
+                          <select className="input py-0.5 text-xs" value={markForm.method} onChange={e => setMarkForm(f => ({ ...f, method: e.target.value }))}>
+                            <option value="">--</option>
+                            {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="label text-[10px]">Encaissé par</label>
+                          <select className="input py-0.5 text-xs" value={markForm.collectedByUserId} onChange={e => setMarkForm(f => ({ ...f, collectedByUserId: e.target.value }))}>
+                            <option value="">--</option>
+                            {members.map(m => <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>)}
+                          </select>
+                        </div>
+                        <div className="col-span-2 sm:col-span-3 flex gap-1.5 mt-0.5">
+                          <button onClick={() => updateMut.mutate({ id: p.id, data: markForm })} className="btn-primary text-[11px] py-0.5 px-2">Confirmer</button>
+                          <button onClick={() => setMarkPayId(null)} className="btn-secondary text-[11px] py-0.5 px-2">Annuler</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 shrink-0">
+                  {!p.paidAt && markPayId !== p.id && (
+                    <button onClick={() => { setMarkPayId(p.id); setMarkForm({ paidAt: format(new Date(), 'yyyy-MM-dd'), method: 'Espèces', collectedByUserId: '' }) }}
+                      className="text-[11px] bg-green-100 hover:bg-green-200 text-green-700 px-2 py-0.5 rounded whitespace-nowrap">
+                      Encaisser
+                    </button>
+                  )}
+                  {p.paidAt && (
+                    <button onClick={() => updateMut.mutate({ id: p.id, data: { paidAt: null, method: null, collectedByUserId: null } })}
+                      className="text-[11px] bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
+                      Annuler
+                    </button>
+                  )}
+                  <button onClick={() => { if (confirm('Supprimer ?')) deleteMut.mutate(p.id) }} className="p-1 hover:bg-red-50 rounded">
+                    <Trash2 className="w-3 h-3 text-red-400" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+          {payments.length === 0 && <p className="text-xs text-gray-400 text-center py-3">Aucun encaissement enregistré</p>}
+        </div>
       </div>
+
+      {/* ── Caution ── */}
+      {guaranteeAmount > 0 && (
+        <div className={`rounded-xl border p-3 space-y-2 ${guaranteeReturned ? 'bg-gray-50 border-gray-200' : 'bg-yellow-50 border-yellow-200'}`}>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Banknote className={`w-4 h-4 ${guaranteeReturned ? 'text-gray-400' : 'text-yellow-600'}`} />
+              <span className="text-sm font-semibold text-gray-700">Caution</span>
+            </div>
+            <span className={`text-sm font-bold ${guaranteeReturned ? 'text-gray-500 line-through' : 'text-yellow-700'}`}>
+              {guaranteeAmount.toLocaleString()} {currency}
+            </span>
+          </div>
+
+          {contract.guaranteeCollectedBy && (
+            <p className="text-xs text-gray-500">
+              <User className="w-3 h-3 inline mr-1" />Encaissée par : {contract.guaranteeCollectedBy}
+            </p>
+          )}
+
+          {guaranteeReturned ? (
+            <div className="text-xs text-gray-500 space-y-0.5">
+              <p className="flex items-center gap-1 text-green-600 font-medium">
+                <CheckCircle className="w-3.5 h-3.5" /> Rendue le {fmtDate(contract.guaranteeReturnedAt)}
+              </p>
+              {contract.guaranteeReturnedBy && <p><User className="w-3 h-3 inline mr-1" />Par : {contract.guaranteeReturnedBy}</p>}
+              <button onClick={() => guaranteeReturnMut.mutate({ guaranteeReturnedAt: null, guaranteeReturnedBy: null })}
+                className="text-gray-400 hover:text-gray-600 underline text-[11px]">Annuler le retour</button>
+            </div>
+          ) : (
+            <div>
+              {!showGuaranteeReturn ? (
+                <button onClick={() => setShowGuaranteeReturn(true)} className="flex items-center gap-1.5 text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-2 py-1 rounded-lg font-medium">
+                  <RotateCcw className="w-3.5 h-3.5" /> Rendre la caution
+                </button>
+              ) : (
+                <div className="space-y-2 mt-1">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="label text-xs">Date de retour</label>
+                      <input className="input py-1 text-sm" type="date" value={returnForm.guaranteeReturnedAt} onChange={e => setReturnForm(f => ({ ...f, guaranteeReturnedAt: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="label text-xs">Rendue par</label>
+                      <select className="input py-1 text-sm" value={returnForm.guaranteeReturnedBy} onChange={e => setReturnForm(f => ({ ...f, guaranteeReturnedBy: e.target.value }))}>
+                        <option value="">--</option>
+                        {members.map(m => <option key={m.id} value={`${m.firstName} ${m.lastName}`}>{m.firstName} {m.lastName}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => guaranteeReturnMut.mutate(returnForm)} disabled={!returnForm.guaranteeReturnedAt || guaranteeReturnMut.isPending}
+                      className="btn-primary text-xs py-1 flex items-center gap-1">
+                      <RotateCcw className="w-3 h-3" /> Confirmer le retour
+                    </button>
+                    <button onClick={() => setShowGuaranteeReturn(false)} className="btn-secondary text-xs py-1">Annuler</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
@@ -1753,9 +1908,9 @@ export default function Contracts() {
       <Modal isOpen={modal?.type === 'photos'} onClose={() => setModal(null)} title="Photos de la voiture" size="lg">
         {modal?.contract && <PhotoUploadModal agencyId={agencyId} contract={modal.contract} />}
       </Modal>
-      <Modal isOpen={modal?.type === 'payments'} onClose={() => setModal(null)} title={`Paiements — ${modal?.contract?.contractNumber}`} size="lg">
+      <Modal isOpen={modal?.type === 'payments'} onClose={() => setModal(null)} title={`Encaissements — ${modal?.contract?.contractNumber}`} size="lg">
         {modal?.contract && (
-          <PeriodicPaymentsPanel agencyId={agencyId} contractId={modal.contract.id} currency={modal.contract.currency} />
+          <EncaissementsPanel agencyId={agencyId} contractId={modal.contract.id} contract={modal.contract} />
         )}
       </Modal>
       <Modal isOpen={modal?.type === 'signed'} onClose={() => setModal(null)} title={`Réservation signée — ${modal?.contract?.contractNumber}`} size="md">
