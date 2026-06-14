@@ -859,21 +859,6 @@ export default function NewContract() {
         </div>
       )}
 
-      <div className="border-t pt-4">
-        <label className="label">Remise (réduction sur le montant)</label>
-        <div className="flex items-center gap-3 sm:max-w-xs">
-          <input className="input" type="number" step="0.01" min="0" value={form.remise} onChange={set('remise')} placeholder="0.00" />
-          <span className="text-sm text-gray-500 shrink-0">{form.currency || 'MAD'}</span>
-        </div>
-        {parseFloat(form.remise) > 0 && (
-          <p className="text-xs text-blue-600 mt-1.5">Une remise de {fmtMoney(form.remise, form.currency)} sera déduite du prix de base.</p>
-        )}
-      </div>
-
-      <div>
-        <label className="label">Notes</label>
-        <textarea className="input" rows={3} value={form.notes} onChange={set('notes')} placeholder="Instructions particulières, remarques..." />
-      </div>
     </div>,
 
     // STEP 4 — Paiement ou acompte
@@ -957,6 +942,22 @@ export default function NewContract() {
           )}
         </div>
       )}
+
+      <div>
+        <label className="label">Remise (réduction sur le montant)</label>
+        <div className="flex items-center gap-3 sm:max-w-xs">
+          <input className="input" type="number" step="0.01" min="0" value={form.remise} onChange={set('remise')} placeholder="0.00" />
+          <span className="text-sm text-gray-500 shrink-0">{form.currency || 'MAD'}</span>
+        </div>
+        {parseFloat(form.remise) > 0 && (
+          <p className="text-xs text-blue-600 mt-1.5">Une remise de {fmtMoney(form.remise, form.currency)} sera déduite du prix de base.</p>
+        )}
+      </div>
+
+      <div>
+        <label className="label">Notes</label>
+        <textarea className="input" rows={3} value={form.notes} onChange={set('notes')} placeholder="Instructions particulières, remarques..." />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
