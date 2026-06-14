@@ -29,11 +29,17 @@ router.get('/', async (req, res) => {
         },
         select: { id: true, status: true, startDate: true, endDate: true },
       },
+      documents: {
+        where: { type: 'PHOTO' },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: { url: true },
+      },
     },
     orderBy: { createdAt: 'desc' },
   });
 
-  const result = cars.map(({ contracts, ...car }) => {
+  const result = cars.map(({ contracts, documents, ...car }) => {
     let displayStatus;
     if (car.status === 'MAINTENANCE') {
       displayStatus = 'ENTRETIEN';
@@ -50,7 +56,7 @@ router.get('/', async (req, res) => {
       else if (upcomingSoon) displayStatus = 'EN_ATTENTE_LIVRAISON';
       else displayStatus = 'DISPONIBLE';
     }
-    return { ...car, displayStatus };
+    return { ...car, displayStatus, mainPhotoUrl: documents[0]?.url || null };
   });
 
   res.json(result);

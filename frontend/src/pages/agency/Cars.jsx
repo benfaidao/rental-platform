@@ -759,8 +759,18 @@ export default function Cars() {
             <div key={car.id} className={`card p-4 ${hasAlert ? 'border-orange-200' : ''}`}>
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <Link to={`/agency/${agencyId}/cars/${car.id}`} className="flex gap-4 flex-1 min-w-0 group">
-                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-blue-50 transition-colors">
-                    <Car className="w-6 h-6 text-gray-500 group-hover:text-blue-500 transition-colors" />
+                  <div className="w-14 h-14 rounded-xl shrink-0 overflow-hidden bg-gray-100 group-hover:bg-blue-50 transition-colors flex items-center justify-center border border-gray-200">
+                    {car.mainPhotoUrl ? (
+                      <img
+                        src={getFileUrl(car.mainPhotoUrl, agencyId)}
+                        alt={`${car.brand} ${car.model}`}
+                        className="w-full h-full object-cover"
+                        onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex' }}
+                      />
+                    ) : null}
+                    <span className={`w-full h-full items-center justify-center ${car.mainPhotoUrl ? 'hidden' : 'flex'}`}>
+                      <Car className="w-6 h-6 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                    </span>
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
