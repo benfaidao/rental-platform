@@ -10,6 +10,7 @@ import SignatureCanvas from '../../components/SignatureCanvas'
 import {
   ArrowLeft, Check, User, Car, Shield, Settings, CreditCard, FileCheck,
   ScanLine, UserCheck, Building2, ChevronRight, Package, CalendarRange, TrendingUp, Info,
+  Camera, Upload, X as XIcon, ZoomIn,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { format, differenceInCalendarDays, parseISO, eachDayOfInterval, isWithinInterval, getDay } from 'date-fns'
@@ -31,6 +32,124 @@ const STEPS = [
   { id: 'payment',  label: 'Paiement',             icon: CreditCard },
   { id: 'recap',    label: 'Récapitulatif',         icon: FileCheck },
 ]
+
+// ─── License Scan Field ───────────────────────────────────────────────────────
+
+function LicenseScanField({ file, onChange, label = 'Photo / scan du permis' }) {
+  const cameraRef = useRef(null)
+  const fileRef = useRef(null)
+  const [preview, setPreview] = useState(null)
+  const [enlarged, setEnlarged] = useState(false)
+
+  const handleFile = (f) => {
+    if (!f) { setPreview(null); onChange(null); return }
+    onChange(f)
+    if (f.type.startsWith('image/')) {
+      setPreview(URL.createObjectURL(f))
+    } else {
+      setPreview(null)
+    }
+  }
+
+  // Cleanup object URL on unmount / change
+  const prevPreview = useRef(null)
+  if (preview !== prevPreview.current) {
+    if (prevPreview.current) URL.revokeObjectURL(prevPreview.current)
+    prevPreview.current = preview
+  }
+
+  return (
+    <div className="space-y-2">
+      <label className="label">{label}</label>
+
+      {/* Buttons row */}
+      <div className="flex gap-2">
+        {/* Camera button — opens rear camera directly on mobile */}
+        <button
+          type="button"
+          onClick={() => cameraRef.current?.click()}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100 transition-colors flex-1 justify-center"
+        >
+          <Camera className="w-4 h-4" /> Caméra
+        </button>
+        <input
+          ref={cameraRef}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          className="hidden"
+          onChange={e => handleFile(e.target.files[0] || null)}
+        />
+
+        {/* File/gallery picker */}
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600 text-sm font-medium hover:bg-gray-100 transition-colors flex-1 justify-center"
+        >
+          <Upload className="w-4 h-4" /> Fichier / Galerie
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*,application/pdf"
+          className="hidden"
+          onChange={e => handleFile(e.target.files[0] || null)}
+        />
+      </div>
+
+      {/* Preview */}
+      {file && (
+        <div className="relative">
+          {preview ? (
+            <div className="relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+              <img
+                src={preview}
+                alt="Permis scanné"
+                className="w-full max-h-48 object-contain cursor-zoom-in"
+                onClick={() => setEnlarged(true)}
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                <ZoomIn className="w-6 h-6 text-white drop-shadow" />
+              </div>
+              <button
+                type="button"
+                onClick={() => handleFile(null)}
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow"
+              >
+                <XIcon className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+              <span className="text-sm text-green-700 truncate flex-1">{file.name}</span>
+              <button type="button" onClick={() => handleFile(null)} className="text-red-400 hover:text-red-600 ml-2 shrink-0">
+                <XIcon className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Enlarged overlay */}
+      {enlarged && preview && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setEnlarged(false)}
+        >
+          <img src={preview} alt="Permis" className="max-w-full max-h-full rounded-xl shadow-2xl" />
+          <button
+            type="button"
+            className="absolute top-4 right-4 bg-white/20 text-white rounded-full p-2 hover:bg-white/30"
+            onClick={() => setEnlarged(false)}
+          >
+            <XIcon className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // ─── Reusable sub-components ──────────────────────────────────────────────────
 
@@ -451,20 +570,7 @@ export default function NewContract() {
           <div><label className="label">N° Permis de conduire</label><input className="input" value={form.clientLicenseNumber} onChange={set('clientLicenseNumber')} /></div>
           <div><label className="label">Expiration permis</label><input className="input" type="date" value={form.clientLicenseExpiry} onChange={set('clientLicenseExpiry')} /></div>
           <div className="sm:col-span-2">
-            <label className="label">Photo / scan du permis</label>
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div className={`flex-1 flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 border-dashed transition-colors ${licenseFile ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-blue-300 bg-gray-50'}`}>
-                <span className="text-sm text-gray-500 truncate flex-1">
-                  {licenseFile ? licenseFile.name : 'Choisir une image ou un PDF…'}
-                </span>
-                {licenseFile && (
-                  <button type="button" onClick={e => { e.preventDefault(); setLicenseFile(null) }}
-                    className="text-xs text-red-500 hover:text-red-700 shrink-0">Supprimer</button>
-                )}
-              </div>
-              <input type="file" accept="image/*,application/pdf" className="hidden"
-                onChange={e => setLicenseFile(e.target.files[0] || null)} />
-            </label>
+            <LicenseScanField file={licenseFile} onChange={setLicenseFile} />
           </div>
         </>}
         <div className="sm:col-span-2"><label className="label">Adresse</label><input className="input" value={form.clientAddress} onChange={set('clientAddress')} /></div>
@@ -486,20 +592,11 @@ export default function NewContract() {
             <div><label className="label text-xs">N° Permis</label><input className="input" value={form.secondDriverLicense} onChange={set('secondDriverLicense')} /></div>
             <div><label className="label text-xs">Expiration permis</label><input className="input" type="date" value={form.secondDriverLicenseExpiry} onChange={set('secondDriverLicenseExpiry')} /></div>
             <div className="sm:col-span-2">
-              <label className="label text-xs">Photo / scan du permis (2ème conducteur)</label>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <div className={`flex-1 flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 border-dashed transition-colors ${secondDriverLicenseFile ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:border-blue-300 bg-gray-50'}`}>
-                  <span className="text-xs text-gray-500 truncate flex-1">
-                    {secondDriverLicenseFile ? secondDriverLicenseFile.name : 'Choisir une image ou un PDF…'}
-                  </span>
-                  {secondDriverLicenseFile && (
-                    <button type="button" onClick={e => { e.preventDefault(); setSecondDriverLicenseFile(null) }}
-                      className="text-xs text-red-500 hover:text-red-700 shrink-0">Supprimer</button>
-                  )}
-                </div>
-                <input type="file" accept="image/*,application/pdf" className="hidden"
-                  onChange={e => setSecondDriverLicenseFile(e.target.files[0] || null)} />
-              </label>
+              <LicenseScanField
+                file={secondDriverLicenseFile}
+                onChange={setSecondDriverLicenseFile}
+                label="Photo / scan du permis (2ème conducteur)"
+              />
             </div>
           </div>
         )}
