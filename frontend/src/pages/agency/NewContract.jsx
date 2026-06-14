@@ -28,7 +28,7 @@ const STEPS = [
   { id: 'client',   label: 'Client',              icon: User },
   { id: 'vehicle',  label: 'Véhicule',             icon: Car },
   { id: 'caution',  label: 'Cautions',             icon: Shield },
-  { id: 'options',  label: 'Options & Remise',     icon: Settings },
+  { id: 'options',  label: 'Options',               icon: Settings },
   { id: 'payment',  label: 'Paiement',             icon: CreditCard },
   { id: 'recap',    label: 'Récapitulatif',         icon: FileCheck },
 ]
@@ -252,7 +252,9 @@ export default function NewContract() {
   const [scannerOpen, setScannerOpen] = useState(false)
   const [carSearch, setCarSearch] = useState('')
   const [hasSecondDriver, setHasSecondDriver] = useState(false)
+  const [idFile, setIdFile] = useState(null)
   const [licenseFile, setLicenseFile] = useState(null)
+  const [secondDriverIdFile, setSecondDriverIdFile] = useState(null)
   const [secondDriverLicenseFile, setSecondDriverLicenseFile] = useState(null)
   const [selectedOptions, setSelectedOptions] = useState([]) // [{ optionId, name, pricePerDay, quantity }]
   const [manualPrice, setManualPrice] = useState(false)
@@ -285,6 +287,7 @@ export default function NewContract() {
     notes: '', remise: '',
     // Paiement
     prixBase: '', currency: 'MAD', amountPaid: '', collectedBy: '', collectedAt: '',
+    guaranteeCollectedBy: '',
   })
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
@@ -316,10 +319,22 @@ export default function NewContract() {
       const contractId = response.data.id
 
       const uploads = []
+      if (idFile) {
+        const fd = new FormData()
+        fd.append('file', idFile)
+        fd.append('type', 'ID_CARD')
+        uploads.push(uploadContractDocument(agencyId, contractId, fd))
+      }
       if (licenseFile) {
         const fd = new FormData()
         fd.append('file', licenseFile)
         fd.append('type', 'LICENSE')
+        uploads.push(uploadContractDocument(agencyId, contractId, fd))
+      }
+      if (secondDriverIdFile) {
+        const fd = new FormData()
+        fd.append('file', secondDriverIdFile)
+        fd.append('type', 'ID_CARD_DRIVER2')
         uploads.push(uploadContractDocument(agencyId, contractId, fd))
       }
       if (secondDriverLicenseFile) {
@@ -515,6 +530,7 @@ export default function NewContract() {
       startMileage: form.startMileage ? parseInt(form.startMileage) : undefined,
       guaranteeAmount: form.guaranteeAmount !== '' ? parseFloat(form.guaranteeAmount) : 0,
       guaranteeCollectedAmount: form.guaranteeCollectedAmount !== '' ? parseFloat(form.guaranteeCollectedAmount) : undefined,
+      guaranteeCollectedBy: form.guaranteeCollectedBy || undefined,
       guaranteeCheck: form.guaranteeCheck,
       guaranteeCheckAmount: form.guaranteeCheck && form.guaranteeCheckAmount ? parseFloat(form.guaranteeCheckAmount) : undefined,
       guaranteeCheckNumber: form.guaranteeCheck ? (form.guaranteeCheckNumber || undefined) : undefined,
@@ -566,6 +582,9 @@ export default function NewContract() {
         <div><label className="label">Email</label><input className="input" type="email" value={form.clientEmail} onChange={set('clientEmail')} /></div>
         <div><label className="label">CIN / Passeport</label><input className="input" value={form.clientIdNumber} onChange={set('clientIdNumber')} /></div>
         <div><label className="label">Expiration CIN / Passeport</label><input className="input" type="date" value={form.clientIdExpiry} onChange={set('clientIdExpiry')} /></div>
+        <div className="sm:col-span-2">
+          <LicenseScanField file={idFile} onChange={setIdFile} label="Photo / scan CIN ou Passeport" />
+        </div>
         {form.clientType !== 'COMPANY' && <>
           <div><label className="label">N° Permis de conduire</label><input className="input" value={form.clientLicenseNumber} onChange={set('clientLicenseNumber')} /></div>
           <div><label className="label">Expiration permis</label><input className="input" type="date" value={form.clientLicenseExpiry} onChange={set('clientLicenseExpiry')} /></div>
@@ -589,6 +608,13 @@ export default function NewContract() {
             <div className="sm:col-span-2"><label className="label text-xs">Nom complet</label><input className="input" value={form.secondDriverName} onChange={set('secondDriverName')} /></div>
             <div><label className="label text-xs">N° CIN / Passeport</label><input className="input" value={form.secondDriverIdNumber} onChange={set('secondDriverIdNumber')} /></div>
             <div><label className="label text-xs">Expiration CIN</label><input className="input" type="date" value={form.secondDriverIdExpiry} onChange={set('secondDriverIdExpiry')} /></div>
+            <div className="sm:col-span-2">
+              <LicenseScanField
+                file={secondDriverIdFile}
+                onChange={setSecondDriverIdFile}
+                label="Photo / scan CIN (2ème conducteur)"
+              />
+            </div>
             <div><label className="label text-xs">N° Permis</label><input className="input" value={form.secondDriverLicense} onChange={set('secondDriverLicense')} /></div>
             <div><label className="label text-xs">Expiration permis</label><input className="input" type="date" value={form.secondDriverLicenseExpiry} onChange={set('secondDriverLicenseExpiry')} /></div>
             <div className="sm:col-span-2">
@@ -720,6 +746,16 @@ export default function NewContract() {
             </p>
           )}
         </div>
+        {parseFloat(form.guaranteeCollectedAmount) > 0 && (
+          <div className="sm:col-span-2">
+            <label className="label">Caution encaissée par</label>
+            <CollectedByInput
+              agencyId={agencyId}
+              value={form.guaranteeCollectedBy}
+              onChange={v => setForm(f => ({ ...f, guaranteeCollectedBy: v }))}
+            />
+          </div>
+        )}
       </div>
 
       <div className="space-y-3">
@@ -994,6 +1030,7 @@ export default function NewContract() {
           <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Cautions & Options</h4>
           <RecapRow label="Caution" value={form.guaranteeAmount ? fmtMoney(form.guaranteeAmount, form.currency) : '0'} />
           <RecapRow label="Caution encaissée" value={form.guaranteeCollectedAmount ? fmtMoney(form.guaranteeCollectedAmount, form.currency) : '0'} />
+          {form.guaranteeCollectedBy && <RecapRow label="Caution encaissée par" value={form.guaranteeCollectedBy} />}
           {form.guaranteeCheck && <RecapRow label="Chèque garantie" value={`N° ${form.guaranteeCheckNumber || '-'} — ${fmtMoney(form.guaranteeCheckAmount, form.currency)}`} />}
           {form.isSubRental && <RecapRow label="Sous-location" value={form.subrenterName || 'Oui'} />}
           <RecapRow label="Type" value={RENTAL_TYPES[form.rentalType]} />

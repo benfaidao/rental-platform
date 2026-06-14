@@ -368,6 +368,7 @@ model RentalContract {
   rentalAmount        Float
   guaranteeAmount          Float    @default(0)
   guaranteeCollectedAmount Float?
+  guaranteeCollectedBy     String?
   currency                 String   @default("MAD")
   guaranteeCheck           Boolean  @default(false)
   guaranteeCheckNumber     String?
