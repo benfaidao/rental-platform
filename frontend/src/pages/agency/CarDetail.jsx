@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
-  getCar, updateCar,
+  getCar,
   getCarDocuments, uploadCarDocument, deleteCarDocument,
   getCarUnavailabilities, createCarUnavailability, deleteCarUnavailability,
   getOilChanges, createOilChange, updateOilChange, deleteOilChange,
@@ -54,56 +54,6 @@ const DEADLINE_ITEMS = [
   { key: 'circulationAuthExpiry', label: 'Fin autorisation de circulation' },
 ]
 
-// ─── Edit form ────────────────────────────────────────────────────────────────
-function CarEditForm({ initial, onSubmit, loading }) {
-  const [form, setForm] = useState(initial)
-  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(form) }} className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div><label className="label">Immatriculation WW</label><input className="input" value={form.wwPlate || ''} onChange={set('wwPlate')} /></div>
-        <div><label className="label">Immatriculation finale</label><input className="input" value={form.finalPlate || ''} onChange={set('finalPlate')} /></div>
-        <div><label className="label">Marque *</label><input className="input" value={form.brand || ''} onChange={set('brand')} required /></div>
-        <div><label className="label">Modèle *</label><input className="input" value={form.model || ''} onChange={set('model')} required /></div>
-        <div><label className="label">Année</label><input className="input" type="number" value={form.year || ''} onChange={set('year')} /></div>
-        <div><label className="label">Couleur</label><input className="input" value={form.color || ''} onChange={set('color')} /></div>
-        <div>
-          <label className="label">Carburant</label>
-          <select className="input" value={form.fuelType || ''} onChange={set('fuelType')}>
-            <option value="">--</option>
-            {FUEL_TYPES.map(f => <option key={f} value={f}>{f}</option>)}
-          </select>
-        </div>
-        <div><label className="label">Kilométrage</label><input className="input" type="number" value={form.mileage || ''} onChange={set('mileage')} /></div>
-        <div>
-          <label className="label">Boîte de vitesses</label>
-          <select className="input" value={form.transmission || ''} onChange={set('transmission')}>
-            <option value="">--</option>
-            {TRANSMISSIONS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-        <div><label className="label">Prix de location TTC (MAD/jour)</label><input className="input" type="number" step="0.01" value={form.rentalPriceTTC || ''} onChange={set('rentalPriceTTC')} /></div>
-      </div>
-      <h4 className="font-medium text-gray-700 pt-2">Achat</h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div><label className="label">Prix d'achat TTC (MAD)</label><input className="input" type="number" step="0.01" value={form.purchasePrice || ''} onChange={set('purchasePrice')} /></div>
-        <div><label className="label">Date d'achat</label><input className="input" type="date" value={form.purchaseDate || ''} onChange={set('purchaseDate')} /></div>
-      </div>
-      <h4 className="font-medium text-gray-700 pt-2">Documents & Dates</h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div><label className="label">Date d'autorisation</label><input className="input" type="date" value={form.authorizationDate || ''} onChange={set('authorizationDate')} /></div>
-        <div><label className="label">Fin assurance</label><input className="input" type="date" value={form.insuranceExpiry || ''} onChange={set('insuranceExpiry')} /></div>
-        <div><label className="label">Dernier CT</label><input className="input" type="date" value={form.lastTechnicalInspection || ''} onChange={set('lastTechnicalInspection')} /></div>
-        <div><label className="label">Prochain CT</label><input className="input" type="date" value={form.nextTechnicalInspection || ''} onChange={set('nextTechnicalInspection')} /></div>
-        <div><label className="label">Fin autorisation circulation</label><input className="input" type="date" value={form.circulationAuthExpiry || ''} onChange={set('circulationAuthExpiry')} /></div>
-      </div>
-      <div><label className="label">Notes</label><textarea className="input" rows={2} value={form.notes || ''} onChange={set('notes')} /></div>
-      <div className="flex justify-end pt-2">
-        <button type="submit" className="btn-primary w-full sm:w-fit justify-center" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button>
-      </div>
-    </form>
-  )
-}
 
 // ─── Informations tab ─────────────────────────────────────────────────────────
 function InfoTab({ car }) {
@@ -836,7 +786,6 @@ export default function CarDetail() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [tab, setTab] = useState('info')
-  const [editModal, setEditModal] = useState(false)
   const [qrModal, setQrModal] = useState(false)
 
   const { data: car, isLoading } = useQuery({
@@ -868,16 +817,6 @@ export default function CarDetail() {
     queryKey: ['carDocs', carId],
     queryFn: () => getCarDocuments(agencyId, carId).then(r => r.data),
     enabled: !!car,
-  })
-
-  const updateMut = useMutation({
-    mutationFn: (data) => updateCar(agencyId, carId, data),
-    onSuccess: () => {
-      qc.invalidateQueries(['carDetail', agencyId, carId])
-      qc.invalidateQueries(['cars', agencyId])
-      setEditModal(false)
-      toast.success('Véhicule mis à jour')
-    },
   })
 
   if (isLoading) return (
@@ -923,27 +862,6 @@ export default function CarDetail() {
   const statusBadge = DISPLAY_STATUS_BADGES[car.displayStatus] || STATUS_BADGES[car.status]
   const statusLabel = DISPLAY_STATUSES[car.displayStatus] || STATUSES[car.status]
 
-  const initialEditForm = {
-    wwPlate: car.wwPlate || '',
-    finalPlate: car.finalPlate || '',
-    brand: car.brand || '',
-    model: car.model || '',
-    year: car.year || '',
-    color: car.color || '',
-    fuelType: car.fuelType || '',
-    mileage: car.mileage || '',
-    transmission: car.transmission || '',
-    rentalPriceTTC: car.rentalPriceTTC || '',
-    purchasePrice: car.purchasePrice || '',
-    purchaseDate: car.purchaseDate?.split('T')[0] || '',
-    authorizationDate: car.authorizationDate?.split('T')[0] || '',
-    insuranceExpiry: car.insuranceExpiry?.split('T')[0] || '',
-    lastTechnicalInspection: car.lastTechnicalInspection?.split('T')[0] || '',
-    nextTechnicalInspection: car.nextTechnicalInspection?.split('T')[0] || '',
-    circulationAuthExpiry: car.circulationAuthExpiry?.split('T')[0] || '',
-    notes: car.notes || '',
-  }
-
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
@@ -983,7 +901,7 @@ export default function CarDetail() {
             >
               <CalendarPlus className="w-4 h-4" /> <span className="hidden sm:inline">Réserver</span>
             </button>
-            <button onClick={() => setEditModal(true)} className="btn-primary flex items-center gap-1.5 text-sm">
+            <button onClick={() => navigate(`/agency/${agencyId}/cars/${carId}/edit`)} className="btn-primary flex items-center gap-1.5 text-sm">
               <Edit2 className="w-4 h-4" /> Modifier
             </button>
           </div>
@@ -1050,13 +968,6 @@ export default function CarDetail() {
       </div>
 
       {/* Modals */}
-      <Modal isOpen={editModal} onClose={() => setEditModal(false)} title={`Modifier — ${car.brand} ${car.model}`} size="lg">
-        <CarEditForm
-          initial={initialEditForm}
-          onSubmit={updateMut.mutate}
-          loading={updateMut.isPending}
-        />
-      </Modal>
       <Modal isOpen={qrModal} onClose={() => setQrModal(false)} title={`QR Code — ${car.brand} ${car.model}`}>
         <QRModal car={car} onClose={() => setQrModal(false)} />
       </Modal>

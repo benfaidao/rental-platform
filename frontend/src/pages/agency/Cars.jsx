@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getCars, getCar, createCar, updateCar, deleteCar, uploadCarDocument, getCarDocuments, deleteCarDocument, getCarUnavailabilities, createCarUnavailability, deleteCarUnavailability, getCarAvailability, checkAvailability, getFileUrl } from '../../api'
+import { getCars, getCar, deleteCar, uploadCarDocument, getCarDocuments, deleteCarDocument, getCarUnavailabilities, createCarUnavailability, deleteCarUnavailability, getCarAvailability, checkAvailability, getFileUrl } from '../../api'
 import Modal from '../../components/Modal'
 import QRScanner from '../../components/QRScanner'
 import QRCode from 'react-qr-code'
@@ -51,61 +51,6 @@ const DOC_TYPES = [
   { value: 'OTHER', label: 'Autre' },
 ]
 
-function CarForm({ initial, onSubmit, loading }) {
-  const [form, setForm] = useState(initial || {
-    wwPlate: '', finalPlate: '', brand: '', model: '', year: '', color: '', fuelType: '',
-    mileage: '', authorizationDate: '', lastTechnicalInspection: '', nextTechnicalInspection: '',
-    insuranceExpiry: '', circulationAuthExpiry: '', notes: '', purchasePrice: '', purchaseDate: '',
-    rentalPriceTTC: '', transmission: '',
-  })
-  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
-
-  return (
-    <form onSubmit={(e) => { e.preventDefault(); onSubmit(form) }} className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div><label className="label">Immatriculation WW</label><input className="input" value={form.wwPlate} onChange={set('wwPlate')} placeholder="1234-WW-5" /></div>
-        <div><label className="label">Immatriculation finale</label><input className="input" value={form.finalPlate} onChange={set('finalPlate')} placeholder="12345-A-1" /></div>
-        <div><label className="label">Marque *</label><input className="input" value={form.brand} onChange={set('brand')} required /></div>
-        <div><label className="label">Modèle *</label><input className="input" value={form.model} onChange={set('model')} required /></div>
-        <div><label className="label">Année</label><input className="input" type="number" value={form.year} onChange={set('year')} /></div>
-        <div><label className="label">Couleur</label><input className="input" value={form.color} onChange={set('color')} /></div>
-        <div>
-          <label className="label">Carburant</label>
-          <select className="input" value={form.fuelType} onChange={set('fuelType')}>
-            <option value="">--</option>
-            {FUEL_TYPES.map(f => <option key={f} value={f}>{f}</option>)}
-          </select>
-        </div>
-        <div><label className="label">Kilométrage</label><input className="input" type="number" value={form.mileage} onChange={set('mileage')} /></div>
-        <div>
-          <label className="label">Boîte de vitesses</label>
-          <select className="input" value={form.transmission} onChange={set('transmission')}>
-            <option value="">--</option>
-            {TRANSMISSIONS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-        <div><label className="label">Prix indicatif/jour TTC (MAD)</label><input className="input" type="number" step="0.01" value={form.rentalPriceTTC} onChange={set('rentalPriceTTC')} placeholder="0.00" /></div>
-      </div>
-      <h4 className="font-medium text-gray-700 pt-2">Achat</h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div><label className="label">Prix d'achat TTC (MAD)</label><input className="input" type="number" step="0.01" value={form.purchasePrice} onChange={set('purchasePrice')} placeholder="0.00" /></div>
-        <div><label className="label">Date d'achat</label><input className="input" type="date" value={form.purchaseDate} onChange={set('purchaseDate')} /></div>
-      </div>
-      <h4 className="font-medium text-gray-700 pt-2">Documents & Dates</h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div><label className="label">Date d'autorisation</label><input className="input" type="date" value={form.authorizationDate} onChange={set('authorizationDate')} /></div>
-        <div><label className="label">Fin assurance</label><input className="input" type="date" value={form.insuranceExpiry} onChange={set('insuranceExpiry')} /></div>
-        <div><label className="label">Dernier CT</label><input className="input" type="date" value={form.lastTechnicalInspection} onChange={set('lastTechnicalInspection')} /></div>
-        <div><label className="label">Prochain CT</label><input className="input" type="date" value={form.nextTechnicalInspection} onChange={set('nextTechnicalInspection')} /></div>
-        <div><label className="label">Fin autorisation circulation</label><input className="input" type="date" value={form.circulationAuthExpiry} onChange={set('circulationAuthExpiry')} /></div>
-      </div>
-      <div><label className="label">Notes</label><textarea className="input" rows={2} value={form.notes} onChange={set('notes')} /></div>
-      <div className="flex justify-end pt-2">
-        <button type="submit" className="btn-primary w-full sm:w-fit justify-center" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button>
-      </div>
-    </form>
-  )
-}
 
 function DocumentsModal({ agencyId, car }) {
   const qc = useQueryClient()
@@ -658,10 +603,9 @@ function AvailabilitySearch({ agencyId }) {
 
 export default function Cars() {
   const { agencyId } = useParams()
+  const navigate = useNavigate()
   const qc = useQueryClient()
   const [mainTab, setMainTab] = useState('cars')
-  const [modal, setModal] = useState(null)
-  const [detailModal, setDetailModal] = useState(null)
   const [scannerOpen, setScannerOpen] = useState(false)
   const [search, setSearch] = useState('')
 
@@ -678,18 +622,6 @@ export default function Cars() {
       setSearch(text)
     }
   }
-
-  const createMutation = useMutation({
-    mutationFn: (data) => createCar(agencyId, data),
-    onSuccess: () => { qc.invalidateQueries(['cars', agencyId]); setModal(null); toast.success('Véhicule ajouté') },
-    onError: (err) => toast.error(err.response?.data?.error || 'Erreur'),
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: ({ carId, data }) => updateCar(agencyId, carId, data),
-    onSuccess: () => { qc.invalidateQueries(['cars', agencyId]); setModal(null); toast.success('Mis à jour') },
-    onError: () => toast.error('Erreur'),
-  })
 
   const deleteMutation = useMutation({
     mutationFn: (carId) => deleteCar(agencyId, carId),
@@ -737,7 +669,7 @@ export default function Cars() {
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-2">
           <p className="text-sm text-gray-500 whitespace-nowrap">{filtered.length} véhicule(s)</p>
-          <button onClick={() => setModal({ type: 'create' })} className="btn-primary flex items-center gap-2 whitespace-nowrap">
+          <button onClick={() => navigate(`/agency/${agencyId}/cars/new`)} className="btn-primary flex items-center gap-2 whitespace-nowrap">
             <Plus className="w-4 h-4" /> Nouveau Véhicule
           </button>
         </div>
@@ -812,7 +744,7 @@ export default function Cars() {
                   <Link to={`/agency/${agencyId}/cars/${car.id}`} className="btn-secondary text-xs py-1.5 flex items-center gap-1" title="Voir les détails">
                     <Eye className="w-3 h-3 text-blue-500" /> Détails
                   </Link>
-                  <button onClick={() => setModal({ type: 'edit', car })} className="p-2 hover:bg-gray-100 rounded-lg" title="Modifier">
+                  <button onClick={() => navigate(`/agency/${agencyId}/cars/${car.id}/edit`)} className="p-2 hover:bg-gray-100 rounded-lg" title="Modifier">
                     <Edit2 className="w-4 h-4 text-gray-500" />
                   </button>
                   <button onClick={() => { if (confirm('Désactiver ce véhicule ?')) deleteMutation.mutate(car.id) }} className="p-2 hover:bg-red-50 rounded-lg" title="Désactiver">
@@ -833,32 +765,6 @@ export default function Cars() {
 
       </>}
 
-      <Modal isOpen={modal?.type === 'create'} onClose={() => setModal(null)} title="Nouveau Véhicule" size="lg">
-        <CarForm onSubmit={createMutation.mutate} loading={createMutation.isPending} />
-      </Modal>
-      <Modal isOpen={modal?.type === 'edit'} onClose={() => setModal(null)} title="Modifier Véhicule" size="lg">
-        {modal?.car && (
-          <CarForm
-            initial={{
-              ...modal.car,
-              authorizationDate: modal.car.authorizationDate?.split('T')[0] || '',
-              lastTechnicalInspection: modal.car.lastTechnicalInspection?.split('T')[0] || '',
-              nextTechnicalInspection: modal.car.nextTechnicalInspection?.split('T')[0] || '',
-              insuranceExpiry: modal.car.insuranceExpiry?.split('T')[0] || '',
-              circulationAuthExpiry: modal.car.circulationAuthExpiry?.split('T')[0] || '',
-              purchaseDate: modal.car.purchaseDate?.split('T')[0] || '',
-              purchasePrice: modal.car.purchasePrice ?? '',
-              rentalPriceTTC: modal.car.rentalPriceTTC ?? '',
-              transmission: modal.car.transmission || '',
-            }}
-            onSubmit={(data) => updateMutation.mutate({ carId: modal.car.id, data })}
-            loading={updateMutation.isPending}
-          />
-        )}
-      </Modal>
-      <Modal isOpen={!!detailModal} onClose={() => setDetailModal(null)} title={`${detailModal?.brand} ${detailModal?.model} ${detailModal?.finalPlate ? `— ${detailModal.finalPlate}` : ''}`} size="xl">
-        {detailModal && <CarDetailModal agencyId={agencyId} carId={detailModal.id} />}
-      </Modal>
       <QRScanner isOpen={scannerOpen} onClose={() => setScannerOpen(false)} onResult={handleQRScan} />
     </div>
   )

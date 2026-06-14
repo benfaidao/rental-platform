@@ -27,6 +27,8 @@ import Pricing from './pages/agency/Pricing'
 import Planning from './pages/agency/Planning'
 import NewClient from './pages/agency/NewClient'
 import EditClient from './pages/agency/EditClient'
+import NewCar from './pages/agency/NewCar'
+import EditCar from './pages/agency/EditCar'
 import ContractView from './pages/ContractView'
 import Landing from './pages/Landing'
 import DemandeAcces from './pages/DemandeAcces'
@@ -97,7 +99,9 @@ export default function App() {
           <Route path="/agency/:agencyId" element={<AgencyGuard><Layout /></AgencyGuard>}>
             <Route index element={<AgencyDashboard />} />
             <Route path="cars" element={<Cars />} />
+            <Route path="cars/new" element={<NewCar />} />
             <Route path="cars/:carId" element={<CarDetail />} />
+            <Route path="cars/:carId/edit" element={<EditCar />} />
             <Route path="contracts" element={<Contracts />} />
             <Route path="contracts/new" element={<NewContract />} />
             <Route path="maintenance" element={<Navigate to="cars" replace />} />
