@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getClients, createClient, updateClient, deleteClient, getClient, getFileUrl } from '../../api'
+import { getClients, updateClient, deleteClient, getClient, getFileUrl } from '../../api'
 import Modal from '../../components/Modal'
 import { Plus, Edit2, Trash2, Search, UserCheck, FileText, ExternalLink, History, Building2, Car } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -212,6 +212,7 @@ function ClientHistoryModal({ agencyId, client, onClose }) {
 
 export default function Clients() {
   const { agencyId } = useParams()
+  const navigate = useNavigate()
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
   const [modal, setModal] = useState(null)
@@ -220,12 +221,6 @@ export default function Clients() {
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ['clients', agencyId, search],
     queryFn: () => getClients(agencyId, search ? { search } : {}).then(r => r.data),
-  })
-
-  const createMutation = useMutation({
-    mutationFn: (fd) => createClient(agencyId, fd),
-    onSuccess: () => { qc.invalidateQueries(['clients', agencyId]); setModal(null); toast.success('Client ajouté') },
-    onError: (e) => toast.error(e.response?.data?.error || 'Erreur'),
   })
 
   const updateMutation = useMutation({
@@ -264,7 +259,7 @@ export default function Clients() {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <button onClick={() => setModal({ client: null })} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit">
+        <button onClick={() => navigate(`/agency/${agencyId}/clients/new`)} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit">
           <Plus className="w-4 h-4" /> Nouveau Client
         </button>
       </div>
@@ -342,14 +337,11 @@ export default function Clients() {
         )}
       </div>
 
-      <Modal isOpen={!!modal} onClose={() => setModal(null)} title={modal?.client ? 'Modifier Client' : 'Nouveau Client'} size="lg">
+      <Modal isOpen={!!modal} onClose={() => setModal(null)} title="Modifier Client" size="lg">
         <ClientForm
           initial={modal?.initial}
-          onSubmit={(fd) => modal?.client
-            ? updateMutation.mutate({ clientId: modal.client.id, fd })
-            : createMutation.mutate(fd)
-          }
-          loading={createMutation.isPending || updateMutation.isPending}
+          onSubmit={(fd) => updateMutation.mutate({ clientId: modal.client.id, fd })}
+          loading={updateMutation.isPending}
         />
       </Modal>
 

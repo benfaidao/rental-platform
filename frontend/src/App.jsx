@@ -24,6 +24,8 @@ import Chat from './pages/agency/Chat'
 import RentalRequests from './pages/agency/RentalRequests'
 import AgencySettings from './pages/agency/AgencySettings'
 import Pricing from './pages/agency/Pricing'
+import Planning from './pages/agency/Planning'
+import NewClient from './pages/agency/NewClient'
 import ContractView from './pages/ContractView'
 import Landing from './pages/Landing'
 import DemandeAcces from './pages/DemandeAcces'
@@ -101,10 +103,12 @@ export default function App() {
             <Route path="checks" element={<Navigate to="financial" replace />} />
             <Route path="financial" element={<Financial />} />
             <Route path="clients" element={<Clients />} />
+            <Route path="clients/new" element={<NewClient />} />
             <Route path="history" element={<Navigate to="contracts" replace />} />
             <Route path="partners" element={<Partners />} />
             <Route path="external" element={<Navigate to="cars" replace />} />
-            <Route path="calendar" element={<Navigate to="cars" replace />} />
+            <Route path="calendar" element={<Navigate to="planning" replace />} />
+            <Route path="planning" element={<Planning />} />
             <Route path="access" element={<Access />} />
             <Route path="chat" element={<Chat />} />
             <Route path="rental-requests" element={<RentalRequests />} />

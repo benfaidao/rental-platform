@@ -169,16 +169,6 @@ async function generateInvoicePdf(contract, stream, signatures = {}) {
     sumRow('Montant :', formatAmount(contract.rentalAmount, contract.currency), false);
   }
 
-  if (contract.guaranteeAmount > 0)
-    sumRow('Garantie encaissée :', formatAmount(contract.guaranteeAmount, contract.currency), false);
-
-  if (contract.guaranteeCheck && contract.guaranteeCheckAmount > 0) {
-    const chqLabel = contract.guaranteeCheckNumber
-      ? `Caution chèque N° ${contract.guaranteeCheckNumber} :`
-      : 'Caution (chèque) :';
-    sumRow(chqLabel, formatAmount(contract.guaranteeCheckAmount, contract.currency), false);
-  }
-
   // Séparation
   doc.moveTo(sumX, doc.y).lineTo(555, doc.y).stroke();
   doc.y += 4;

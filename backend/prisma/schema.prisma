@@ -752,15 +752,16 @@ model AgencyBilling {
 }
 
 model PricingSeason {
-  id        String   @id @default(cuid())
-  agencyId  String
-  name      String
-  startDate DateTime
-  endDate   DateTime
-  type      String   // "PERCENTAGE" | "FIXED"
-  value     Float
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
+  id              String    @id @default(cuid())
+  agencyId        String
+  name            String
+  startDate       DateTime?
+  endDate         DateTime?
+  type            String    // "PERCENTAGE" | "FIXED"
+  value           Float
+  isActive        Boolean   @default(true)
+  isWeekendOnly   Boolean   @default(false)
+  createdAt       DateTime  @default(now())
 
   agency Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
 

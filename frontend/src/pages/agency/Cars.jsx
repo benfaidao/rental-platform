@@ -6,10 +6,9 @@ import Modal from '../../components/Modal'
 import SinistresModal from './Sinistres'
 import QRScanner from '../../components/QRScanner'
 import QRCode from 'react-qr-code'
-import { Plus, Edit2, Trash2, FileText, Upload, Car, AlertTriangle, QrCode, ScanLine, BanIcon, Wrench, Share2, CalendarDays, Search, Building2, Info, CheckCircle2, Clock, Eye, List, Rows3, ExternalLink } from 'lucide-react'
+import { Plus, Edit2, Trash2, FileText, Upload, Car, AlertTriangle, QrCode, ScanLine, BanIcon, Wrench, Share2, Search, Building2, Info, CheckCircle2, Clock, Eye, List, Rows3, ExternalLink } from 'lucide-react'
 import MaintenanceContent from './Maintenance'
 import ExternalCarsContent from './ExternalCars'
-import CalendarContent from './Calendar'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -86,7 +85,7 @@ function CarForm({ initial, onSubmit, loading }) {
             {TRANSMISSIONS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
-        <div><label className="label">Prix de location TTC (MAD/jour)</label><input className="input" type="number" step="0.01" value={form.rentalPriceTTC} onChange={set('rentalPriceTTC')} placeholder="0.00" /></div>
+        <div><label className="label">Prix indicatif/jour TTC (MAD)</label><input className="input" type="number" step="0.01" value={form.rentalPriceTTC} onChange={set('rentalPriceTTC')} placeholder="0.00" /></div>
       </div>
       <h4 className="font-medium text-gray-700 pt-2">Achat</h4>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -717,9 +716,6 @@ export default function Cars() {
         <button onClick={() => setMainTab('partners')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${mainTab === 'partners' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
           <Share2 className="w-4 h-4" /> Partenaires
         </button>
-        <button onClick={() => setMainTab('calendar')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${mainTab === 'calendar' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
-          <CalendarDays className="w-4 h-4" /> Calendrier
-        </button>
         <button onClick={() => setMainTab('maintenance')} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${mainTab === 'maintenance' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>
           <Wrench className="w-4 h-4" /> Maintenance
         </button>
@@ -727,7 +723,6 @@ export default function Cars() {
 
       {mainTab === 'maintenance' && <MaintenanceContent />}
       {mainTab === 'partners' && <ExternalCarsContent />}
-      {mainTab === 'calendar' && <CalendarContent />}
 
       {mainTab === 'cars' && <>
       <AvailabilitySearch agencyId={agencyId} />

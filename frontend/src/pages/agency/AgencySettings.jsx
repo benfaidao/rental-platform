@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAgencyProfile, updateAgencyProfile, updateUserProfile, requestEmailChange, confirmEmailChange, getAgencyMembers, addAgencyMember, updateAgencyMember, removeAgencyMember, resetMemberPassword } from '../../api'
-import { Building2, Phone, Mail, MapPin, Save, User, Hash, Pencil, X, Copy, CheckCircle, Plus, Trash2, Users, Smartphone, KeyRound } from 'lucide-react'
+import { Building2, Phone, Mail, MapPin, Save, User, Hash, Pencil, X, Copy, CheckCircle, Plus, Trash2, Users, Smartphone, KeyRound, Shield } from 'lucide-react'
 import toast from 'react-hot-toast'
+import Access from './Access'
 
 function MembersTab({ agencyId }) {
   const qc = useQueryClient()
@@ -273,7 +274,7 @@ export default function AgencySettings() {
   if (isLoading) return <div className="text-center py-12 text-gray-400">Chargement...</div>
 
   return (
-    <div className="max-w-xl space-y-6">
+    <div className={`space-y-6 ${tab !== 'access' ? 'max-w-xl' : ''}`}>
       {/* ── Onglets ── */}
       <div className="flex gap-1 border-b border-gray-200 overflow-x-auto">
         <button onClick={() => setTab('profile')}
@@ -290,12 +291,19 @@ export default function AgencySettings() {
               className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${tab === 'members' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
               Membres
             </button>
+            <button onClick={() => setTab('access')}
+              className={`pb-3 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap shrink-0 ${tab === 'access' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
+              <span className="flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" /> Accès inter-agences</span>
+            </button>
           </>
         )}
       </div>
 
       {/* ── Onglet Membres ── */}
       {tab === 'members' && isAdmin && <MembersTab agencyId={agencyId} />}
+
+      {/* ── Onglet Accès inter-agences ── */}
+      {tab === 'access' && isAdmin && <Access />}
 
       {/* ── Les autres onglets ── */}
       {(tab === 'profile' || tab === 'agency') && <div className="space-y-8">

@@ -24,10 +24,14 @@ router.get('/seasons', async (req, res) => {
   res.json(seasons);
 });
 
-router.post('/seasons', requireAdmin, async (req, res) => {
-  const { name, startDate, endDate, type, value, isActive } = req.body;
-  if (!name || !startDate || !endDate || !type || value == null) {
+router.post('/seasons', async (req, res) => {
+  const { name, startDate, endDate, type, value, isActive, isWeekendOnly } = req.body;
+  const weekend = isWeekendOnly === true || isWeekendOnly === 'true';
+  if (!name || !type || value == null) {
     return res.status(400).json({ error: 'Champs requis manquants' });
+  }
+  if (!weekend && (!startDate || !endDate)) {
+    return res.status(400).json({ error: 'Dates requises pour une saison non-weekend' });
   }
   if (!['PERCENTAGE', 'FIXED'].includes(type)) {
     return res.status(400).json({ error: 'Type invalide (PERCENTAGE ou FIXED)' });
@@ -36,17 +40,18 @@ router.post('/seasons', requireAdmin, async (req, res) => {
     data: {
       agencyId: req.params.agencyId,
       name: name.trim(),
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
+      startDate: weekend ? null : new Date(startDate),
+      endDate: weekend ? null : new Date(endDate),
       type,
       value: parseFloat(value),
       isActive: isActive !== false,
+      isWeekendOnly: weekend,
     },
   });
   res.status(201).json(season);
 });
 
-router.put('/seasons/:id', requireAdmin, async (req, res) => {
+router.put('/seasons/:id', async (req, res) => {
   const { name, startDate, endDate, type, value, isActive } = req.body;
   const existing = await prisma.pricingSeason.findFirst({
     where: { id: req.params.id, agencyId: req.params.agencyId },
@@ -62,12 +67,13 @@ router.put('/seasons/:id', requireAdmin, async (req, res) => {
       ...(type != null && { type }),
       ...(value != null && { value: parseFloat(value) }),
       ...(isActive != null && { isActive }),
+      ...(req.body.isWeekendOnly != null && { isWeekendOnly: req.body.isWeekendOnly === true || req.body.isWeekendOnly === 'true' }),
     },
   });
   res.json(season);
 });
 
-router.delete('/seasons/:id', requireAdmin, async (req, res) => {
+router.delete('/seasons/:id', async (req, res) => {
   const existing = await prisma.pricingSeason.findFirst({
     where: { id: req.params.id, agencyId: req.params.agencyId },
   });
@@ -86,7 +92,7 @@ router.get('/options', async (req, res) => {
   res.json(options);
 });
 
-router.post('/options', requireAdmin, async (req, res) => {
+router.post('/options', async (req, res) => {
   const { name, pricePerDay, isActive } = req.body;
   if (!name || pricePerDay == null) {
     return res.status(400).json({ error: 'Nom et prix par jour requis' });
@@ -102,7 +108,7 @@ router.post('/options', requireAdmin, async (req, res) => {
   res.status(201).json(option);
 });
 
-router.put('/options/:id', requireAdmin, async (req, res) => {
+router.put('/options/:id', async (req, res) => {
   const { name, pricePerDay, isActive } = req.body;
   const existing = await prisma.rentalOption.findFirst({
     where: { id: req.params.id, agencyId: req.params.agencyId },
@@ -120,7 +126,7 @@ router.put('/options/:id', requireAdmin, async (req, res) => {
   res.json(option);
 });
 
-router.delete('/options/:id', requireAdmin, async (req, res) => {
+router.delete('/options/:id', async (req, res) => {
   const existing = await prisma.rentalOption.findFirst({
     where: { id: req.params.id, agencyId: req.params.agencyId },
   });

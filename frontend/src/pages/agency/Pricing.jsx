@@ -5,7 +5,7 @@ import {
   getPricingSeasons, createPricingSeason, updatePricingSeason, deletePricingSeason,
   getPricingOptions, createPricingOption, updatePricingOption, deletePricingOption,
 } from '../../api'
-import { Plus, Pencil, Trash2, Tag, CalendarRange, Package, X, Check, TrendingUp, DollarSign } from 'lucide-react'
+import { Plus, Pencil, Trash2, Tag, CalendarRange, Package, X, Check, TrendingUp, DollarSign, Repeat } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -17,7 +17,7 @@ const fmtMoney = (n) => n != null ? `${Number(n).toLocaleString('fr-MA', { minim
 
 function SeasonForm({ initial, onSave, onCancel, isPending }) {
   const [form, setForm] = useState(initial || {
-    name: '', startDate: '', endDate: '', type: 'PERCENTAGE', value: '', isActive: true,
+    name: '', startDate: '', endDate: '', type: 'PERCENTAGE', value: '', isActive: true, isWeekendOnly: false,
   })
   const set = (k) => (e) => setForm(f => ({
     ...f,
@@ -32,16 +32,33 @@ function SeasonForm({ initial, onSave, onCancel, isPending }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="sm:col-span-2">
           <label className="label text-xs">Nom de la saison *</label>
-          <input className="input" value={form.name} onChange={set('name')} placeholder="Ex. Haute saison été" required />
+          <input className="input" value={form.name} onChange={set('name')} placeholder="Ex. Haute saison été, Weekend..." required />
         </div>
-        <div>
-          <label className="label text-xs">Date de début *</label>
-          <input className="input" type="date" value={form.startDate} onChange={set('startDate')} required />
+
+        <div className="sm:col-span-2">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input type="checkbox" checked={form.isWeekendOnly} onChange={set('isWeekendOnly')} className="w-4 h-4 rounded accent-purple-600" />
+            <span className="text-sm font-medium text-purple-700">Tarif weekend récurrent (tous les samedis & dimanches)</span>
+            <Repeat className="w-3.5 h-3.5 text-purple-500" />
+          </label>
+          {form.isWeekendOnly && (
+            <p className="text-xs text-purple-600 mt-1 ml-6">Ce tarif s'applique automatiquement à tous les weekends, sans limites de dates.</p>
+          )}
         </div>
-        <div>
-          <label className="label text-xs">Date de fin *</label>
-          <input className="input" type="date" value={form.endDate} min={form.startDate || undefined} onChange={set('endDate')} required />
-        </div>
+
+        {!form.isWeekendOnly && (
+          <>
+            <div>
+              <label className="label text-xs">Date de début *</label>
+              <input className="input" type="date" value={form.startDate} onChange={set('startDate')} required />
+            </div>
+            <div>
+              <label className="label text-xs">Date de fin *</label>
+              <input className="input" type="date" value={form.endDate} min={form.startDate || undefined} onChange={set('endDate')} required />
+            </div>
+          </>
+        )}
+
         <div>
           <label className="label text-xs">Type de tarification *</label>
           <select className="input" value={form.type} onChange={set('type')}>
@@ -190,11 +207,12 @@ function SeasonsTab({ agencyId }) {
               <SeasonForm
                 initial={{
                   name: s.name,
-                  startDate: s.startDate.split('T')[0],
-                  endDate: s.endDate.split('T')[0],
+                  startDate: s.startDate ? s.startDate.split('T')[0] : '',
+                  endDate: s.endDate ? s.endDate.split('T')[0] : '',
                   type: s.type,
                   value: s.value,
                   isActive: s.isActive,
+                  isWeekendOnly: s.isWeekendOnly || false,
                 }}
                 onSave={(data) => updateMut.mutate({ id: s.id, data })}
                 onCancel={() => setEditingId(null)}
@@ -208,7 +226,12 @@ function SeasonsTab({ agencyId }) {
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                       {s.isActive ? 'Active' : 'Inactive'}
                     </span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.type === 'PERCENTAGE' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                    {s.isWeekendOnly && (
+                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700 flex items-center gap-1">
+                        <Repeat className="w-3 h-3" /> Weekend
+                      </span>
+                    )}
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${s.type === 'PERCENTAGE' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
                       {s.type === 'PERCENTAGE' ? (
                         <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3" /> +{s.value}%</span>
                       ) : (
@@ -217,7 +240,7 @@ function SeasonsTab({ agencyId }) {
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    {fmtDate(s.startDate)} → {fmtDate(s.endDate)}
+                    {s.isWeekendOnly ? 'Tous les weekends' : `${fmtDate(s.startDate)} → ${fmtDate(s.endDate)}`}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

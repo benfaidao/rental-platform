@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
   const todayEnd = new Date(today); todayEnd.setHours(23, 59, 59, 999);
 
   const [
-    totalCars, availableCars, rentedCars,
+    totalCars, availableCars, rentedCars, maintenanceCars,
     carsWithActiveContractOrUnavailability,
     activeContracts, pendingContracts,
     contractsReturningSoon,
@@ -32,12 +32,8 @@ router.get('/', async (req, res) => {
   ] = await Promise.all([
     prisma.car.count({ where: { agencyId, isActive: true } }),
     prisma.car.count({ where: { agencyId, isActive: true, status: 'AVAILABLE' } }),
-    prisma.car.count({
-      where: {
-        agencyId, isActive: true,
-        contracts: { some: { status: { in: ['ACTIVE', 'PENDING'] }, startDate: { lte: todayEnd }, endDate: { gte: todayStart } } },
-      },
-    }),
+    prisma.car.count({ where: { agencyId, isActive: true, status: 'RENTED' } }),
+    prisma.car.count({ where: { agencyId, isActive: true, status: 'MAINTENANCE' } }),
     prisma.car.findMany({
       where: {
         agencyId, isActive: true,
@@ -221,6 +217,7 @@ router.get('/', async (req, res) => {
       availableCars,
       carsAvailableToday,
       rentedCars,
+      maintenanceCars,
       activeContracts,
       pendingContracts,
       totalIncome: totalIncome._sum.amount || 0,

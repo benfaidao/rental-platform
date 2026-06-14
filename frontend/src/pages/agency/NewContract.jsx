@@ -12,7 +12,7 @@ import {
   ScanLine, UserCheck, Building2, ChevronRight, Package, CalendarRange, TrendingUp, Info,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { format, differenceInCalendarDays, parseISO, eachDayOfInterval, isWithinInterval } from 'date-fns'
+import { format, differenceInCalendarDays, parseISO, eachDayOfInterval, isWithinInterval, getDay } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 const fmtDate = (d) => d ? format(new Date(d), 'dd/MM/yyyy', { locale: fr }) : '-'
@@ -275,25 +275,40 @@ export default function NewContract() {
     return Math.max(1, d + 1)
   }, [form.startDate, form.endDate])
 
-  // Find the first active season overlapping the rental period
-  const activeSeason = useMemo(() => {
+  // Séparer les saisons normales et les saisons weekend
+  const activeRegularSeason = useMemo(() => {
     if (!form.startDate || !form.endDate) return null
     const start = parseISO(form.startDate)
     const end = parseISO(form.endDate)
     return seasons.find(s => {
-      if (!s.isActive) return false
+      if (!s.isActive || s.isWeekendOnly) return false
       const ss = new Date(s.startDate)
       const se = new Date(s.endDate)
       return ss <= end && se >= start
     }) || null
   }, [seasons, form.startDate, form.endDate])
 
+  const activeWeekendSeason = useMemo(() => {
+    return seasons.find(s => s.isActive && s.isWeekendOnly) || null
+  }, [seasons])
+
+  // Alias pour l'affichage
+  const activeSeason = activeRegularSeason
+
   const effectiveDailyPrice = useMemo(() => {
     const base = selectedCar?.rentalPriceTTC || 0
-    if (!activeSeason || !base) return base
-    if (activeSeason.type === 'PERCENTAGE') return base * (1 + activeSeason.value / 100)
-    return activeSeason.value // FIXED
-  }, [selectedCar, activeSeason])
+    if (!activeRegularSeason || !base) return base
+    if (activeRegularSeason.type === 'PERCENTAGE') return base * (1 + activeRegularSeason.value / 100)
+    return activeRegularSeason.value // FIXED
+  }, [selectedCar, activeRegularSeason])
+
+  // Compter jours semaine vs weekend dans la période
+  const dayBreakdown = useMemo(() => {
+    if (!form.startDate || !form.endDate) return { weekdays: 0, weekends: 0 }
+    const days = eachDayOfInterval({ start: parseISO(form.startDate), end: parseISO(form.endDate) })
+    const weekends = days.filter(d => { const dow = getDay(d); return dow === 0 || dow === 6 }).length
+    return { weekdays: days.length - weekends, weekends }
+  }, [form.startDate, form.endDate])
 
   const optionsTotal = useMemo(() => {
     return selectedOptions.reduce((sum, o) => sum + (o.pricePerDay * o.quantity), 0)
@@ -301,8 +316,15 @@ export default function NewContract() {
 
   const autoCalculatedPrice = useMemo(() => {
     if (!effectiveDailyPrice || !nbDays) return 0
+    if (activeWeekendSeason && dayBreakdown.weekends > 0) {
+      const base = selectedCar?.rentalPriceTTC || 0
+      const weekendRate = activeWeekendSeason.type === 'PERCENTAGE'
+        ? effectiveDailyPrice * (1 + activeWeekendSeason.value / 100)
+        : activeWeekendSeason.value
+      return effectiveDailyPrice * dayBreakdown.weekdays + weekendRate * dayBreakdown.weekends + optionsTotal
+    }
     return effectiveDailyPrice * nbDays + optionsTotal
-  }, [effectiveDailyPrice, nbDays, optionsTotal])
+  }, [effectiveDailyPrice, nbDays, optionsTotal, activeWeekendSeason, dayBreakdown, selectedCar])
 
   // Auto-fill prixBase when car/dates change (only if user hasn't manually set it)
   useEffect(() => {

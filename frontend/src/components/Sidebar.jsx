@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getRentalRequestStats, getChatUnread } from '../api'
 import {
   LayoutDashboard, Building2, CreditCard, Users, Car, FileText,
-  DollarSign, ChevronDown, LogOut, Settings, UserCheck, Briefcase, Shield, MessageSquare, ArrowLeftRight, Tag,
+  DollarSign, ChevronDown, LogOut, Settings, UserCheck, Briefcase, MessageSquare, ArrowLeftRight, Tag, CalendarDays,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -25,9 +25,9 @@ const agencyLinks = (agencyId) => [
   { to: `/agency/${agencyId}/clients`, label: 'Clients', icon: UserCheck },
   { to: `/agency/${agencyId}/cars`, label: 'Véhicules', icon: Car },
   { to: `/agency/${agencyId}/financial`, label: 'Finances', icon: DollarSign },
-  { to: `/agency/${agencyId}/access`, label: 'Accès inter-agences', icon: Shield },
   { to: `/agency/${agencyId}/partners`, label: 'Partenaires', icon: Briefcase },
   { to: `/agency/${agencyId}/rental-requests`, label: 'Demandes location', icon: ArrowLeftRight },
+  { to: `/agency/${agencyId}/planning`, label: 'Planning', icon: CalendarDays },
   { to: `/agency/${agencyId}/pricing`, label: 'Tarification', icon: Tag },
   { to: `/agency/${agencyId}/chat`, label: 'Messagerie', icon: MessageSquare },
 ]
