@@ -273,3 +273,8 @@ export const getPricingOptions = (agencyId) => api.get(`/agencies/${agencyId}/pr
 export const createPricingOption = (agencyId, data) => api.post(`/agencies/${agencyId}/pricing/options`, data)
 export const updatePricingOption = (agencyId, id, data) => api.put(`/agencies/${agencyId}/pricing/options/${id}`, data)
 export const deletePricingOption = (agencyId, id) => api.delete(`/agencies/${agencyId}/pricing/options/${id}`)
+
+// Notifications
+export const getNotifications = (agencyId) => api.get(`/agencies/${agencyId}/notifications`)
+export const markAllNotificationsRead = (agencyId) => api.post(`/agencies/${agencyId}/notifications/read-all`)
+export const markNotificationRead = (agencyId, id) => api.post(`/agencies/${agencyId}/notifications/${id}/read`)

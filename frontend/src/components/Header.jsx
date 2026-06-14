@@ -1,6 +1,7 @@
-import { useLocation } from 'react-router-dom'
+import { useLocation, useParams } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import NotificationsDropdown from './NotificationsDropdown'
 
 const routeTitles = {
   '/admin': 'Tableau de bord',
@@ -18,13 +19,16 @@ const routeTitles = {
 
 export default function Header({ onMenuToggle }) {
   const { pathname } = useLocation()
-  const { user } = useAuth()
+  const { agencyId } = useParams()
+  const { user, isAgencyAdmin } = useAuth()
 
   const segments = pathname.split('/')
   const last = segments[segments.length - 1]
-  // /agency/:id/cars/:carId → titre "Véhicule"
   const secondLast = segments[segments.length - 2]
   const title = routeTitles[pathname] || routeTitles[last] || routeTitles[secondLast] || 'Gestion'
+
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN'
+  const showNotifications = !isSuperAdmin && !!agencyId
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4 flex items-center justify-between">
@@ -38,11 +42,12 @@ export default function Header({ onMenuToggle }) {
         </button>
         <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
       </div>
-      <div className="flex items-center gap-4">
-        <span className="text-sm text-gray-600">
+      <div className="flex items-center gap-3">
+        {showNotifications && <NotificationsDropdown />}
+        <span className="hidden sm:block text-sm text-gray-600">
           {user?.firstName} {user?.lastName}
         </span>
-        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium shrink-0">
           {user?.firstName?.[0]}{user?.lastName?.[0]}
         </div>
       </div>

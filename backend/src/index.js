@@ -30,8 +30,9 @@ const agencyRequestsRoutes = require('./routes/agency/requests');
 const agencySinistresRoutes = require('./routes/agency/sinistres');
 const agencyProfileRoutes   = require('./routes/agency/profile');
 const agencyMembersRoutes   = require('./routes/agency/members');
-const agencyPricingRoutes   = require('./routes/agency/pricing');
-const publicRoutes          = require('./routes/public');
+const agencyPricingRoutes         = require('./routes/agency/pricing');
+const agencyNotificationsRoutes   = require('./routes/agency/notifications');
+const publicRoutes                = require('./routes/public');
 
 const app = express();
 const server = http.createServer(app);
@@ -42,6 +43,9 @@ const PORT = process.env.PORT || 3001;
 const io = new Server(server, {
   cors: { origin: '*', methods: ['GET', 'POST'] },
 });
+
+const socketService = require('./services/socketService');
+socketService.init(io);
 
 // userId → { socketId, name, agencyName }
 const onlineUsers = new Map();
@@ -77,15 +81,17 @@ io.on('connection', async (socket) => {
     where: { id: socket.userId },
     select: {
       id: true, firstName: true, lastName: true,
-      agencyUsers: { include: { agency: { select: { name: true } } }, take: 1 },
+      agencyUsers: { include: { agency: { select: { name: true } } } },
     },
   });
   if (!user) { socket.disconnect(); return; }
 
   const senderName = `${user.firstName} ${user.lastName}`;
   const agencyName = user.agencyUsers[0]?.agency?.name || null;
+  const agencyIds = user.agencyUsers.map(au => au.agencyId);
 
   onlineUsers.set(socket.userId, { socketId: socket.id, name: senderName, agencyName });
+  socketService.registerUser(socket.userId, socket.id, agencyIds);
   socket.join('public');
 
   io.emit('online_users', Array.from(onlineUsers.entries()).map(([id, u]) => ({ id, ...u })));
@@ -153,6 +159,7 @@ io.on('connection', async (socket) => {
 
   socket.on('disconnect', () => {
     onlineUsers.delete(socket.userId);
+    socketService.unregisterUser(socket.userId);
     io.emit('online_users', Array.from(onlineUsers.entries()).map(([id, u]) => ({ id, ...u })));
   });
 });
@@ -294,7 +301,8 @@ app.use('/agencies/:agencyId/requests', agencyRequestsRoutes);
 app.use('/agencies/:agencyId/sinistres', agencySinistresRoutes);
 app.use('/agencies/:agencyId/profile',   agencyProfileRoutes);
 app.use('/agencies/:agencyId/members',   agencyMembersRoutes);
-app.use('/agencies/:agencyId/pricing',   agencyPricingRoutes);
+app.use('/agencies/:agencyId/pricing',        agencyPricingRoutes);
+app.use('/agencies/:agencyId/notifications',  agencyNotificationsRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

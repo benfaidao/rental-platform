@@ -4,9 +4,21 @@ const { authenticate, requireAgencyAccess } = require('../../middleware/auth');
 const upload = require('../../middleware/upload');
 const generateContractPdf = require('../../services/pdf');
 const generateInvoicePdf = require('../../services/invoice');
+const socketService = require('../../services/socketService');
 
 const router = express.Router({ mergeParams: true });
 const prisma = new PrismaClient();
+
+async function notify(agencyId, type, title, body, link, createdBy) {
+  try {
+    const notification = await prisma.notification.create({
+      data: { agencyId, type, title, body, link, createdBy, readBy: [] },
+    });
+    socketService.emitToAgency(agencyId, 'new_notification', notification, createdBy);
+  } catch (e) {
+    console.error('Notification error:', e.message);
+  }
+}
 
 router.use(authenticate, requireAgencyAccess);
 
@@ -318,6 +330,17 @@ router.post('/', async (req, res) => {
   }
 
   res.status(201).json(contract);
+
+  const startFmt = new Date(startDate).toLocaleDateString('fr-FR');
+  const endFmt   = new Date(endDate).toLocaleDateString('fr-FR');
+  notify(
+    req.params.agencyId,
+    'CONTRACT_CREATED',
+    'Nouvelle réservation',
+    `${clientName} · ${startFmt} → ${endFmt}`,
+    `/agency/${req.params.agencyId}/contracts`,
+    req.user.id
+  );
 });
 
 router.put('/:contractId', async (req, res) => {
@@ -392,8 +415,22 @@ router.put('/:contractId', async (req, res) => {
 });
 
 router.delete('/:contractId', async (req, res) => {
+  const contract = await prisma.rentalContract.findUnique({
+    where: { id: req.params.contractId },
+    select: { clientName: true, contractNumber: true },
+  });
   await prisma.rentalContract.delete({ where: { id: req.params.contractId } });
   res.json({ message: 'Contrat supprimé' });
+  if (contract) {
+    notify(
+      req.params.agencyId,
+      'CONTRACT_DELETED',
+      'Réservation supprimée',
+      `${contract.clientName} · #${contract.contractNumber}`,
+      `/agency/${req.params.agencyId}/contracts`,
+      req.user.id
+    );
+  }
 });
 
 router.get('/:contractId/pdf', async (req, res) => {

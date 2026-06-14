@@ -190,6 +190,7 @@ model Agency {
   rentalOffers     RentalOffer[]         @relation("OfferingAgency")
   pricingSeasons   PricingSeason[]
   rentalOptions    RentalOption[]
+  notifications    Notification[]
 
   @@map("agencies")
 }
@@ -824,4 +825,20 @@ model PlatformSettings {
   updatedAt   DateTime @updatedAt
 
   @@map("platform_settings")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  agencyId  String
+  type      String
+  title     String
+  body      String
+  link      String?
+  readBy    String[]
+  createdBy String?
+  createdAt DateTime @default(now())
+
+  agency Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }
