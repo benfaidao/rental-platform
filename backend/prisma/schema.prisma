@@ -51,6 +51,12 @@ enum BillingStatus {
   OVERDUE
 }
 
+enum DemoRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum AgencyContractStatus {
   ACTIVE
   ENDED
@@ -164,11 +170,13 @@ model Agency {
   logo                  String?
   device                String?
   vatRate               Float?
-  isActive              Boolean  @default(true)
-  isSuspended           Boolean  @default(false)
-  acceptsRentalRequests Boolean  @default(true)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  isActive              Boolean   @default(true)
+  isSuspended           Boolean   @default(false)
+  acceptsRentalRequests Boolean   @default(true)
+  isDemo                Boolean   @default(false)
+  demoExpiresAt         DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   agencyUsers      AgencyUser[]
   cars             Car[]
@@ -812,6 +820,24 @@ model ContractOption {
   option   RentalOption?  @relation(fields: [optionId], references: [id], onDelete: SetNull)
 
   @@map("contract_options")
+}
+
+model DemoRequest {
+  id           String            @id @default(cuid())
+  firstName    String
+  lastName     String?
+  agencyName   String?
+  phone        String?
+  email        String
+  city         String?
+  status       DemoRequestStatus @default(PENDING)
+  notes        String?
+  demoAgencyId String?
+  demoUserId   String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@map("demo_requests")
 }
 
 model PlatformSettings {

@@ -20,6 +20,10 @@ router.post('/demo-request', async (req, res) => {
   const { firstName, lastName, agency, phone, email, city } = req.body;
   if (!firstName || !email) return res.status(400).json({ error: 'Prénom et email requis' });
 
+  await prisma.demoRequest.create({
+    data: { firstName, lastName: lastName || null, agencyName: agency || null, phone: phone || null, email, city: city || null },
+  });
+
   const mailer = getMailer();
   if (mailer) {
     try {

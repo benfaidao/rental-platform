@@ -48,6 +48,12 @@ export const forceChangePassword = (newPassword) => api.put('/auth/force-change-
 export const forgotPassword = (email) => api.post('/auth/forgot-password', { email })
 export const resetPassword = (token, newPassword) => api.post('/auth/reset-password', { token, newPassword })
 
+// Admin - Demo Requests
+export const getDemoRequests = () => api.get('/admin/demo-requests')
+export const approveDemoRequest = (id, data) => api.post(`/admin/demo-requests/${id}/approve`, data)
+export const rejectDemoRequest = (id) => api.post(`/admin/demo-requests/${id}/reject`)
+export const deleteDemoRequest = (id) => api.delete(`/admin/demo-requests/${id}`)
+
 // Admin - Inter-agency Access
 export const getAdminAccess = () => api.get('/admin/access')
 export const createAdminAccess = (data) => api.post('/admin/access', data)

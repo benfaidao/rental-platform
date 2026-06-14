@@ -11,6 +11,7 @@ import Billing from './pages/admin/Billing'
 import AdminContracts from './pages/admin/Contracts'
 import Users from './pages/admin/Users'
 import PlatformSettings from './pages/admin/PlatformSettings'
+import DemoRequests from './pages/admin/DemoRequests'
 import AgencyDashboard from './pages/agency/AgencyDashboard'
 import Cars from './pages/agency/Cars'
 import CarDetail from './pages/agency/CarDetail'
@@ -96,6 +97,7 @@ export default function App() {
             <Route path="billing" element={<Billing />} />
             <Route path="users" element={<Users />} />
             <Route path="settings" element={<PlatformSettings />} />
+            <Route path="demo-requests" element={<DemoRequests />} />
           </Route>
           <Route path="/agency/:agencyId" element={<AgencyGuard><Layout /></AgencyGuard>}>
             <Route index element={<AgencyDashboard />} />

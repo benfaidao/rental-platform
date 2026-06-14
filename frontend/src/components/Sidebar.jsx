@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getRentalRequestStats, getChatUnread } from '../api'
 import {
   LayoutDashboard, Building2, CreditCard, Users, Car, FileText,
-  DollarSign, ChevronDown, LogOut, Settings, UserCheck, Briefcase, MessageSquare, ArrowLeftRight, Tag, CalendarDays,
+  DollarSign, ChevronDown, LogOut, Settings, UserCheck, Briefcase, MessageSquare, ArrowLeftRight, Tag, CalendarDays, MonitorPlay,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -16,6 +16,7 @@ const adminLinks = [
   { to: '/admin/contracts', label: 'Contrats', icon: FileText },
   { to: '/admin/billing', label: 'Facturation', icon: CreditCard },
   { to: '/admin/users', label: 'Utilisateurs', icon: Users },
+  { to: '/admin/demo-requests', label: 'Demandes démo', icon: MonitorPlay },
   { to: '/admin/settings', label: 'Paramètres', icon: Settings },
 ]
 
