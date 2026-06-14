@@ -16,13 +16,47 @@ import QRCode from 'react-qr-code'
 import {
   ArrowLeft, Edit2, QrCode, Car, AlertTriangle, Wrench, FileText, BanIcon, CalendarPlus,
   Plus, Trash2, Upload, Eye, ExternalLink, CheckCircle2, Clock, Activity,
-  DollarSign, Calendar, Camera, X, CheckCircle,
+  DollarSign, Calendar, Camera, X, CheckCircle, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 const fmtDate = (d) => d ? format(new Date(d), 'dd/MM/yyyy', { locale: fr }) : '-'
+
+function Lightbox({ urls, startIdx, onClose }) {
+  const [idx, setIdx] = useState(startIdx)
+  return (
+    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={onClose}>
+      <button className="absolute top-4 right-4 text-white p-2 hover:bg-white/20 rounded-full" onClick={onClose}>
+        <X className="w-6 h-6" />
+      </button>
+      {idx > 0 && (
+        <button
+          className="absolute left-3 text-white p-2 hover:bg-white/20 rounded-full"
+          onClick={(e) => { e.stopPropagation(); setIdx(i => i - 1) }}
+        >
+          <ChevronLeft className="w-8 h-8" />
+        </button>
+      )}
+      <img
+        src={urls[idx]}
+        alt=""
+        className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
+        onClick={(e) => e.stopPropagation()}
+      />
+      {idx < urls.length - 1 && (
+        <button
+          className="absolute right-3 text-white p-2 hover:bg-white/20 rounded-full"
+          onClick={(e) => { e.stopPropagation(); setIdx(i => i + 1) }}
+        >
+          <ChevronRight className="w-8 h-8" />
+        </button>
+      )}
+      <div className="absolute bottom-4 text-white text-sm opacity-60">{idx + 1} / {urls.length}</div>
+    </div>
+  )
+}
 const fmtMoney = (n) => n != null ? `${Number(n).toLocaleString('fr-MA', { minimumFractionDigits: 2 })} MAD` : '-'
 const isExpired = (d) => d && new Date(d) < new Date()
 const isExpiringSoon = (d) => {
@@ -787,6 +821,7 @@ export default function CarDetail() {
   const qc = useQueryClient()
   const [tab, setTab] = useState('info')
   const [qrModal, setQrModal] = useState(false)
+  const [lightboxIdx, setLightboxIdx] = useState(null)
 
   const { data: car, isLoading } = useQuery({
     queryKey: ['carDetail', agencyId, carId],
@@ -845,6 +880,9 @@ export default function CarDetail() {
     .filter(d => d > new Date())
     .sort((a, b) => a - b)[0]
 
+  const carPhotos = docs.filter(d => d.type === 'PHOTO')
+  const photoUrls = carPhotos.map(p => getFileUrl(p.url, agencyId))
+
   const activeAndCompleted = [...(car.activeRental ? [car.activeRental] : []), ...(car.completedRentals || [])]
   const reservations = car.upcomingReservations || []
 
@@ -864,6 +902,10 @@ export default function CarDetail() {
 
   return (
     <div className="space-y-6">
+      {lightboxIdx !== null && (
+        <Lightbox urls={photoUrls} startIdx={lightboxIdx} onClose={() => setLightboxIdx(null)} />
+      )}
+
       {/* Breadcrumb */}
       <Link to={`/agency/${agencyId}/cars`} className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Retour au parc
@@ -906,6 +948,27 @@ export default function CarDetail() {
             </button>
           </div>
         </div>
+
+        {/* Photo strip */}
+        {carPhotos.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+              {carPhotos.map((photo, idx) => (
+                <button
+                  key={photo.id}
+                  onClick={() => setLightboxIdx(idx)}
+                  className={`relative shrink-0 rounded-xl overflow-hidden border-2 transition-opacity hover:opacity-90 ${photo.isMainPhoto ? 'border-yellow-400' : 'border-transparent'}`}
+                  style={{ width: 112, height: 80 }}
+                >
+                  <img src={photoUrls[idx]} alt="" className="w-full h-full object-cover" />
+                  {photo.isMainPhoto && (
+                    <span className="absolute bottom-0 left-0 right-0 bg-yellow-400/80 text-white text-[9px] text-center py-0.5 font-medium">Principale</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5 pt-5 border-t border-gray-100">
