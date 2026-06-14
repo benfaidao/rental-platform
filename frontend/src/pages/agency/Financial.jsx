@@ -6,6 +6,7 @@ import {
   getAssociates, createAssociate, updateAssociate, deleteAssociate,
   getContributions, createContribution, deleteContribution,
   getTransactions, getTransactionsSummary, createTransaction, deleteTransaction,
+  getAgencyMembers,
 } from '../../api'
 import Modal from '../../components/Modal'
 import { Plus, Trash2, Edit2, TrendingUp, TrendingDown, DollarSign, Users, Home, ClipboardCheck } from 'lucide-react'
@@ -193,6 +194,7 @@ function Transactions({ agencyId, isAdmin, user }) {
   const [modal, setModal] = useState(false)
   const [showCashDetail, setShowCashDetail] = useState(false)
   const [form, setForm] = useState({ type: 'INCOME', amount: '', currency: 'MAD', description: '', date: '', associateId: '', collectedByName: '', category: '', notes: '' })
+  const [collectedByMode, setCollectedByMode] = useState('member')
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
   const currentYear = new Date().getFullYear()
   const [year, setYear] = useState(currentYear)
@@ -201,6 +203,7 @@ function Transactions({ agencyId, isAdmin, user }) {
   const dateParams = year ? { startDate: `${year}-01-01`, endDate: `${year}-12-31` } : {}
 
   const { data: associates = [] } = useQuery({ queryKey: ['associates', agencyId], queryFn: () => getAssociates(agencyId).then(r => r.data) })
+  const { data: agencyMembers = [] } = useQuery({ queryKey: ['agencyMembers', agencyId], queryFn: () => getAgencyMembers(agencyId).then(r => r.data) })
   const { data: transactions = [] } = useQuery({ queryKey: ['transactions', agencyId, year], queryFn: () => getTransactions(agencyId, dateParams).then(r => r.data) })
   const { data: summary } = useQuery({ queryKey: ['transactionsSummary', agencyId, year], queryFn: () => getTransactionsSummary(agencyId, dateParams).then(r => r.data) })
 
@@ -351,7 +354,7 @@ function Transactions({ agencyId, isAdmin, user }) {
       )}
 
       <div className="flex justify-end">
-        <button onClick={() => { setForm({ type: 'INCOME', amount: '', currency: 'MAD', description: '', date: '', associateId: '', collectedByName: '', category: '', notes: '' }); setModal(true) }} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit">
+        <button onClick={() => { setForm({ type: 'INCOME', amount: '', currency: 'MAD', description: '', date: '', associateId: '', collectedByName: '', category: '', notes: '' }); setCollectedByMode('member'); setModal(true) }} className="btn-primary flex items-center justify-center gap-2 w-full sm:w-fit">
           <Plus className="w-4 h-4" /> Nouvelle Transaction
         </button>
       </div>
@@ -433,17 +436,34 @@ function Transactions({ agencyId, isAdmin, user }) {
             <label className="label">
               {['EXPENSE', 'BANK_EXPENSE', 'PROFIT_WITHDRAWAL', 'PROFIT_WITHDRAWAL_BANK'].includes(form.type) ? 'Dépensé par' : ['CASH_TRANSFER'].includes(form.type) ? 'Transféré par' : 'Encaissé par'}
             </label>
+            {collectedByMode === 'member' ? (
+              <select
+                className="input"
+                value={agencyMembers.some(m => `${m.user.firstName} ${m.user.lastName}` === form.collectedByName) ? form.collectedByName : ''}
+                onChange={(e) => {
+                  if (e.target.value === '__other__') { setCollectedByMode('other'); setForm(f => ({ ...f, collectedByName: '' })) }
+                  else setForm(f => ({ ...f, collectedByName: e.target.value }))
+                }}
+              >
+                <option value="">— Membre de l'agence</option>
+                {agencyMembers.map(m => {
+                  const name = `${m.user.firstName} ${m.user.lastName}`
+                  return <option key={m.id} value={name}>{name}</option>
+                })}
+                <option value="__other__">Autre personne...</option>
+              </select>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input className="input" value={form.collectedByName} onChange={set('collectedByName')} placeholder="Nom de la personne" />
+                <button type="button" className="btn-secondary whitespace-nowrap" onClick={() => { setCollectedByMode('member'); setForm(f => ({ ...f, collectedByName: '' })) }}>
+                  Membre agence
+                </button>
+              </div>
+            )}
             <select className="input" value={form.associateId} onChange={set('associateId')}>
-              <option value="">— Sélectionner un associé/employé (existant)</option>
+              <option value="">— Lier à un associé (optionnel)</option>
               {associates.map(a => <option key={a.id} value={a.id}>{a.name} ({a.role === 'ASSOCIATE' ? 'Associé' : 'Employé'})</option>)}
             </select>
-            <input
-              className="input"
-              placeholder="Ou: nom libre (ex: Jean Dupont)"
-              value={form.collectedByName}
-              onChange={set('collectedByName')}
-            />
-            <p className="text-xs text-gray-400">Le nom libre remplace la sélection si les deux sont remplis.</p>
           </div>
           <div><label className="label">Notes</label><textarea className="input" rows={2} value={form.notes} onChange={set('notes')} /></div>
           <div className="flex justify-end"><button type="submit" className="btn-primary justify-center w-full sm:w-fit" disabled={createMutation.isPending}>Enregistrer</button></div>

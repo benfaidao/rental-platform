@@ -759,16 +759,19 @@ function EmptyState({ icon: Icon, text }) {
 }
 
 // ─── Stat card ────────────────────────────────────────────────────────────────
-function StatCard({ icon: Icon, iconClass, label, value, sub }) {
+function StatCard({ icon: Icon, iconClass, label, shortLabel, value, sub }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
-      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0 ${iconClass}`}>
-        <Icon className="w-4 h-4" />
+    <div className="bg-white border border-gray-200 rounded-xl p-2.5 sm:p-4 flex items-start gap-2 sm:gap-3">
+      <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0 ${iconClass}`}>
+        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-gray-500 mb-0.5 truncate">{label}</p>
-        <p className="text-lg sm:text-xl font-bold text-gray-800">{value}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{sub}</p>}
+        <p className="text-[10px] sm:text-xs text-gray-500 mb-0.5 truncate uppercase tracking-wide">
+          <span className="sm:hidden">{shortLabel || label}</span>
+          <span className="hidden sm:inline">{label}</span>
+        </p>
+        <p className="text-base sm:text-xl font-bold text-gray-800 truncate">{value}</p>
+        {sub && <p className="hidden sm:block text-xs text-gray-400 mt-0.5 truncate">{sub}</p>}
       </div>
     </div>
   )
@@ -971,11 +974,12 @@ export default function CarDetail() {
         )}
 
         {/* Stat cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5 pt-5 border-t border-gray-100">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mt-5 pt-5 border-t border-gray-100">
           <StatCard
             icon={Activity}
             iconClass="bg-blue-50 text-blue-600"
             label="LOCATIONS"
+            shortLabel="LOCATIONS"
             value={allContracts.length}
             sub={car.activeRental ? '1 en cours' : 'Aucune en cours'}
           />
@@ -983,6 +987,7 @@ export default function CarDetail() {
             icon={DollarSign}
             iconClass="bg-green-50 text-green-600"
             label="REVENUS GÉNÉRÉS"
+            shortLabel="REVENUS"
             value={totalRevenue > 0 ? `${totalRevenue.toLocaleString('fr-MA', { maximumFractionDigits: 0 })}` : '0'}
             sub="MAD (locations non annulées)"
           />
@@ -990,6 +995,7 @@ export default function CarDetail() {
             icon={Wrench}
             iconClass="bg-orange-50 text-orange-600"
             label="COÛT ENTRETIEN"
+            shortLabel="ENTRETIEN"
             value={totalEntretienCost > 0 ? `${totalEntretienCost.toLocaleString('fr-MA', { maximumFractionDigits: 0 })}` : '0'}
             sub={`${oilChanges.length + tires.length + repairs.length} intervention(s)`}
           />
@@ -997,6 +1003,7 @@ export default function CarDetail() {
             icon={Calendar}
             iconClass={nextDeadline ? (isExpiringSoon(nextDeadline) ? 'bg-red-50 text-red-500' : 'bg-purple-50 text-purple-600') : 'bg-gray-50 text-gray-400'}
             label="PROCHAINE ÉCHÉANCE"
+            shortLabel="ÉCHÉANCE"
             value={nextDeadline ? fmtDate(nextDeadline) : '—'}
             sub={`${DEADLINE_ITEMS.filter(({ key }) => car[key]).length} échéance(s)`}
           />

@@ -512,7 +512,7 @@ function CollectedByInput({ agencyId, value, onChange }) {
   )
 }
 
-function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
+export function ContractForm({ initial, cars, agencyId, onSubmit, loading }) {
   const [form, setForm] = useState(initial || {
     carId: '', clientId: '', clientType: 'INDIVIDUAL', clientName: '', clientPhone: '', clientEmail: '', clientIdNumber: '', clientIdExpiry: '', clientAddress: '',
     startDate: '', endDate: '', rentalAmount: '', currency: 'MAD',
@@ -1703,7 +1703,7 @@ export default function Contracts() {
       <button onClick={() => setModal({ type: 'sinistres', contract: c })} className="p-1.5 hover:bg-orange-50 rounded" title="Sinistres">
         <AlertTriangle className="w-3.5 h-3.5 text-orange-500" />
       </button>
-      <button onClick={() => setModal({ type: 'edit', contract: c })} className="p-1.5 hover:bg-gray-100 rounded" title="Modifier">
+      <button onClick={() => navigate(`/agency/${agencyId}/contracts/${c.id}/edit`)} className="p-1.5 hover:bg-gray-100 rounded" title="Modifier">
         <Edit2 className="w-3.5 h-3.5 text-gray-500" />
       </button>
       <button onClick={() => { if (confirm('Supprimer cette réservation ?')) deleteMutation.mutate(c.id) }} className="p-1.5 hover:bg-red-50 rounded" title="Supprimer">
@@ -1884,26 +1884,6 @@ export default function Contracts() {
           onSubmit={createMutation.mutate}
           loading={createMutation.isPending}
         />
-      </Modal>
-      <Modal isOpen={modal?.type === 'edit'} onClose={() => setModal(null)} title="Modifier la réservation" size="xl">
-        {modal?.contract && (
-          <ContractForm
-            initial={{
-              ...modal.contract,
-              startDate: modal.contract.startDate?.split('T')[0],
-              endDate: modal.contract.endDate?.split('T')[0],
-              amountPaid: modal.contract.amountPaid ?? 0,
-              collectedBy: modal.contract.collectedBy ?? '',
-              collectedAt: modal.contract.collectedAt?.split('T')[0] ?? '',
-              clientIdExpiry: modal.contract.clientIdExpiry?.split('T')[0] ?? '',
-              clientLicenseExpiry: modal.contract.clientLicenseExpiry?.split('T')[0] ?? '',
-            }}
-            cars={cars}
-            agencyId={agencyId}
-            onSubmit={(data) => updateMutation.mutate({ id: modal.contract.id, data })}
-            loading={updateMutation.isPending}
-          />
-        )}
       </Modal>
       <Modal isOpen={modal?.type === 'photos'} onClose={() => setModal(null)} title="Photos de la voiture" size="lg">
         {modal?.contract && <PhotoUploadModal agencyId={agencyId} contract={modal.contract} />}

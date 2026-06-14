@@ -3,16 +3,16 @@ import { Outlet, useParams, NavLink } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Header from './Header'
 import { useAuth } from '../contexts/AuthContext'
-import { AlertTriangle, KeyRound, LayoutDashboard, Car, UserCheck, DollarSign } from 'lucide-react'
+import { AlertTriangle, KeyRound, LayoutDashboard, Car, UserCheck, CalendarRange } from 'lucide-react'
 import { forceChangePassword } from '../api'
 import toast from 'react-hot-toast'
 
 function BottomNav({ agencyId }) {
   const items = [
-    { to: `/agency/${agencyId}`,           label: 'Dashboard',  icon: LayoutDashboard, end: true },
-    { to: `/agency/${agencyId}/cars`,       label: 'Véhicules',  icon: Car },
-    { to: `/agency/${agencyId}/clients`,    label: 'Clients',    icon: UserCheck },
-    { to: `/agency/${agencyId}/financial`,  label: 'Finances',   icon: DollarSign },
+    { to: `/agency/${agencyId}`,           label: 'Dashboard',      icon: LayoutDashboard, end: true },
+    { to: `/agency/${agencyId}/cars`,       label: 'Véhicules',      icon: Car },
+    { to: `/agency/${agencyId}/clients`,    label: 'Clients',        icon: UserCheck },
+    { to: `/agency/${agencyId}/contracts`,  label: 'Réservations',   icon: CalendarRange },
   ]
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 flex lg:hidden safe-area-inset-bottom">
