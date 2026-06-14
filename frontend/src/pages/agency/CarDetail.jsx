@@ -777,14 +777,14 @@ function EmptyState({ icon: Icon, text }) {
 // ─── Stat card ────────────────────────────────────────────────────────────────
 function StatCard({ icon: Icon, iconClass, label, value, sub }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 flex items-start gap-3">
-      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${iconClass}`}>
-        <Icon className="w-4.5 h-4.5" />
+    <div className="bg-white border border-gray-200 rounded-xl p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
+      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0 ${iconClass}`}>
+        <Icon className="w-4 h-4" />
       </div>
       <div className="min-w-0">
-        <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-        <p className="text-xl font-bold text-gray-800">{value}</p>
-        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+        <p className="text-xs text-gray-500 mb-0.5 truncate">{label}</p>
+        <p className="text-lg sm:text-xl font-bold text-gray-800">{value}</p>
+        {sub && <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{sub}</p>}
       </div>
     </div>
   )
@@ -910,14 +910,14 @@ export default function CarDetail() {
   const reservations = car.upcomingReservations || []
 
   const TABS = [
-    { id: 'info', label: 'Informations' },
-    { id: 'locations', label: `Locations (${activeAndCompleted.length})` },
-    { id: 'reservations', label: `Réservations (${reservations.length})` },
-    { id: 'disponibilite', label: 'Disponibilité' },
-    { id: 'documents', label: `Documents (${docs.length})` },
-    { id: 'echeances', label: `Échéances (${DEADLINE_ITEMS.filter(({ key }) => car[key]).length})` },
-    { id: 'entretien', label: `Entretien (${oilChanges.length + tires.length + repairs.length})` },
-    { id: 'sinistres', label: `Sinistres (${sinistres.length})` },
+    { id: 'info',          short: 'Infos',   label: 'Informations' },
+    { id: 'locations',     short: `Loc. (${activeAndCompleted.length})`,   label: `Locations (${activeAndCompleted.length})` },
+    { id: 'reservations',  short: `Rés. (${reservations.length})`,         label: `Réservations (${reservations.length})` },
+    { id: 'disponibilite', short: 'Dispo',   label: 'Disponibilité' },
+    { id: 'documents',     short: `Docs (${docs.length})`,                 label: `Documents (${docs.length})` },
+    { id: 'echeances',     short: `Éch. (${DEADLINE_ITEMS.filter(({ key }) => car[key]).length})`, label: `Échéances (${DEADLINE_ITEMS.filter(({ key }) => car[key]).length})` },
+    { id: 'entretien',     short: `Entr. (${oilChanges.length + tires.length + repairs.length})`,  label: `Entretien (${oilChanges.length + tires.length + repairs.length})` },
+    { id: 'sinistres',     short: `Sin. (${sinistres.length})`,            label: `Sinistres (${sinistres.length})` },
   ]
 
   const statusBadge = DISPLAY_STATUS_BADGES[car.displayStatus] || STATUS_BADGES[car.status]
@@ -952,7 +952,7 @@ export default function CarDetail() {
       </Link>
 
       {/* Header */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-6">
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
@@ -965,7 +965,7 @@ export default function CarDetail() {
               </div>
               <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-sm text-gray-500">
                 {car.finalPlate && <span className="font-mono font-medium text-gray-700">{car.finalPlate}</span>}
-                {car.wwPlate && <span className="font-mono text-gray-500">{car.wwPlate}</span>}
+                {car.wwPlate && !car.finalPlate && <span className="font-mono text-gray-500">{car.wwPlate}</span>}
                 {car.year && <span>{car.year}</span>}
                 {car.mileage != null && <span>{car.mileage.toLocaleString()} km</span>}
                 {car.fuelType && <span>{car.fuelType}</span>}
@@ -975,13 +975,13 @@ export default function CarDetail() {
           </div>
           <div className="flex gap-2 shrink-0 flex-wrap">
             <button onClick={() => setQrModal(true)} className="btn-secondary flex items-center gap-1.5 text-sm" title="QR Code">
-              <QrCode className="w-4 h-4" /> QR Code
+              <QrCode className="w-4 h-4" /> <span className="hidden sm:inline">QR Code</span>
             </button>
             <button
               onClick={() => navigate(`/agency/${agencyId}/contracts/new?carId=${carId}`)}
               className="btn-secondary flex items-center gap-1.5 text-sm text-green-700 border-green-200 hover:bg-green-50"
             >
-              <CalendarPlus className="w-4 h-4" /> Réserver
+              <CalendarPlus className="w-4 h-4" /> <span className="hidden sm:inline">Réserver</span>
             </button>
             <button onClick={() => setEditModal(true)} className="btn-primary flex items-center gap-1.5 text-sm">
               <Edit2 className="w-4 h-4" /> Modifier
@@ -1029,14 +1029,15 @@ export default function CarDetail() {
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`px-4 py-3.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors shrink-0 ${tab === t.id ? 'border-blue-600 text-blue-600 bg-blue-50/40' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+              className={`px-3 sm:px-4 py-3 sm:py-3.5 text-xs sm:text-sm font-medium whitespace-nowrap border-b-2 transition-colors shrink-0 ${tab === t.id ? 'border-blue-600 text-blue-600 bg-blue-50/40' : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
             >
-              {t.label}
+              <span className="sm:hidden">{t.short}</span>
+              <span className="hidden sm:inline">{t.label}</span>
             </button>
           ))}
         </div>
 
-        <div className="p-5 sm:p-6">
+        <div className="p-4 sm:p-6">
           {tab === 'info' && <InfoTab car={car} />}
           {tab === 'locations' && <LocationsTab car={car} />}
           {tab === 'reservations' && <ReservationsTab car={car} />}

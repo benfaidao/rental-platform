@@ -89,6 +89,7 @@ model User {
   conversationHides  ChatConversationHide[]
   passwordResets     PasswordResetToken[]
   emailChangeRequests EmailChangeRequest[]
+  sinistresCollected Sinistre[]
 
   @@map("users")
 }
@@ -676,23 +677,25 @@ model CarUnavailability {
 }
 
 model Sinistre {
-  id              String         @id @default(cuid())
-  agencyId        String
-  carId           String
-  contractId      String?
-  title           String?
-  description     String?
-  status          SinistreStatus @default(OPEN)
-  collectedAmount Float?
-  collectionDate  DateTime?
-  transactionId   String?        @unique
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  id                  String         @id @default(cuid())
+  agencyId            String
+  carId               String
+  contractId          String?
+  title               String?
+  description         String?
+  status              SinistreStatus @default(OPEN)
+  collectedAmount     Float?
+  collectionDate      DateTime?
+  collectedByUserId   String?
+  transactionId       String?        @unique
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
-  agency      Agency              @relation(fields: [agencyId], references: [id], onDelete: Cascade)
-  car         Car                 @relation(fields: [carId], references: [id])
-  contract    RentalContract?     @relation(fields: [contractId], references: [id], onDelete: SetNull)
-  photos      SinistrePhoto[]
+  agency          Agency              @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  car             Car                 @relation(fields: [carId], references: [id])
+  contract        RentalContract?     @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  collectedBy     User?               @relation(fields: [collectedByUserId], references: [id], onDelete: SetNull)
+  photos          SinistrePhoto[]
 
   @@map("sinistres")
 }

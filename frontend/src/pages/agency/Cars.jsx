@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getCars, getCar, createCar, updateCar, deleteCar, uploadCarDocument, getCarDocuments, deleteCarDocument, getCarUnavailabilities, createCarUnavailability, deleteCarUnavailability, getCarAvailability, checkAvailability, getFileUrl } from '../../api'
 import Modal from '../../components/Modal'
-import SinistresModal from './Sinistres'
 import QRScanner from '../../components/QRScanner'
 import QRCode from 'react-qr-code'
 import { Plus, Edit2, Trash2, FileText, Upload, Car, AlertTriangle, QrCode, ScanLine, BanIcon, Wrench, Share2, Search, Building2, Info, CheckCircle2, Clock, Eye, List, Rows3, ExternalLink } from 'lucide-react'
@@ -662,10 +661,6 @@ export default function Cars() {
   const qc = useQueryClient()
   const [mainTab, setMainTab] = useState('cars')
   const [modal, setModal] = useState(null)
-  const [docsModal, setDocsModal] = useState(null)
-  const [qrModal, setQrModal] = useState(null)
-  const [unavailModal, setUnavailModal] = useState(null)
-  const [sinistresModal, setSinistresModal] = useState(null)
   const [detailModal, setDetailModal] = useState(null)
   const [scannerOpen, setScannerOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -781,7 +776,7 @@ export default function Cars() {
                       {hasAlert && <AlertTriangle className="w-4 h-4 text-orange-500" />}
                     </div>
                     <div className="flex gap-3 mt-1 flex-wrap">
-                      {car.wwPlate && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">WW: {car.wwPlate}</span>}
+                      {car.wwPlate && !car.finalPlate && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">WW: {car.wwPlate}</span>}
                       {car.finalPlate && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">{car.finalPlate}</span>}
                       {car.year && <span className="text-xs text-gray-500">{car.year}</span>}
                       {car.fuelType && <span className="text-xs text-gray-500">{car.fuelType}</span>}
@@ -817,18 +812,6 @@ export default function Cars() {
                   <Link to={`/agency/${agencyId}/cars/${car.id}`} className="btn-secondary text-xs py-1.5 flex items-center gap-1" title="Voir les détails">
                     <Eye className="w-3 h-3 text-blue-500" /> Détails
                   </Link>
-                  <button onClick={() => setDocsModal(car)} className="btn-secondary text-xs py-1.5 flex items-center gap-1">
-                    <FileText className="w-3 h-3" /> Documents
-                  </button>
-                  <button onClick={() => setUnavailModal(car)} className="btn-secondary text-xs py-1.5 flex items-center gap-1" title="Indisponibilités">
-                    <BanIcon className="w-3 h-3 text-orange-500" /> <span className="hidden sm:inline">Indisponibilités</span><span className="sm:hidden">Indispo.</span>
-                  </button>
-                  <button onClick={() => setSinistresModal(car)} className="btn-secondary text-xs py-1.5 flex items-center gap-1" title="Sinistres">
-                    <AlertTriangle className="w-3 h-3 text-red-500" /> Sinistres
-                  </button>
-                  <button onClick={() => setQrModal(car)} className="p-2 hover:bg-gray-100 rounded-lg" title="QR Code">
-                    <QrCode className="w-4 h-4 text-purple-500" />
-                  </button>
                   <button onClick={() => setModal({ type: 'edit', car })} className="p-2 hover:bg-gray-100 rounded-lg" title="Modifier">
                     <Edit2 className="w-4 h-4 text-gray-500" />
                   </button>
@@ -872,18 +855,6 @@ export default function Cars() {
             loading={updateMutation.isPending}
           />
         )}
-      </Modal>
-      <Modal isOpen={!!docsModal} onClose={() => setDocsModal(null)} title={`Documents — ${docsModal?.brand} ${docsModal?.model}`} size="lg">
-        {docsModal && <DocumentsModal agencyId={agencyId} car={docsModal} />}
-      </Modal>
-      <Modal isOpen={!!qrModal} onClose={() => setQrModal(null)} title={`QR Code — ${qrModal?.brand} ${qrModal?.model}`}>
-        {qrModal && <QRModal car={qrModal} onClose={() => setQrModal(null)} />}
-      </Modal>
-      <Modal isOpen={!!unavailModal} onClose={() => setUnavailModal(null)} title={`Indisponibilités — ${unavailModal?.brand} ${unavailModal?.model}`}>
-        {unavailModal && <UnavailabilityModal agencyId={agencyId} car={unavailModal} />}
-      </Modal>
-      <Modal isOpen={!!sinistresModal} onClose={() => setSinistresModal(null)} title={`Sinistres — ${sinistresModal?.brand} ${sinistresModal?.model}`} size="lg">
-        {sinistresModal && <SinistresModal agencyId={agencyId} car={sinistresModal} allCars={cars} />}
       </Modal>
       <Modal isOpen={!!detailModal} onClose={() => setDetailModal(null)} title={`${detailModal?.brand} ${detailModal?.model} ${detailModal?.finalPlate ? `— ${detailModal.finalPlate}` : ''}`} size="xl">
         {detailModal && <CarDetailModal agencyId={agencyId} carId={detailModal.id} />}

@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getClients, updateClient, deleteClient, getClient, getFileUrl } from '../../api'
-import Modal from '../../components/Modal'
+import { getClients, deleteClient, getClient, getFileUrl } from '../../api'
 import { Plus, Edit2, Trash2, Search, UserCheck, FileText, ExternalLink, History, Building2, Car } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
@@ -14,110 +13,6 @@ const isExpiringSoon = (d) => {
   if (!d) return false
   const diff = new Date(d) - new Date()
   return diff > 0 && diff < 60 * 24 * 60 * 60 * 1000
-}
-
-const ID_TYPES = ['CIN', 'Passeport', 'Carte de séjour', 'Autre']
-
-function ClientForm({ initial, onSubmit, loading }) {
-  const [form, setForm] = useState(initial || {
-    clientType: 'INDIVIDUAL',
-    firstName: '', lastName: '', companyName: '', companyIce: '',
-    phone: '', email: '', address: '',
-    idType: 'CIN', idNumber: '', idExpiry: '',
-    licenseNumber: '', licenseExpiry: '',
-  })
-  const [idFile, setIdFile] = useState(null)
-  const [licenseFile, setLicenseFile] = useState(null)
-  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
-  const isCompany = form.clientType === 'COMPANY'
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    const fd = new FormData()
-    Object.entries(form).forEach(([k, v]) => v && fd.append(k, v))
-    if (idFile) fd.append('idFile', idFile)
-    if (licenseFile) fd.append('licenseFile', licenseFile)
-    onSubmit(fd)
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Type de client */}
-      <div className="flex gap-3">
-        {[{ value: 'INDIVIDUAL', label: 'Particulier' }, { value: 'COMPANY', label: 'Entreprise' }].map(opt => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => setForm(f => ({ ...f, clientType: opt.value }))}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${form.clientType === opt.value ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Entreprise */}
-      {isCompany && (
-        <div>
-          <h4 className="font-medium text-gray-700 mb-3">Informations entreprise</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2"><label className="label">Raison sociale *</label><input className="input" value={form.companyName} onChange={set('companyName')} required /></div>
-            <div><label className="label">ICE</label><input className="input" placeholder="Ex: 001234567000012" value={form.companyIce} onChange={set('companyIce')} /></div>
-          </div>
-        </div>
-      )}
-
-      {/* Contact */}
-      <div>
-        <h4 className="font-medium text-gray-700 mb-3">{isCompany ? 'Contact / Représentant' : 'Informations personnelles'}</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div><label className="label">Prénom *</label><input className="input" value={form.firstName} onChange={set('firstName')} required /></div>
-          <div><label className="label">Nom *</label><input className="input" value={form.lastName} onChange={set('lastName')} required /></div>
-          <div><label className="label">Téléphone</label><input className="input" value={form.phone} onChange={set('phone')} /></div>
-          <div><label className="label">Email</label><input className="input" type="email" value={form.email} onChange={set('email')} /></div>
-        </div>
-        <div className="mt-4"><label className="label">Adresse</label><input className="input" value={form.address} onChange={set('address')} /></div>
-      </div>
-
-      {/* Pièce d'identité */}
-      <div>
-        <h4 className="font-medium text-gray-700 mb-3">Pièce d'identité</h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="label">Type</label>
-            <select className="input" value={form.idType} onChange={set('idType')}>
-              {ID_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-          <div><label className="label">Numéro</label><input className="input" value={form.idNumber} onChange={set('idNumber')} /></div>
-          <div><label className="label">Date d'expiration</label><input className="input" type="date" value={form.idExpiry} onChange={set('idExpiry')} /></div>
-          <div>
-            <label className="label">Photo / PDF {initial?.idFileUrl && <span className="text-blue-500 text-xs">(fichier existant)</span>}</label>
-            <input type="file" className="input text-xs" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={e => setIdFile(e.target.files[0])} />
-          </div>
-        </div>
-      </div>
-
-      {/* Permis — masqué pour les entreprises */}
-      {!isCompany && (
-        <div>
-          <h4 className="font-medium text-gray-700 mb-3">Permis de conduire</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="label">Numéro</label><input className="input" value={form.licenseNumber} onChange={set('licenseNumber')} /></div>
-            <div><label className="label">Date d'expiration</label><input className="input" type="date" value={form.licenseExpiry} onChange={set('licenseExpiry')} /></div>
-            <div className="sm:col-span-2">
-              <label className="label">Photo / PDF {initial?.licenseFileUrl && <span className="text-blue-500 text-xs">(fichier existant)</span>}</label>
-              <input type="file" className="input text-xs" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={e => setLicenseFile(e.target.files[0])} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex justify-end pt-2">
-        <button type="submit" className="btn-primary w-full sm:w-fit justify-center" disabled={loading}>{loading ? 'Enregistrement...' : 'Enregistrer'}</button>
-      </div>
-    </form>
-  )
 }
 
 const STATUS_LABELS = { PENDING: 'En attente', RESERVATION: 'Réservation', RESERVATION_CONFIRMED: 'Réservation confirmée', ACTIVE: 'Actif', COMPLETED: 'Terminé', CANCELLED: 'Annulé' }
@@ -215,7 +110,6 @@ export default function Clients() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [search, setSearch] = useState('')
-  const [modal, setModal] = useState(null)
   const [historyClient, setHistoryClient] = useState(null)
 
   const { data: clients = [], isLoading } = useQuery({
@@ -223,28 +117,10 @@ export default function Clients() {
     queryFn: () => getClients(agencyId, search ? { search } : {}).then(r => r.data),
   })
 
-  const updateMutation = useMutation({
-    mutationFn: ({ clientId, fd }) => updateClient(agencyId, clientId, fd),
-    onSuccess: () => { qc.invalidateQueries(['clients', agencyId]); setModal(null); toast.success('Client mis à jour') },
-    onError: () => toast.error('Erreur'),
-  })
-
   const deleteMutation = useMutation({
     mutationFn: (clientId) => deleteClient(agencyId, clientId),
     onSuccess: () => { qc.invalidateQueries(['clients', agencyId]); toast.success('Client supprimé') },
     onError: () => toast.error('Erreur'),
-  })
-
-  const openEdit = (client) => setModal({
-    client,
-    initial: {
-      ...client,
-      clientType: client.clientType || 'INDIVIDUAL',
-      companyName: client.companyName || '',
-      companyIce: client.companyIce || '',
-      idExpiry: client.idExpiry?.split('T')[0] || '',
-      licenseExpiry: client.licenseExpiry?.split('T')[0] || '',
-    },
   })
 
   return (
@@ -316,7 +192,7 @@ export default function Clients() {
                   <History className="w-4 h-4 text-blue-400" />
                   <span className="sm:hidden">Historique</span>
                 </button>
-                <button onClick={() => openEdit(c)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <button onClick={() => navigate(`/agency/${agencyId}/clients/${c.id}/edit`)} className="p-2 hover:bg-gray-100 rounded-lg">
                   <Edit2 className="w-4 h-4 text-gray-500" />
                 </button>
                 <button
@@ -336,14 +212,6 @@ export default function Clients() {
           </div>
         )}
       </div>
-
-      <Modal isOpen={!!modal} onClose={() => setModal(null)} title="Modifier Client" size="lg">
-        <ClientForm
-          initial={modal?.initial}
-          onSubmit={(fd) => updateMutation.mutate({ clientId: modal.client.id, fd })}
-          loading={updateMutation.isPending}
-        />
-      </Modal>
 
       {historyClient && (
         <ClientHistoryModal

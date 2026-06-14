@@ -26,6 +26,7 @@ import AgencySettings from './pages/agency/AgencySettings'
 import Pricing from './pages/agency/Pricing'
 import Planning from './pages/agency/Planning'
 import NewClient from './pages/agency/NewClient'
+import EditClient from './pages/agency/EditClient'
 import ContractView from './pages/ContractView'
 import Landing from './pages/Landing'
 import DemandeAcces from './pages/DemandeAcces'
@@ -104,6 +105,7 @@ export default function App() {
             <Route path="financial" element={<Financial />} />
             <Route path="clients" element={<Clients />} />
             <Route path="clients/new" element={<NewClient />} />
+            <Route path="clients/:clientId/edit" element={<EditClient />} />
             <Route path="history" element={<Navigate to="contracts" replace />} />
             <Route path="partners" element={<Partners />} />
             <Route path="external" element={<Navigate to="cars" replace />} />

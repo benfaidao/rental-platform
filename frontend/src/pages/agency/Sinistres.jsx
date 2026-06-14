@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getSinistres, createSinistre, updateSinistre, deleteSinistre, uploadSinistrePhotos, deleteSinistrePhoto, getCars, getFileUrl } from '../../api'
-import { AlertTriangle, Plus, Trash2, Upload, X, CheckCircle, Clock, Camera, Edit2, DollarSign } from 'lucide-react'
+import { getSinistres, createSinistre, updateSinistre, deleteSinistre, uploadSinistrePhotos, deleteSinistrePhoto, getCars, getFileUrl, getAgencyMembers } from '../../api'
+import { AlertTriangle, Plus, Trash2, Upload, X, CheckCircle, Clock, Camera, Edit2, DollarSign, User } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
@@ -11,28 +11,36 @@ const fmtDate = (d) => d ? format(new Date(d), 'dd/MM/yyyy', { locale: fr }) : '
 const STATUS_LABELS  = { OPEN: 'Ouvert', RESOLVED: 'Résolu' }
 const STATUS_COLORS  = { OPEN: 'bg-orange-100 text-orange-700', RESOLVED: 'bg-green-100 text-green-700' }
 
-function SinistreForm({ cars, preselectedCarId, preselectedContractId, preselectedContractNumber, onSubmit, loading, initial }) {
+function SinistreForm({ agencyId, cars, preselectedCarId, preselectedContractId, preselectedContractNumber, onSubmit, loading, initial }) {
   const [form, setForm] = useState({
-    carId:           initial?.carId           ?? preselectedCarId         ?? '',
-    title:           initial?.title           ?? '',
-    description:     initial?.description     ?? '',
-    collectedAmount: initial?.collectedAmount  != null ? String(initial.collectedAmount) : '',
-    collectionDate:  initial?.collectionDate   ? initial.collectionDate.split('T')[0] : '',
-    status:          initial?.status           ?? 'OPEN',
+    carId:              initial?.carId           ?? preselectedCarId  ?? '',
+    title:              initial?.title           ?? '',
+    description:        initial?.description     ?? '',
+    collectedAmount:    initial?.collectedAmount  != null ? String(initial.collectedAmount) : '',
+    collectionDate:     initial?.collectionDate   ? initial.collectionDate.split('T')[0] : '',
+    collectedByUserId:  initial?.collectedByUserId ?? '',
+    status:             initial?.status           ?? 'OPEN',
   })
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  const { data: membersData = [] } = useQuery({
+    queryKey: ['agency-members', agencyId],
+    queryFn: () => getAgencyMembers(agencyId).then(r => r.data),
+    enabled: !!agencyId,
+  })
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!form.carId) return toast.error('Sélectionner un véhicule')
     onSubmit({
-      carId:           form.carId,
-      contractId:      preselectedContractId || undefined,
-      title:           form.title || undefined,
-      description:     form.description || undefined,
-      collectedAmount: form.collectedAmount ? parseFloat(form.collectedAmount) : undefined,
-      collectionDate:  form.collectionDate || undefined,
-      status:          form.status,
+      carId:              form.carId,
+      contractId:         preselectedContractId || undefined,
+      title:              form.title || undefined,
+      description:        form.description || undefined,
+      collectedAmount:    form.collectedAmount ? parseFloat(form.collectedAmount) : undefined,
+      collectionDate:     form.collectionDate || undefined,
+      collectedByUserId:  form.collectedByUserId || undefined,
+      status:             form.status,
     })
   }
 
@@ -71,6 +79,15 @@ function SinistreForm({ cars, preselectedCarId, preselectedContractId, preselect
           <label className="label">Date d'encaissement</label>
           <input className="input" type="date" value={form.collectionDate} onChange={set('collectionDate')} />
         </div>
+      </div>
+      <div>
+        <label className="label">Encaissé par</label>
+        <select className="input" value={form.collectedByUserId} onChange={set('collectedByUserId')}>
+          <option value="">— Sélectionner un membre —</option>
+          {membersData.map(m => (
+            <option key={m.userId} value={m.userId}>{m.user?.firstName} {m.user?.lastName}</option>
+          ))}
+        </select>
       </div>
       {initial && (
         <div>
@@ -205,6 +222,7 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
           ← Retour
         </button>
         <SinistreForm
+          agencyId={agencyId}
           cars={allCars}
           preselectedCarId={preselectedCarId}
           preselectedContractId={contract?.id}
@@ -224,6 +242,7 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
           ← Retour
         </button>
         <SinistreForm
+          agencyId={agencyId}
           cars={allCars}
           preselectedCarId={view.sinistre.carId}
           preselectedContractId={view.sinistre.contractId}
@@ -287,6 +306,11 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
                         <DollarSign className="w-3 h-3" />{s.collectedAmount} MAD
                       </span>
                     )}
+                    {s.collectedBy && (
+                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <User className="w-3 h-3" />{s.collectedBy.firstName} {s.collectedBy.lastName}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -324,6 +348,13 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
                       <div>
                         <span className="text-gray-500">Date encaissement :</span>{' '}
                         <span className="font-medium">{fmtDate(s.collectionDate)}</span>
+                      </div>
+                    )}
+                    {s.collectedBy && (
+                      <div className="flex items-center gap-1">
+                        <User className="w-3.5 h-3.5 text-gray-400" />
+                        <span className="text-gray-500">Encaissé par :</span>{' '}
+                        <span className="font-medium">{s.collectedBy.firstName} {s.collectedBy.lastName}</span>
                       </div>
                     )}
                   </div>

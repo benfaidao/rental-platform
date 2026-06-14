@@ -13,6 +13,7 @@ router.use(authenticate, requireAgencyAccess);
 const INCLUDE = {
   car: { select: { id: true, brand: true, model: true, finalPlate: true, wwPlate: true } },
   contract: { select: { id: true, contractNumber: true, clientName: true } },
+  collectedBy: { select: { id: true, firstName: true, lastName: true } },
   photos: { orderBy: { createdAt: 'asc' } },
 };
 
@@ -40,7 +41,7 @@ router.get('/', async (req, res) => {
 // POST / — create sinistre (+ optional financial transaction)
 router.post('/', async (req, res) => {
   try {
-    const { carId, contractId, title, description, collectedAmount, collectionDate } = req.body;
+    const { carId, contractId, title, description, collectedAmount, collectionDate, collectedByUserId } = req.body;
     const agencyId = req.params.agencyId;
 
     if (!carId) return res.status(400).json({ error: 'carId requis' });
@@ -78,6 +79,7 @@ router.post('/', async (req, res) => {
         description: description || null,
         collectedAmount: collectedAmount ? parseFloat(collectedAmount) : null,
         collectionDate: collectionDate ? new Date(collectionDate) : null,
+        collectedByUserId: collectedByUserId || null,
         transactionId,
       },
       include: INCLUDE,
@@ -92,7 +94,7 @@ router.post('/', async (req, res) => {
 // PUT /:sinistreId — update sinistre
 router.put('/:sinistreId', async (req, res) => {
   try {
-    const { title, description, status, collectedAmount, collectionDate } = req.body;
+    const { title, description, status, collectedAmount, collectionDate, collectedByUserId } = req.body;
     const agencyId = req.params.agencyId;
 
     const existing = await prisma.sinistre.findFirst({
@@ -147,6 +149,7 @@ router.put('/:sinistreId', async (req, res) => {
         status: status ?? existing.status,
         collectedAmount: newAmount,
         collectionDate: newDate,
+        collectedByUserId: collectedByUserId !== undefined ? (collectedByUserId || null) : existing.collectedByUserId,
         transactionId,
       },
       include: INCLUDE,
