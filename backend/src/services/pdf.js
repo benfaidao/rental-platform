@@ -105,7 +105,8 @@ async function generateContractPdf(contract, stream, signatures = {}) {
 
   const afterBlock2 = twoColBlock(doc,
     'PÉRIODE DE LOCATION', periodRows,
-    'CONDITIONS FINANCIÈRES', finRows
+    'CONDITIONS FINANCIÈRES', finRows,
+    0, 0.48
   );
   doc.y = afterBlock2 + 2;
 
@@ -238,11 +239,10 @@ function rowDouble(doc, lbl1, val1, lbl2, val2) {
  * Chaque bloc = titre de section + liste de lignes [label, valeur].
  * Retourne le y final (bas des deux colonnes).
  */
-function twoColBlock(doc, titleL, rowsL, titleR, rowsR, rightYOffset = 0) {
+function twoColBlock(doc, titleL, rowsL, titleR, rowsR, rightYOffset = 0, lblFrac = 0.35) {
   const startY = doc.y;
   const lh     = lineH(doc);
   const secH   = doc.fontSize(SEC_SIZE).currentLineHeight(true) * 1.7;
-  const lblFrac = 0.35; // fraction de COL_W pour le label
 
   function drawBlock(x, colWidth, title, rows, baseY) {
     let y = baseY;
