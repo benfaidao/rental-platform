@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '../../api'
 import { ArrowLeft, UserPlus } from 'lucide-react'
+import LicenseScanField from '../../components/LicenseScanField'
 import toast from 'react-hot-toast'
 
 const ID_TYPES = ['CIN', 'Passeport', 'Carte de séjour', 'Autre']
@@ -19,8 +20,8 @@ export default function NewClient() {
     idType: 'CIN', idNumber: '', idExpiry: '',
     licenseNumber: '', licenseExpiry: '',
   })
-  const [idFile, setIdFile] = useState(null)
-  const [licenseFile, setLicenseFile] = useState(null)
+  const [idFiles, setIdFiles]           = useState([])
+  const [licenseFiles, setLicenseFiles] = useState([])
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
   const isCompany = form.clientType === 'COMPANY'
@@ -39,8 +40,8 @@ export default function NewClient() {
     e.preventDefault()
     const fd = new FormData()
     Object.entries(form).forEach(([k, v]) => v && fd.append(k, v))
-    if (idFile) fd.append('idFile', idFile)
-    if (licenseFile) fd.append('licenseFile', licenseFile)
+    idFiles.forEach(f => fd.append('idFile', f))
+    licenseFiles.forEach(f => fd.append('licenseFile', f))
     createMutation.mutate(fd)
   }
 
@@ -129,11 +130,12 @@ export default function NewClient() {
             </div>
             <div><label className="label">Numéro</label><input className="input" value={form.idNumber} onChange={set('idNumber')} /></div>
             <div><label className="label">Date d'expiration</label><input className="input" type="date" value={form.idExpiry} onChange={set('idExpiry')} /></div>
-            <div>
-              <label className="label">Photo / PDF</label>
-              <input type="file" className="input text-xs" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={e => setIdFile(e.target.files[0])} />
-            </div>
           </div>
+          <LicenseScanField
+            files={idFiles}
+            onChange={setIdFiles}
+            label="Photos / PDF (recto, verso…)"
+          />
         </div>
 
         {/* Permis */}
@@ -143,11 +145,12 @@ export default function NewClient() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><label className="label">Numéro</label><input className="input" value={form.licenseNumber} onChange={set('licenseNumber')} /></div>
               <div><label className="label">Date d'expiration</label><input className="input" type="date" value={form.licenseExpiry} onChange={set('licenseExpiry')} /></div>
-              <div className="sm:col-span-2">
-                <label className="label">Photo / PDF</label>
-                <input type="file" className="input text-xs" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={e => setLicenseFile(e.target.files[0])} />
-              </div>
             </div>
+            <LicenseScanField
+              files={licenseFiles}
+              onChange={setLicenseFiles}
+              label="Photos / PDF (recto, verso…)"
+            />
           </div>
         )}
 

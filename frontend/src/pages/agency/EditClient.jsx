@@ -3,9 +3,34 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getClient, updateClient, getFileUrl } from '../../api'
 import { ArrowLeft, UserCog, ExternalLink } from 'lucide-react'
+import LicenseScanField from '../../components/LicenseScanField'
 import toast from 'react-hot-toast'
 
 const ID_TYPES = ['CIN', 'Passeport', 'Carte de séjour', 'Autre']
+
+function ExistingFiles({ urls, agencyId, label }) {
+  if (!urls || urls.length === 0) return null
+  return (
+    <div className="space-y-1.5">
+      <p className="text-xs text-gray-500">{label}</p>
+      <div className="flex flex-wrap gap-2">
+        {urls.map((url, idx) => (
+          <a
+            key={idx}
+            href={getFileUrl(url, agencyId)}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs text-blue-600 bg-blue-50 border border-blue-200 rounded-lg px-2.5 py-1.5 hover:bg-blue-100 transition-colors"
+          >
+            <ExternalLink className="w-3 h-3" />
+            {idx === 0 ? 'Recto' : idx === 1 ? 'Verso' : `Fichier ${idx + 1}`}
+          </a>
+        ))}
+      </div>
+      <p className="text-xs text-gray-400">Uploader de nouveaux fichiers ci-dessous pour les remplacer.</p>
+    </div>
+  )
+}
 
 export default function EditClient() {
   const { agencyId, clientId } = useParams()
@@ -17,24 +42,24 @@ export default function EditClient() {
     queryFn: () => getClient(agencyId, clientId).then(r => r.data),
   })
 
-  const [form, setForm] = useState(null)
-  const [idFile, setIdFile] = useState(null)
-  const [licenseFile, setLicenseFile] = useState(null)
+  const [form, setForm]                 = useState(null)
+  const [idFiles, setIdFiles]           = useState([])
+  const [licenseFiles, setLicenseFiles] = useState([])
 
   useEffect(() => {
     if (data) {
       setForm({
-        clientType:   data.clientType   || 'INDIVIDUAL',
-        firstName:    data.firstName    || '',
-        lastName:     data.lastName     || '',
-        companyName:  data.companyName  || '',
-        companyIce:   data.companyIce   || '',
-        phone:        data.phone        || '',
-        email:        data.email        || '',
-        address:      data.address      || '',
-        idType:       data.idType       || 'CIN',
-        idNumber:     data.idNumber     || '',
-        idExpiry:     data.idExpiry     ? data.idExpiry.split('T')[0] : '',
+        clientType:    data.clientType    || 'INDIVIDUAL',
+        firstName:     data.firstName     || '',
+        lastName:      data.lastName      || '',
+        companyName:   data.companyName   || '',
+        companyIce:    data.companyIce    || '',
+        phone:         data.phone         || '',
+        email:         data.email         || '',
+        address:       data.address       || '',
+        idType:        data.idType        || 'CIN',
+        idNumber:      data.idNumber      || '',
+        idExpiry:      data.idExpiry      ? data.idExpiry.split('T')[0] : '',
         licenseNumber: data.licenseNumber || '',
         licenseExpiry: data.licenseExpiry ? data.licenseExpiry.split('T')[0] : '',
       })
@@ -58,8 +83,8 @@ export default function EditClient() {
     e.preventDefault()
     const fd = new FormData()
     Object.entries(form).forEach(([k, v]) => v && fd.append(k, v))
-    if (idFile) fd.append('idFile', idFile)
-    if (licenseFile) fd.append('licenseFile', licenseFile)
+    idFiles.forEach(f => fd.append('idFile', f))
+    licenseFiles.forEach(f => fd.append('licenseFile', f))
     updateMutation.mutate(fd)
   }
 
@@ -68,6 +93,10 @@ export default function EditClient() {
   }
 
   const isCompany = form.clientType === 'COMPANY'
+
+  // Existing files: prefer array, fallback to single URL
+  const existingIdUrls      = data?.idFileUrls?.length      > 0 ? data.idFileUrls      : (data?.idFileUrl      ? [data.idFileUrl]      : [])
+  const existingLicenseUrls = data?.licenseFileUrls?.length > 0 ? data.licenseFileUrls : (data?.licenseFileUrl ? [data.licenseFileUrl] : [])
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -157,18 +186,13 @@ export default function EditClient() {
             </div>
             <div><label className="label">Numéro</label><input className="input" value={form.idNumber} onChange={set('idNumber')} /></div>
             <div><label className="label">Date d'expiration</label><input className="input" type="date" value={form.idExpiry} onChange={set('idExpiry')} /></div>
-            <div>
-              <label className="label">
-                Photo / PDF{' '}
-                {data?.idFileUrl && (
-                  <a href={getFileUrl(data.idFileUrl, agencyId)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-500 text-xs ml-1">
-                    voir actuel <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-              </label>
-              <input type="file" className="input text-xs" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={e => setIdFile(e.target.files[0])} />
-            </div>
           </div>
+          <ExistingFiles urls={existingIdUrls} agencyId={agencyId} label="Fichiers actuels" />
+          <LicenseScanField
+            files={idFiles}
+            onChange={setIdFiles}
+            label={existingIdUrls.length > 0 ? 'Remplacer par de nouveaux fichiers' : 'Photos / PDF (recto, verso…)'}
+          />
         </div>
 
         {/* Permis */}
@@ -178,18 +202,13 @@ export default function EditClient() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><label className="label">Numéro</label><input className="input" value={form.licenseNumber} onChange={set('licenseNumber')} /></div>
               <div><label className="label">Date d'expiration</label><input className="input" type="date" value={form.licenseExpiry} onChange={set('licenseExpiry')} /></div>
-              <div className="sm:col-span-2">
-                <label className="label">
-                  Photo / PDF{' '}
-                  {data?.licenseFileUrl && (
-                    <a href={getFileUrl(data.licenseFileUrl, agencyId)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-500 text-xs ml-1">
-                      voir actuel <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
-                </label>
-                <input type="file" className="input text-xs" accept=".pdf,.jpg,.jpeg,.png,.webp" onChange={e => setLicenseFile(e.target.files[0])} />
-              </div>
             </div>
+            <ExistingFiles urls={existingLicenseUrls} agencyId={agencyId} label="Fichiers actuels" />
+            <LicenseScanField
+              files={licenseFiles}
+              onChange={setLicenseFiles}
+              label={existingLicenseUrls.length > 0 ? 'Remplacer par de nouveaux fichiers' : 'Photos / PDF (recto, verso…)'}
+            />
           </div>
         )}
 

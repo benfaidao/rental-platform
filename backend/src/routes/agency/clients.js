@@ -43,11 +43,17 @@ router.get('/:clientId', async (req, res) => {
   res.json(client);
 });
 
-const uploadFields = upload.fields([{ name: 'idFile', maxCount: 1 }, { name: 'licenseFile', maxCount: 1 }]);
+const uploadFields = upload.fields([{ name: 'idFile', maxCount: 10 }, { name: 'licenseFile', maxCount: 10 }]);
+
+const toUrls = (files, agencyId) =>
+  (files || []).map(f => `/agencies/${agencyId}/files/${f.filename}`);
 
 router.post('/', uploadFields, async (req, res) => {
   const { clientType, firstName, lastName, companyName, companyIce, phone, email, address, idType, idNumber, idExpiry, licenseNumber, licenseExpiry } = req.body;
   if (!firstName || !lastName) return res.status(400).json({ error: 'Prénom et nom requis' });
+
+  const idUrls      = toUrls(req.files?.idFile, req.params.agencyId);
+  const licenseUrls = toUrls(req.files?.licenseFile, req.params.agencyId);
 
   const client = await prisma.client.create({
     data: {
@@ -59,10 +65,12 @@ router.post('/', uploadFields, async (req, res) => {
       phone, email, address,
       idType, idNumber,
       idExpiry: idExpiry ? new Date(idExpiry) : null,
-      idFileUrl: req.files?.idFile?.[0] ? `/agencies/${req.params.agencyId}/files/${req.files.idFile[0].filename}` : null,
+      idFileUrl:       idUrls[0] || null,
+      idFileUrls:      idUrls,
       licenseNumber,
       licenseExpiry: licenseExpiry ? new Date(licenseExpiry) : null,
-      licenseFileUrl: req.files?.licenseFile?.[0] ? `/agencies/${req.params.agencyId}/files/${req.files.licenseFile[0].filename}` : null,
+      licenseFileUrl:  licenseUrls[0] || null,
+      licenseFileUrls: licenseUrls,
     },
   });
   res.status(201).json(client);
@@ -72,6 +80,9 @@ router.put('/:clientId', uploadFields, async (req, res) => {
   const { clientType, firstName, lastName, companyName, companyIce, phone, email, address, idType, idNumber, idExpiry, licenseNumber, licenseExpiry } = req.body;
   const existing = await prisma.client.findFirst({ where: { id: req.params.clientId, agencyId: req.params.agencyId } });
   if (!existing) return res.status(404).json({ error: 'Client non trouvé' });
+
+  const idUrls      = toUrls(req.files?.idFile, req.params.agencyId);
+  const licenseUrls = toUrls(req.files?.licenseFile, req.params.agencyId);
 
   const client = await prisma.client.update({
     where: { id: req.params.clientId },
@@ -83,10 +94,10 @@ router.put('/:clientId', uploadFields, async (req, res) => {
       phone, email, address,
       idType, idNumber,
       idExpiry: idExpiry ? new Date(idExpiry) : null,
-      ...(req.files?.idFile?.[0] && { idFileUrl: `/agencies/${req.params.agencyId}/files/${req.files.idFile[0].filename}` }),
+      ...(idUrls.length > 0 && { idFileUrl: idUrls[0], idFileUrls: idUrls }),
       licenseNumber,
       licenseExpiry: licenseExpiry ? new Date(licenseExpiry) : null,
-      ...(req.files?.licenseFile?.[0] && { licenseFileUrl: `/agencies/${req.params.agencyId}/files/${req.files.licenseFile[0].filename}` }),
+      ...(licenseUrls.length > 0 && { licenseFileUrl: licenseUrls[0], licenseFileUrls: licenseUrls }),
     },
   });
   res.json(client);
