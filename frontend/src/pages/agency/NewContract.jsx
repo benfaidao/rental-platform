@@ -35,12 +35,11 @@ const STEPS = [
 
 // ─── License Scan Field ───────────────────────────────────────────────────────
 
-function LicenseScanField({ files = [], onChange, label = 'Photo / scan du permis', maxFiles = 2 }) {
+function LicenseScanField({ files = [], onChange, label = 'Photo / scan du permis', maxFiles = 10 }) {
   const cameraRef = useRef(null)
   const fileRef = useRef(null)
-  const [enlarged, setEnlarged] = useState(null) // index de la photo agrandie
+  const [enlarged, setEnlarged] = useState(null)
 
-  // Cache URL par File pour éviter de recréer les object URLs à chaque render
   const urlCache = useRef(new Map())
   const getPreviews = () => files.map(f => {
     if (!f?.type?.startsWith('image/')) return null
@@ -49,7 +48,6 @@ function LicenseScanField({ files = [], onChange, label = 'Photo / scan du permi
   })
   const previews = getPreviews()
 
-  // Nettoyer les URLs des fichiers supprimés
   useEffect(() => {
     const current = new Set(files)
     for (const [file, url] of urlCache.current) {
@@ -58,35 +56,36 @@ function LicenseScanField({ files = [], onChange, label = 'Photo / scan du permi
   }, [files])
   useEffect(() => () => { urlCache.current.forEach(u => URL.revokeObjectURL(u)) }, [])
 
-  const addFile = (f) => {
-    if (!f || files.length >= maxFiles) return
-    onChange([...files, f])
+  const addFiles = (list) => {
+    const toAdd = Array.from(list).slice(0, maxFiles - files.length)
+    if (!toAdd.length) return
+    onChange([...files, ...toAdd])
   }
 
   const removeFile = (idx) => onChange(files.filter((_, i) => i !== idx))
 
   const canAdd = files.length < maxFiles
-  const isAdding = files.length > 0
+  const hasFiles = files.length > 0
+  const pageLabel = (idx) => idx === 0 ? 'Recto' : idx === 1 ? 'Verso' : `${idx + 1}`
 
   return (
     <div className="space-y-2">
       <label className="label">{label}</label>
 
-      {/* Previews recto / verso */}
       {files.length > 0 && (
-        <div className={`grid gap-2 ${files.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        <div className={`grid gap-2 ${files.length >= 3 ? 'grid-cols-3' : files.length === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
           {files.map((f, idx) => (
             <div key={idx} className="relative">
               {previews[idx] ? (
                 <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
                   <img
                     src={previews[idx]}
-                    alt={idx === 0 ? 'Recto' : 'Verso'}
+                    alt={pageLabel(idx)}
                     className="w-full h-28 object-contain cursor-zoom-in"
                     onClick={() => setEnlarged(idx)}
                   />
                   <span className="absolute top-1 left-1 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded-md font-medium">
-                    {idx === 0 ? 'Recto' : 'Verso'}
+                    {pageLabel(idx)}
                   </span>
                   <button type="button" onClick={() => removeFile(idx)}
                     className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 shadow">
@@ -95,7 +94,7 @@ function LicenseScanField({ files = [], onChange, label = 'Photo / scan du permi
                 </div>
               ) : (
                 <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
-                  <span className="text-[10px] font-semibold text-gray-400 uppercase shrink-0">{idx === 0 ? 'R' : 'V'}</span>
+                  <span className="text-[10px] font-semibold text-gray-400 uppercase shrink-0">{pageLabel(idx)}</span>
                   <span className="text-xs text-green-700 truncate flex-1">{f.name}</span>
                   <button type="button" onClick={() => removeFile(idx)} className="text-red-400 hover:text-red-600 shrink-0">
                     <XIcon className="w-4 h-4" />
@@ -107,26 +106,25 @@ function LicenseScanField({ files = [], onChange, label = 'Photo / scan du permi
         </div>
       )}
 
-      {/* Boutons d'ajout */}
       {canAdd && (
         <div className="flex gap-2">
           <button type="button" onClick={() => cameraRef.current?.click()}
             className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed border-blue-300 bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100 transition-colors flex-1 justify-center"
           >
             <Camera className="w-4 h-4" />
-            {isAdding ? 'Scanner le verso' : 'Caméra'}
+            {hasFiles ? 'Ajouter une photo' : 'Caméra'}
           </button>
-          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden"
-            onChange={e => { addFile(e.target.files[0] || null); e.target.value = '' }} />
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" multiple className="hidden"
+            onChange={e => { addFiles(e.target.files); e.target.value = '' }} />
 
           <button type="button" onClick={() => fileRef.current?.click()}
             className="flex items-center gap-2 px-3 py-2 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 text-gray-600 text-sm font-medium hover:bg-gray-100 transition-colors flex-1 justify-center"
           >
             <Upload className="w-4 h-4" />
-            {isAdding ? 'Verso (galerie)' : 'Fichier / Galerie'}
+            {hasFiles ? 'Ajouter fichiers' : 'Fichier / Galerie'}
           </button>
-          <input ref={fileRef} type="file" accept="image/*,application/pdf" className="hidden"
-            onChange={e => { addFile(e.target.files[0] || null); e.target.value = '' }} />
+          <input ref={fileRef} type="file" accept="image/*,application/pdf" multiple className="hidden"
+            onChange={e => { addFiles(e.target.files); e.target.value = '' }} />
         </div>
       )}
 
