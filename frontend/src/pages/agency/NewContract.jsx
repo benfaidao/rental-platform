@@ -565,7 +565,7 @@ export default function NewContract() {
         <div><label className="label">Téléphone</label><input className="input" value={form.clientPhone} onChange={set('clientPhone')} /></div>
         <div><label className="label">Email</label><input className="input" type="email" value={form.clientEmail} onChange={set('clientEmail')} /></div>
         <div><label className="label">CIN / Passeport</label><input className="input" value={form.clientIdNumber} onChange={set('clientIdNumber')} /></div>
-        <div><label className="label">Expiration CIN / Passeport</label><input className="input" type="date" value={form.clientIdExpiry} onChange={set('clientIdExpiry')} /></div>
+        <div><label className="label">Expiration Passeport/CIN / Passeport</label><input className="input" type="date" value={form.clientIdExpiry} onChange={set('clientIdExpiry')} /></div>
         <div className="sm:col-span-2">
           <LicenseScanField files={idFiles} onChange={setIdFiles} label="Photo / scan CIN ou Passeport" />
         </div>
@@ -591,7 +591,7 @@ export default function NewContract() {
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 rounded-xl p-4">
             <div className="sm:col-span-2"><label className="label text-xs">Nom complet</label><input className="input" value={form.secondDriverName} onChange={set('secondDriverName')} /></div>
             <div><label className="label text-xs">N° CIN / Passeport</label><input className="input" value={form.secondDriverIdNumber} onChange={set('secondDriverIdNumber')} /></div>
-            <div><label className="label text-xs">Expiration CIN</label><input className="input" type="date" value={form.secondDriverIdExpiry} onChange={set('secondDriverIdExpiry')} /></div>
+            <div><label className="label text-xs">Expiration Passeport/CIN</label><input className="input" type="date" value={form.secondDriverIdExpiry} onChange={set('secondDriverIdExpiry')} /></div>
             <div className="sm:col-span-2">
               <LicenseScanField
                 files={secondDriverIdFiles}
