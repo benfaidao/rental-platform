@@ -1657,36 +1657,29 @@ export default function Contracts() {
     toast.success(`Contrat ${contractNumber} recherché`)
   }
 
+  const downloadPdf = async (c) => {
+    try {
+      const res = await downloadContractPdf(agencyId, c.id)
+      const url = URL.createObjectURL(res.data)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `contrat-${c.contractNumber}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      toast.error('Erreur lors du téléchargement')
+    }
+  }
+
   const renderContractActions = (c) => (
     <div className="flex gap-1 flex-wrap">
-      <button
-        onClick={async () => {
-          try {
-            const res = await downloadContractPdf(agencyId, c.id)
-            const url = URL.createObjectURL(res.data)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = `contrat-${c.contractNumber}.pdf`
-            a.click()
-            URL.revokeObjectURL(url)
-          } catch {
-            toast.error('Erreur lors du téléchargement')
-          }
-        }}
-        className="p-1.5 hover:bg-gray-100 rounded" title="Télécharger PDF"
-      >
+      <button onClick={() => downloadPdf(c)} className="p-1.5 hover:bg-gray-100 rounded" title="Télécharger PDF">
         <FileDown className="w-3.5 h-3.5 text-blue-500" />
       </button>
-      <button
-        onClick={() => setModal({ type: 'signature', contract: c })}
-        className="p-1.5 hover:bg-purple-50 rounded" title="Signer & Télécharger PDF"
-      >
+      <button onClick={() => setModal({ type: 'signature', contract: c })} className="p-1.5 hover:bg-purple-50 rounded" title="Signer & Télécharger PDF">
         <PenLine className="w-3.5 h-3.5 text-purple-500" />
       </button>
-      <button
-        onClick={() => setModal({ type: 'invoice', contract: c })}
-        className="p-1.5 hover:bg-green-50 rounded" title="Générer une facture"
-      >
+      <button onClick={() => setModal({ type: 'invoice', contract: c })} className="p-1.5 hover:bg-green-50 rounded" title="Générer une facture">
         <Receipt className="w-3.5 h-3.5 text-green-600" />
       </button>
       <button onClick={() => setModal({ type: 'photos', contract: c })} className="p-1.5 hover:bg-gray-100 rounded" title="Photos de la voiture">
@@ -1709,6 +1702,52 @@ export default function Contracts() {
       <button onClick={() => { if (confirm('Supprimer cette réservation ?')) deleteMutation.mutate(c.id) }} className="p-1.5 hover:bg-red-50 rounded" title="Supprimer">
         <Trash2 className="w-3.5 h-3.5 text-red-400" />
       </button>
+    </div>
+  )
+
+  const renderMobileContractActions = (c) => (
+    <div className="space-y-2">
+      {/* Primary actions */}
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={() => navigate(`/agency/${agencyId}/contracts/${c.id}/edit`)}
+          className="flex items-center justify-center gap-2 py-2.5 px-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-700 transition-colors"
+        >
+          <Edit2 className="w-4 h-4" /> Modifier
+        </button>
+        <button
+          onClick={() => { if (confirm('Supprimer cette réservation ?')) deleteMutation.mutate(c.id) }}
+          className="flex items-center justify-center gap-2 py-2.5 px-3 bg-red-50 hover:bg-red-100 rounded-xl text-sm font-medium text-red-600 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" /> Supprimer
+        </button>
+      </div>
+      {/* Secondary actions */}
+      <div className="flex gap-2 overflow-x-auto pb-0.5" style={{ scrollbarWidth: 'none' }}>
+        <button onClick={() => downloadPdf(c)} className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 rounded-xl text-xs font-medium text-blue-700 shrink-0 transition-colors">
+          <FileDown className="w-3.5 h-3.5" /> PDF
+        </button>
+        <button onClick={() => setModal({ type: 'signature', contract: c })} className="flex items-center gap-1.5 px-3 py-2 bg-purple-50 hover:bg-purple-100 rounded-xl text-xs font-medium text-purple-700 shrink-0 transition-colors">
+          <PenLine className="w-3.5 h-3.5" /> Signer
+        </button>
+        <button onClick={() => setModal({ type: 'invoice', contract: c })} className="flex items-center gap-1.5 px-3 py-2 bg-green-50 hover:bg-green-100 rounded-xl text-xs font-medium text-green-700 shrink-0 transition-colors">
+          <Receipt className="w-3.5 h-3.5" /> Facture
+        </button>
+        <button onClick={() => setModal({ type: 'photos', contract: c })} className="flex items-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-xs font-medium text-gray-600 shrink-0 transition-colors">
+          <Camera className="w-3.5 h-3.5" /> Photos
+        </button>
+        {c.rentalType === 'PERIODIC' && (
+          <button onClick={() => setModal({ type: 'payments', contract: c })} className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 rounded-xl text-xs font-medium text-blue-700 shrink-0 transition-colors">
+            <CalendarRange className="w-3.5 h-3.5" /> Paiements
+          </button>
+        )}
+        <button onClick={() => setModal({ type: 'signed', contract: c })} className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium shrink-0 transition-colors ${c.documents?.length > 0 ? 'bg-green-50 hover:bg-green-100 text-green-700' : 'bg-gray-100 hover:bg-gray-200 text-gray-500'}`}>
+          <FileSignature className="w-3.5 h-3.5" /> Signé
+        </button>
+        <button onClick={() => setModal({ type: 'sinistres', contract: c })} className="flex items-center gap-1.5 px-3 py-2 bg-orange-50 hover:bg-orange-100 rounded-xl text-xs font-medium text-orange-700 shrink-0 transition-colors">
+          <AlertTriangle className="w-3.5 h-3.5" /> Sinistres
+        </button>
+      </div>
     </div>
   )
 
@@ -1814,7 +1853,7 @@ export default function Contracts() {
               </div>
             </div>
             <div className="pt-2 border-t border-gray-100">
-              {renderContractActions(c)}
+              {renderMobileContractActions(c)}
             </div>
           </div>
         ))}

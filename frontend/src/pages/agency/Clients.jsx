@@ -144,20 +144,22 @@ export default function Clients() {
       <div className="grid gap-3">
         {isLoading && <div className="text-center py-8 text-gray-400">Chargement...</div>}
         {clients.map(c => {
-          const idAlert = isExpired(c.idExpiry) || isExpiringSoon(c.idExpiry)
-          const licAlert = isExpired(c.licenseExpiry) || isExpiringSoon(c.licenseExpiry)
+          const idExpired = isExpired(c.idExpiry)
+          const idSoon = isExpiringSoon(c.idExpiry)
+          const licExpired = isExpired(c.licenseExpiry)
+          const licSoon = isExpiringSoon(c.licenseExpiry)
+          const hasAlert = idExpired || idSoon || licExpired || licSoon
           return (
-            <div key={c.id} className={`card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${idAlert || licAlert ? 'border-orange-200' : ''}`}>
-              <div className="flex items-center gap-4 min-w-0">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${c.clientType === 'COMPANY' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+            <div key={c.id} className={`card p-4 space-y-3 ${hasAlert ? 'border-orange-200' : ''}`}>
+              {/* Info row */}
+              <div className="flex items-start gap-3 min-w-0">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 ${c.clientType === 'COMPANY' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
                   {c.clientType === 'COMPANY' ? <Building2 className="w-5 h-5" /> : `${c.firstName[0]}${c.lastName[0]}`}
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold">{c.clientType === 'COMPANY' && c.companyName ? c.companyName : `${c.firstName} ${c.lastName}`}</p>
-                    {c.clientType === 'COMPANY' && (
-                      <span className="badge-purple text-xs">Entreprise</span>
-                    )}
+                    <p className="font-semibold text-gray-800">{c.clientType === 'COMPANY' && c.companyName ? c.companyName : `${c.firstName} ${c.lastName}`}</p>
+                    {c.clientType === 'COMPANY' && <span className="badge-purple text-xs">Entreprise</span>}
                   </div>
                   {c.clientType === 'COMPANY' && (
                     <div className="flex gap-3 text-xs text-gray-500 mt-0.5 flex-wrap">
@@ -169,38 +171,56 @@ export default function Clients() {
                     {c.phone && <span>{c.phone}</span>}
                     {c.email && <span className="truncate">{c.email}</span>}
                   </div>
-                  <div className="flex gap-3 text-xs mt-1 flex-wrap">
-                    {c.idNumber && (
-                      <span className={`flex items-center gap-1 ${isExpired(c.idExpiry) ? 'text-red-600' : isExpiringSoon(c.idExpiry) ? 'text-orange-600' : 'text-gray-500'}`}>
-                        <UserCheck className="w-3 h-3" /> {c.idType} {c.idNumber} {c.idExpiry ? `· exp. ${fmtDate(c.idExpiry)}` : ''}
-                      </span>
-                    )}
-                    {c.licenseNumber && (
-                      <span className={`flex items-center gap-1 ${isExpired(c.licenseExpiry) ? 'text-red-600' : isExpiringSoon(c.licenseExpiry) ? 'text-orange-600' : 'text-gray-500'}`}>
-                        <FileText className="w-3 h-3" /> Permis {c.licenseNumber} {c.licenseExpiry ? `· exp. ${fmtDate(c.licenseExpiry)}` : ''}
-                      </span>
-                    )}
-                  </div>
+                  {(c.idNumber || c.licenseNumber) && (
+                    <div className="flex flex-col gap-0.5 mt-1.5">
+                      {c.idNumber && (
+                        <span className={`flex items-center gap-1 text-xs ${idExpired ? 'text-red-600 font-medium' : idSoon ? 'text-orange-600 font-medium' : 'text-gray-400'}`}>
+                          <UserCheck className="w-3 h-3 shrink-0" /> {c.idType} {c.idNumber}{c.idExpiry ? ` · exp. ${fmtDate(c.idExpiry)}` : ''}
+                          {idExpired && <span className="ml-1 text-[10px] bg-red-100 text-red-600 px-1 rounded">Expiré</span>}
+                          {idSoon && !idExpired && <span className="ml-1 text-[10px] bg-orange-100 text-orange-600 px-1 rounded">Bientôt</span>}
+                        </span>
+                      )}
+                      {c.licenseNumber && (
+                        <span className={`flex items-center gap-1 text-xs ${licExpired ? 'text-red-600 font-medium' : licSoon ? 'text-orange-600 font-medium' : 'text-gray-400'}`}>
+                          <FileText className="w-3 h-3 shrink-0" /> Permis {c.licenseNumber}{c.licenseExpiry ? ` · exp. ${fmtDate(c.licenseExpiry)}` : ''}
+                          {licExpired && <span className="ml-1 text-[10px] bg-red-100 text-red-600 px-1 rounded">Expiré</span>}
+                          {licSoon && !licExpired && <span className="ml-1 text-[10px] bg-orange-100 text-orange-600 px-1 rounded">Bientôt</span>}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end border-t border-gray-100 pt-2 sm:border-0 sm:pt-0">
+              {/* Actions row */}
+              <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                <button
+                  onClick={() => setHistoryClient(c)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-blue-50 hover:bg-blue-100 rounded-xl text-sm font-medium text-blue-600 transition-colors"
+                >
+                  <History className="w-4 h-4" /> Historique
+                </button>
+                <button
+                  onClick={() => navigate(`/agency/${agencyId}/clients/${c.id}/edit`)}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gray-100 hover:bg-gray-200 rounded-xl text-sm font-medium text-gray-700 transition-colors"
+                >
+                  <Edit2 className="w-4 h-4" /> Modifier
+                </button>
                 {c.idFileUrl && (
-                  <a href={getFileUrl(c.idFileUrl, agencyId)} target="_blank" rel="noreferrer" className="p-2 hover:bg-gray-100 rounded-lg" title="Pièce d'identité">
+                  <a
+                    href={getFileUrl(c.idFileUrl, agencyId)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-2.5 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                    title="Pièce d'identité"
+                  >
                     <ExternalLink className="w-4 h-4 text-blue-500" />
                   </a>
                 )}
-                <button onClick={() => setHistoryClient(c)} className="p-2 hover:bg-blue-50 rounded-lg flex items-center gap-1.5 text-xs text-blue-500 font-medium" title="Voir l'historique">
-                  <History className="w-4 h-4 text-blue-400" />
-                  <span className="sm:hidden">Historique</span>
-                </button>
-                <button onClick={() => navigate(`/agency/${agencyId}/clients/${c.id}/edit`)} className="p-2 hover:bg-gray-100 rounded-lg">
-                  <Edit2 className="w-4 h-4 text-gray-500" />
-                </button>
                 <button
                   onClick={() => { if (confirm(`Supprimer ${c.firstName} ${c.lastName} ?`)) deleteMutation.mutate(c.id) }}
-                  className="p-2 hover:bg-red-50 rounded-lg"
+                  className="p-2.5 bg-red-50 hover:bg-red-100 rounded-xl transition-colors"
                 >
-                  <Trash2 className="w-4 h-4 text-red-400" />
+                  <Trash2 className="w-4 h-4 text-red-500" />
                 </button>
               </div>
             </div>
