@@ -1,11 +1,39 @@
 import { useState } from 'react'
-import { Outlet, useParams } from 'react-router-dom'
+import { Outlet, useParams, NavLink } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Header from './Header'
 import { useAuth } from '../contexts/AuthContext'
-import { AlertTriangle, KeyRound } from 'lucide-react'
+import { AlertTriangle, KeyRound, LayoutDashboard, Car, UserCheck, DollarSign } from 'lucide-react'
 import { forceChangePassword } from '../api'
 import toast from 'react-hot-toast'
+
+function BottomNav({ agencyId }) {
+  const items = [
+    { to: `/agency/${agencyId}`,           label: 'Dashboard',  icon: LayoutDashboard, end: true },
+    { to: `/agency/${agencyId}/cars`,       label: 'Véhicules',  icon: Car },
+    { to: `/agency/${agencyId}/clients`,    label: 'Clients',    icon: UserCheck },
+    { to: `/agency/${agencyId}/financial`,  label: 'Finances',   icon: DollarSign },
+  ]
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 flex lg:hidden safe-area-inset-bottom">
+      {items.map(item => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.end}
+          className={({ isActive }) =>
+            `flex-1 flex flex-col items-center justify-center py-2.5 gap-1 transition-colors ${
+              isActive ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'
+            }`
+          }
+        >
+          <item.icon className="w-5 h-5" />
+          <span className="text-[10px] font-medium">{item.label}</span>
+        </NavLink>
+      ))}
+    </nav>
+  )
+}
 
 function ForceChangePasswordOverlay() {
   const { updateUser } = useAuth()
@@ -110,10 +138,12 @@ export default function Layout() {
           </div>
         )}
 
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 pb-24 lg:pb-6">
           <Outlet />
         </main>
       </div>
+
+      {!isSuperAdmin && agencyId && <BottomNav agencyId={agencyId} />}
     </div>
   )
 }
