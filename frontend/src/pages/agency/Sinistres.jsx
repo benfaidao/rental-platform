@@ -1,26 +1,112 @@
 import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getSinistres, createSinistre, updateSinistre, deleteSinistre, uploadSinistrePhotos, deleteSinistrePhoto, getCars, getFileUrl, getAgencyMembers } from '../../api'
-import { AlertTriangle, Plus, Trash2, Upload, X, CheckCircle, Clock, Camera, Edit2, DollarSign, User } from 'lucide-react'
+import { getSinistres, createSinistre, updateSinistre, deleteSinistre, uploadSinistrePhotos, deleteSinistrePhoto, getFileUrl, getAgencyMembers } from '../../api'
+import { AlertTriangle, Plus, Trash2, X, Camera, Edit2, DollarSign, User, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 const fmtDate = (d) => d ? format(new Date(d), 'dd/MM/yyyy', { locale: fr }) : '-'
 
-const STATUS_LABELS  = { OPEN: 'Ouvert', RESOLVED: 'Résolu' }
-const STATUS_COLORS  = { OPEN: 'bg-orange-100 text-orange-700', RESOLVED: 'bg-green-100 text-green-700' }
+const STATUS_LABELS = { OPEN: 'Ouvert', RESOLVED: 'Résolu' }
+const STATUS_COLORS = { OPEN: 'bg-orange-100 text-orange-700', RESOLVED: 'bg-green-100 text-green-700' }
+
+function Lightbox({ urls, startIdx, onClose }) {
+  const [idx, setIdx] = useState(startIdx)
+  return (
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center" onClick={onClose}>
+      <button className="absolute top-4 right-4 text-white p-2 hover:bg-white hover:bg-opacity-20 rounded-full" onClick={onClose}>
+        <X className="w-6 h-6" />
+      </button>
+      {idx > 0 && (
+        <button
+          className="absolute left-3 text-white p-2 hover:bg-white hover:bg-opacity-20 rounded-full"
+          onClick={(e) => { e.stopPropagation(); setIdx(i => i - 1) }}
+        >
+          <ChevronLeft className="w-8 h-8" />
+        </button>
+      )}
+      <img
+        src={urls[idx]}
+        alt=""
+        className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg"
+        onClick={(e) => e.stopPropagation()}
+      />
+      {idx < urls.length - 1 && (
+        <button
+          className="absolute right-3 text-white p-2 hover:bg-white hover:bg-opacity-20 rounded-full"
+          onClick={(e) => { e.stopPropagation(); setIdx(i => i + 1) }}
+        >
+          <ChevronRight className="w-8 h-8" />
+        </button>
+      )}
+      <div className="absolute bottom-4 text-white text-sm opacity-70">{idx + 1} / {urls.length}</div>
+    </div>
+  )
+}
+
+function PendingPhotosSection({ photos, onChange }) {
+  const cameraRef = useRef()
+  const galleryRef = useRef()
+
+  const addFiles = (files) => {
+    const entries = Array.from(files).map(f => ({ file: f, preview: URL.createObjectURL(f) }))
+    onChange(prev => [...prev, ...entries])
+  }
+
+  const remove = (idx) => {
+    onChange(prev => {
+      URL.revokeObjectURL(prev[idx].preview)
+      return prev.filter((_, i) => i !== idx)
+    })
+  }
+
+  return (
+    <div className="space-y-3">
+      <label className="label">Photos du sinistre</label>
+      <div className="flex gap-2">
+        <button type="button" onClick={() => cameraRef.current?.click()} className="btn-secondary flex items-center gap-1.5 text-sm flex-1">
+          <Camera className="w-4 h-4" /> Prendre une photo
+        </button>
+        <button type="button" onClick={() => galleryRef.current?.click()} className="btn-secondary flex items-center gap-1.5 text-sm flex-1">
+          <ImageIcon className="w-4 h-4" /> Galerie
+        </button>
+        <input ref={cameraRef} type="file" accept="image/*" capture="environment" multiple className="hidden"
+          onChange={(e) => { addFiles(e.target.files); e.target.value = '' }} />
+        <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden"
+          onChange={(e) => { addFiles(e.target.files); e.target.value = '' }} />
+      </div>
+      {photos.length > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          {photos.map((p, idx) => (
+            <div key={idx} className="relative rounded-lg overflow-hidden border border-gray-200 aspect-square">
+              <img src={p.preview} alt="" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => remove(idx)}
+                className="absolute top-1 right-1 bg-red-500 bg-opacity-90 text-white rounded-full p-0.5"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function SinistreForm({ agencyId, cars, preselectedCarId, preselectedContractId, preselectedContractNumber, onSubmit, loading, initial }) {
   const [form, setForm] = useState({
-    carId:              initial?.carId           ?? preselectedCarId  ?? '',
-    title:              initial?.title           ?? '',
-    description:        initial?.description     ?? '',
-    collectedAmount:    initial?.collectedAmount  != null ? String(initial.collectedAmount) : '',
-    collectionDate:     initial?.collectionDate   ? initial.collectionDate.split('T')[0] : '',
-    collectedByUserId:  initial?.collectedByUserId ?? '',
-    status:             initial?.status           ?? 'OPEN',
+    carId:             initial?.carId            ?? preselectedCarId ?? '',
+    title:             initial?.title            ?? '',
+    description:       initial?.description      ?? '',
+    collectedAmount:   initial?.collectedAmount   != null ? String(initial.collectedAmount) : '',
+    collectionDate:    initial?.collectionDate    ? initial.collectionDate.split('T')[0] : '',
+    collectedByUserId: initial?.collectedByUserId ?? '',
+    status:            initial?.status            ?? 'OPEN',
   })
+  const [pendingPhotos, setPendingPhotos] = useState([])
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
 
   const { data: membersData = [] } = useQuery({
@@ -32,16 +118,19 @@ function SinistreForm({ agencyId, cars, preselectedCarId, preselectedContractId,
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!form.carId) return toast.error('Sélectionner un véhicule')
-    onSubmit({
-      carId:              form.carId,
-      contractId:         preselectedContractId || undefined,
-      title:              form.title || undefined,
-      description:        form.description || undefined,
-      collectedAmount:    form.collectedAmount ? parseFloat(form.collectedAmount) : undefined,
-      collectionDate:     form.collectionDate || undefined,
-      collectedByUserId:  form.collectedByUserId || undefined,
-      status:             form.status,
-    })
+    onSubmit(
+      {
+        carId:             form.carId,
+        contractId:        preselectedContractId || undefined,
+        title:             form.title || undefined,
+        description:       form.description || undefined,
+        collectedAmount:   form.collectedAmount ? parseFloat(form.collectedAmount) : undefined,
+        collectionDate:    form.collectionDate || undefined,
+        collectedByUserId: form.collectedByUserId || undefined,
+        status:            form.status,
+      },
+      pendingPhotos.map(p => p.file),
+    )
   }
 
   return (
@@ -98,6 +187,7 @@ function SinistreForm({ agencyId, cars, preselectedCarId, preselectedContractId,
           </select>
         </div>
       )}
+      {!initial && <PendingPhotosSection photos={pendingPhotos} onChange={setPendingPhotos} />}
       <button type="submit" className="btn-primary w-full" disabled={loading}>
         {loading ? 'Enregistrement...' : (initial ? 'Mettre à jour' : 'Créer le sinistre')}
       </button>
@@ -107,8 +197,10 @@ function SinistreForm({ agencyId, cars, preselectedCarId, preselectedContractId,
 
 function PhotosPanel({ agencyId, sinistre }) {
   const qc = useQueryClient()
-  const fileRef = useRef()
+  const cameraRef = useRef()
+  const galleryRef = useRef()
   const [uploading, setUploading] = useState(false)
+  const [lightboxIdx, setLightboxIdx] = useState(null)
 
   const handleUpload = async (e) => {
     const files = Array.from(e.target.files)
@@ -139,51 +231,67 @@ function PhotosPanel({ agencyId, sinistre }) {
     }
   }
 
+  const photoUrls = (sinistre.photos || []).map(p => getFileUrl(p.url, agencyId))
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-sm font-medium text-gray-700">{sinistre.photos?.length || 0} photo(s)</span>
-        <button
-          onClick={() => fileRef.current?.click()}
-          className="btn-secondary text-xs py-1.5 flex items-center gap-1 shrink-0"
-          disabled={uploading}
-        >
-          <Upload className="w-3.5 h-3.5" />
-          {uploading ? 'Upload...' : 'Ajouter photos'}
-        </button>
-        <input ref={fileRef} type="file" multiple accept="image/*" className="hidden" onChange={handleUpload} />
-      </div>
-      {sinistre.photos?.length > 0 && (
-        <div className="grid grid-cols-3 gap-2">
-          {sinistre.photos.map(photo => (
-            <div key={photo.id} className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-square">
-              <img src={getFileUrl(photo.url, agencyId)} alt="sinistre" className="w-full h-full object-cover" />
-              <button
-                onClick={() => deletePhoto(photo.id)}
-                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </div>
-          ))}
-        </div>
+    <>
+      {lightboxIdx !== null && (
+        <Lightbox urls={photoUrls} startIdx={lightboxIdx} onClose={() => setLightboxIdx(null)} />
       )}
-    </div>
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700 flex-1">{sinistre.photos?.length || 0} photo(s)</span>
+          <button
+            type="button"
+            onClick={() => cameraRef.current?.click()}
+            disabled={uploading}
+            className="btn-secondary text-xs py-1.5 flex items-center gap-1 shrink-0"
+          >
+            <Camera className="w-3.5 h-3.5" />
+            {uploading ? '...' : 'Caméra'}
+          </button>
+          <button
+            type="button"
+            onClick={() => galleryRef.current?.click()}
+            disabled={uploading}
+            className="btn-secondary text-xs py-1.5 flex items-center gap-1 shrink-0"
+          >
+            <ImageIcon className="w-3.5 h-3.5" />
+            Galerie
+          </button>
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" multiple className="hidden" onChange={handleUpload} />
+          <input ref={galleryRef} type="file" accept="image/*" multiple className="hidden" onChange={handleUpload} />
+        </div>
+        {sinistre.photos?.length > 0 && (
+          <div className="grid grid-cols-3 gap-2">
+            {sinistre.photos.map((photo, idx) => (
+              <div key={photo.id} className="relative rounded-lg overflow-hidden border border-gray-200 aspect-square">
+                <img
+                  src={photoUrls[idx]}
+                  alt="sinistre"
+                  className="w-full h-full object-cover cursor-pointer"
+                  onClick={() => setLightboxIdx(idx)}
+                />
+                <button
+                  onClick={(e) => { e.stopPropagation(); deletePhoto(photo.id) }}
+                  className="absolute top-1 right-1 bg-red-500 bg-opacity-80 text-white rounded-full p-0.5"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 
-/**
- * SinistresModal — affiché dans une Modal parente.
- * Props:
- *   agencyId          — requis
- *   car               — objet car { id, brand, model, finalPlate, wwPlate } (mode véhicule)
- *   contract          — objet contract { id, contractNumber, carId } (mode contrat)
- *   allCars           — liste de tous les véhicules de l'agence
- */
 export default function SinistresModal({ agencyId, car, contract, allCars = [] }) {
   const qc = useQueryClient()
-  const [view, setView]         = useState('list')   // 'list' | 'create' | { type:'edit'|'photos', sinistre }
+  const [view, setView]         = useState('list')
   const [expanded, setExpanded] = useState(null)
+  const [creating, setCreating] = useState(false)
 
   const filterParams = {}
   if (car)      filterParams.carId      = car.id
@@ -194,11 +302,24 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
     queryFn: () => getSinistres(agencyId, filterParams).then(r => r.data),
   })
 
-  const createMutation = useMutation({
-    mutationFn: (data) => createSinistre(agencyId, data),
-    onSuccess: () => { qc.invalidateQueries(['sinistres', agencyId]); setView('list'); toast.success('Sinistre créé') },
-    onError: (e) => toast.error(e.response?.data?.error || 'Erreur'),
-  })
+  const handleCreate = async (data, files) => {
+    setCreating(true)
+    try {
+      const res = await createSinistre(agencyId, data)
+      if (files && files.length > 0) {
+        const fd = new FormData()
+        files.forEach(f => fd.append('photos', f))
+        await uploadSinistrePhotos(agencyId, res.data.id, fd)
+      }
+      qc.invalidateQueries(['sinistres', agencyId])
+      setView('list')
+      toast.success('Sinistre créé')
+    } catch (e) {
+      toast.error(e.response?.data?.error || 'Erreur')
+    } finally {
+      setCreating(false)
+    }
+  }
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => updateSinistre(agencyId, id, data),
@@ -214,7 +335,6 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
 
   const preselectedCarId = car?.id ?? (contract ? allCars.find(c => c.id === contract.carId)?.id : undefined)
 
-  // ── Formulaire création ──────────────────────────────────────────────────────
   if (view === 'create') {
     return (
       <div className="space-y-4">
@@ -227,14 +347,13 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
           preselectedCarId={preselectedCarId}
           preselectedContractId={contract?.id}
           preselectedContractNumber={contract?.contractNumber}
-          onSubmit={createMutation.mutate}
-          loading={createMutation.isPending}
+          onSubmit={handleCreate}
+          loading={creating}
         />
       </div>
     )
   }
 
-  // ── Formulaire édition ───────────────────────────────────────────────────────
   if (view?.type === 'edit') {
     return (
       <div className="space-y-4">
@@ -255,7 +374,6 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
     )
   }
 
-  // ── Liste ────────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -277,7 +395,6 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
       <div className="space-y-3">
         {sinistres.map(s => (
           <div key={s.id} className="border border-gray-200 rounded-xl overflow-hidden">
-            {/* Header ligne */}
             <div
               className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-gray-50"
               onClick={() => setExpanded(expanded === s.id ? null : s.id)}
@@ -286,9 +403,7 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
                 <AlertTriangle className="w-4 h-4 text-orange-500 shrink-0 mt-0.5" />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    {s.title && (
-                      <span className="text-sm font-semibold text-gray-900">{s.title}</span>
-                    )}
+                    {s.title && <span className="text-sm font-semibold text-gray-900">{s.title}</span>}
                     <span className="text-sm text-gray-600 truncate">
                       {s.car ? `${s.car.brand} ${s.car.model} — ${s.car.finalPlate || s.car.wwPlate || ''}` : '—'}
                     </span>
@@ -309,6 +424,11 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
                     {s.collectedBy && (
                       <span className="text-xs text-gray-500 flex items-center gap-1">
                         <User className="w-3 h-3" />{s.collectedBy.firstName} {s.collectedBy.lastName}
+                      </span>
+                    )}
+                    {s.photos?.length > 0 && (
+                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <ImageIcon className="w-3 h-3" />{s.photos.length}
                       </span>
                     )}
                   </div>
@@ -332,7 +452,6 @@ export default function SinistresModal({ agencyId, car, contract, allCars = [] }
               </div>
             </div>
 
-            {/* Détails expandés */}
             {expanded === s.id && (
               <div className="px-4 pb-4 border-t border-gray-100 space-y-4 pt-3">
                 {s.description && (
