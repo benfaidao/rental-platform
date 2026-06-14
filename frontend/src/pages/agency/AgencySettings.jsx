@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getAgencyProfile, updateAgencyProfile, updateUserProfile, requestEmailChange, confirmEmailChange, getAgencyMembers, addAgencyMember, updateAgencyMember, removeAgencyMember } from '../../api'
-import { Building2, Phone, Mail, MapPin, Save, User, Hash, Pencil, X, Copy, CheckCircle, Plus, Trash2, Users } from 'lucide-react'
+import { getAgencyProfile, updateAgencyProfile, updateUserProfile, requestEmailChange, confirmEmailChange, getAgencyMembers, addAgencyMember, updateAgencyMember, removeAgencyMember, resetMemberPassword } from '../../api'
+import { Building2, Phone, Mail, MapPin, Save, User, Hash, Pencil, X, Copy, CheckCircle, Plus, Trash2, Users, Smartphone, KeyRound } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 function MembersTab({ agencyId }) {
@@ -10,6 +10,9 @@ function MembersTab({ agencyId }) {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', phone: '', password: '', role: 'USER' })
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  const [resetUserId, setResetUserId] = useState(null)
+  const [resetPassword, setResetPassword] = useState('')
 
   const { data: members = [] } = useQuery({
     queryKey: ['agencyMembers', agencyId],
@@ -36,6 +39,16 @@ function MembersTab({ agencyId }) {
   const removeMutation = useMutation({
     mutationFn: (userId) => removeAgencyMember(agencyId, userId),
     onSuccess: () => { qc.invalidateQueries(['agencyMembers', agencyId]); toast.success('Membre retiré') },
+    onError: (e) => toast.error(e.response?.data?.error || 'Erreur'),
+  })
+
+  const resetMutation = useMutation({
+    mutationFn: ({ userId, newPassword }) => resetMemberPassword(agencyId, userId, newPassword),
+    onSuccess: () => {
+      toast.success('Mot de passe réinitialisé — l\'employé devra le changer à la prochaine connexion')
+      setResetUserId(null)
+      setResetPassword('')
+    },
     onError: (e) => toast.error(e.response?.data?.error || 'Erreur'),
   })
 
@@ -76,27 +89,70 @@ function MembersTab({ agencyId }) {
 
       <div className="space-y-2">
         {members.map(m => (
-          <div key={m.id} className="card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 py-3 px-4">
-            <div className="min-w-0">
-              <p className="font-medium text-sm">{m.user.firstName} {m.user.lastName}</p>
-              <p className="text-xs text-gray-500 truncate">{m.user.email}{m.user.phone ? ` · ${m.user.phone}` : ''}</p>
+          <div key={m.id} className="card py-3 px-4 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-medium text-sm">{m.user.firstName} {m.user.lastName}</p>
+                <p className="text-xs text-gray-500 truncate">{m.user.email}{m.user.phone ? ` · ${m.user.phone}` : ''}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <select
+                  className="input py-1 text-xs flex-1 sm:flex-initial sm:w-36"
+                  value={m.role}
+                  onChange={(e) => roleMutation.mutate({ userId: m.user.id, role: e.target.value })}
+                >
+                  <option value="USER">Utilisateur</option>
+                  <option value="ADMIN">Administrateur</option>
+                </select>
+                <button
+                  onClick={() => { setResetUserId(v => v === m.user.id ? null : m.user.id); setResetPassword('') }}
+                  className="p-1.5 hover:bg-amber-50 rounded text-amber-500 shrink-0"
+                  title="Réinitialiser le mot de passe"
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => { if (confirm('Retirer ce membre ?')) removeMutation.mutate(m.user.id) }}
+                  className="p-1.5 hover:bg-red-50 rounded text-red-400 shrink-0"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <select
-                className="input py-1 text-xs flex-1 sm:flex-initial sm:w-36"
-                value={m.role}
-                onChange={(e) => roleMutation.mutate({ userId: m.user.id, role: e.target.value })}
+
+            {resetUserId === m.user.id && (
+              <form
+                onSubmit={(e) => { e.preventDefault(); resetMutation.mutate({ userId: m.user.id, newPassword: resetPassword }) }}
+                className="flex flex-col sm:flex-row gap-2 pt-1 border-t border-amber-100"
               >
-                <option value="USER">Utilisateur</option>
-                <option value="ADMIN">Administrateur</option>
-              </select>
-              <button
-                onClick={() => { if (confirm('Retirer ce membre ?')) removeMutation.mutate(m.user.id) }}
-                className="p-1.5 hover:bg-red-50 rounded text-red-400 shrink-0"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
+                <input
+                  type="password"
+                  className="input text-sm flex-1"
+                  placeholder="Nouveau mot de passe (min. 6 caractères)"
+                  value={resetPassword}
+                  onChange={e => setResetPassword(e.target.value)}
+                  minLength={6}
+                  required
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className="btn-primary text-xs py-1.5 px-3 flex-1 sm:flex-initial"
+                    disabled={resetMutation.isPending}
+                  >
+                    {resetMutation.isPending ? 'Envoi...' : 'Réinitialiser'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setResetUserId(null); setResetPassword('') }}
+                    className="p-1.5 hover:bg-gray-100 rounded shrink-0"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         ))}
         {!members.length && (
@@ -122,7 +178,7 @@ export default function AgencySettings() {
   const isAdmin = profile?.agencyRole === 'ADMIN'
 
   // ── Formulaire agence ────────────────────────────────────────────────────────
-  const [agencyForm, setAgencyForm] = useState({ name: '', address: '', phone: '', email: '', ice: '', ic: '', rc: '' })
+  const [agencyForm, setAgencyForm] = useState({ name: '', address: '', phone: '', email: '', ice: '', ic: '', rc: '', device: '' })
 
   useEffect(() => {
     if (profile?.agency) {
@@ -134,6 +190,7 @@ export default function AgencySettings() {
         ice:     profile.agency.ice     || '',
         ic:      profile.agency.ic      || '',
         rc:      profile.agency.rc      || '',
+        device:  profile.agency.device  || '',
       })
     }
   }, [profile])
@@ -338,6 +395,18 @@ export default function AgencySettings() {
                   placeholder="Registre de commerce"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="label flex items-center gap-2">
+                <Smartphone className="w-4 h-4 text-gray-400" /> Device / Terminal
+              </label>
+              <input
+                className="input"
+                value={agencyForm.device}
+                onChange={e => setAgencyForm(f => ({ ...f, device: e.target.value }))}
+                placeholder="Identifiant ou modèle du terminal"
+              />
             </div>
 
             <div className="pt-2">

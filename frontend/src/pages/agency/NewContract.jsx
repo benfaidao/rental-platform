@@ -1,18 +1,18 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   getCars, createContract, getClients, getAgencyMembers, uploadContractDocument,
-  downloadContractPdfSigned,
+  downloadContractPdfSigned, getPricingSeasons, getPricingOptions, getContracts,
 } from '../../api'
 import QRScanner from '../../components/QRScanner'
 import SignatureCanvas from '../../components/SignatureCanvas'
 import {
   ArrowLeft, Check, User, Car, Shield, Settings, CreditCard, FileCheck,
-  ScanLine, UserCheck, Building2, ChevronRight,
+  ScanLine, UserCheck, Building2, ChevronRight, Package, CalendarRange, TrendingUp, Info,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { format } from 'date-fns'
+import { format, differenceInCalendarDays, parseISO, eachDayOfInterval, isWithinInterval } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 const fmtDate = (d) => d ? format(new Date(d), 'dd/MM/yyyy', { locale: fr }) : '-'
@@ -135,6 +135,8 @@ export default function NewContract() {
   const [hasSecondDriver, setHasSecondDriver] = useState(false)
   const [licenseFile, setLicenseFile] = useState(null)
   const [secondDriverLicenseFile, setSecondDriverLicenseFile] = useState(null)
+  const [selectedOptions, setSelectedOptions] = useState([]) // [{ optionId, name, pricePerDay, quantity }]
+  const [manualPrice, setManualPrice] = useState(false)
 
   const clientSigRef = useRef(null)
   const driver2SigRef = useRef(null)
@@ -171,6 +173,22 @@ export default function NewContract() {
   const { data: cars = [] } = useQuery({
     queryKey: ['cars', agencyId],
     queryFn: () => getCars(agencyId).then(r => r.data),
+  })
+
+  const { data: seasons = [] } = useQuery({
+    queryKey: ['pricingSeasons', agencyId],
+    queryFn: () => getPricingSeasons(agencyId).then(r => r.data),
+  })
+
+  const { data: pricingOptions = [] } = useQuery({
+    queryKey: ['pricingOptions', agencyId],
+    queryFn: () => getPricingOptions(agencyId).then(r => r.data),
+  })
+
+  const { data: allContracts = [] } = useQuery({
+    queryKey: ['contracts', agencyId, 'calendar'],
+    queryFn: () => getContracts(agencyId, { limit: 500 }).then(r => r.data?.contracts || r.data || []),
+    enabled: !!form.carId,
   })
 
   const createMut = useMutation({
@@ -250,6 +268,73 @@ export default function NewContract() {
 
   const selectedCar = cars.find(c => c.id === form.carId)
 
+  // ── Pricing logic ────────────────────────────────────────────────────────────
+  const nbDays = useMemo(() => {
+    if (!form.startDate || !form.endDate) return 0
+    const d = differenceInCalendarDays(parseISO(form.endDate), parseISO(form.startDate))
+    return Math.max(1, d + 1)
+  }, [form.startDate, form.endDate])
+
+  // Find the first active season overlapping the rental period
+  const activeSeason = useMemo(() => {
+    if (!form.startDate || !form.endDate) return null
+    const start = parseISO(form.startDate)
+    const end = parseISO(form.endDate)
+    return seasons.find(s => {
+      if (!s.isActive) return false
+      const ss = new Date(s.startDate)
+      const se = new Date(s.endDate)
+      return ss <= end && se >= start
+    }) || null
+  }, [seasons, form.startDate, form.endDate])
+
+  const effectiveDailyPrice = useMemo(() => {
+    const base = selectedCar?.rentalPriceTTC || 0
+    if (!activeSeason || !base) return base
+    if (activeSeason.type === 'PERCENTAGE') return base * (1 + activeSeason.value / 100)
+    return activeSeason.value // FIXED
+  }, [selectedCar, activeSeason])
+
+  const optionsTotal = useMemo(() => {
+    return selectedOptions.reduce((sum, o) => sum + (o.pricePerDay * o.quantity), 0)
+  }, [selectedOptions])
+
+  const autoCalculatedPrice = useMemo(() => {
+    if (!effectiveDailyPrice || !nbDays) return 0
+    return effectiveDailyPrice * nbDays + optionsTotal
+  }, [effectiveDailyPrice, nbDays, optionsTotal])
+
+  // Auto-fill prixBase when car/dates change (only if user hasn't manually set it)
+  useEffect(() => {
+    if (manualPrice) return
+    if (autoCalculatedPrice > 0) {
+      setForm(f => ({ ...f, prixBase: autoCalculatedPrice.toFixed(2) }))
+    }
+  }, [autoCalculatedPrice, manualPrice])
+
+  // Booked dates for the selected car
+  const bookedIntervals = useMemo(() => {
+    if (!form.carId) return []
+    return allContracts
+      .filter(c => c.carId === form.carId && !['CANCELLED', 'COMPLETED'].includes(c.status))
+      .map(c => ({ start: new Date(c.startDate), end: new Date(c.endDate), label: c.contractNumber }))
+  }, [allContracts, form.carId])
+
+  const isDateBooked = (dateStr) => {
+    const d = parseISO(dateStr)
+    return bookedIntervals.some(({ start, end }) => isWithinInterval(d, { start, end }))
+  }
+
+  // Generate mini calendar for current month
+  const calendarMonth = useMemo(() => {
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = today.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 2, 0) // 2 months ahead
+    return eachDayOfInterval({ start: firstDay, end: lastDay })
+  }, [])
+
   const prixBase = parseFloat(form.prixBase) || 0
   const remise = parseFloat(form.remise) || 0
   const montantFinal = Math.max(0, prixBase - remise)
@@ -304,6 +389,15 @@ export default function NewContract() {
       amountPaid: amountPaid,
       collectedBy: form.collectedBy || undefined,
       collectedAt: form.collectedAt || undefined,
+      contractOptions: selectedOptions.length > 0
+        ? selectedOptions.map(o => ({
+            optionId: o.optionId,
+            name: o.name,
+            pricePerDay: o.pricePerDay,
+            quantity: o.quantity,
+            total: o.pricePerDay * o.quantity,
+          }))
+        : undefined,
     }
     createMut.mutate(data)
   }
@@ -400,7 +494,7 @@ export default function NewContract() {
             <ScanLine className="w-4 h-4" /> QR
           </button>
         </div>
-        <select className="input" value={form.carId} onChange={set('carId')} size={Math.min(filteredCars.length + 1, 6)}>
+        <select className="input" value={form.carId} onChange={e => { set('carId')(e); setManualPrice(false) }} size={Math.min(filteredCars.length + 1, 6)}>
           <option value="">Choisir un véhicule</option>
           {filteredCars.map(c => (
             <option key={c.id} value={c.id}>{c.brand} {c.model} — {c.finalPlate || c.wwPlate}
@@ -411,20 +505,81 @@ export default function NewContract() {
         {selectedCar && (
           <div className="mt-2 flex items-center gap-2 text-xs text-green-700 bg-green-50 rounded-lg px-3 py-2">
             <Check className="w-3.5 h-3.5 shrink-0" />
-            <span>{selectedCar.brand} {selectedCar.model} — {selectedCar.finalPlate || selectedCar.wwPlate} sélectionné</span>
+            <span>{selectedCar.brand} {selectedCar.model} — {selectedCar.finalPlate || selectedCar.wwPlate} sélectionné
+              {selectedCar.rentalPriceTTC ? ` · ${selectedCar.rentalPriceTTC} MAD/j` : ''}
+            </span>
           </div>
         )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div><label className="label">Date départ *</label><input className="input" type="date" value={form.startDate} onChange={set('startDate')} /></div>
+        <div><label className="label">Date départ *</label><input className="input" type="date" value={form.startDate} onChange={e => { set('startDate')(e); setManualPrice(false) }} /></div>
         <div><label className="label">Heure départ</label><input className="input" type="time" value={form.startTime} onChange={set('startTime')} /></div>
-        <div><label className="label">Date retour *</label><input className="input" type="date" value={form.endDate} min={form.startDate || undefined} onChange={set('endDate')} /></div>
+        <div><label className="label">Date retour *</label><input className="input" type="date" value={form.endDate} min={form.startDate || undefined} onChange={e => { set('endDate')(e); setManualPrice(false) }} /></div>
         <div><label className="label">Heure retour</label><input className="input" type="time" value={form.endTime} onChange={set('endTime')} /></div>
         <div><label className="label">Lieu de prise en charge</label><input className="input" placeholder="Agence, aéroport..." value={form.pickupLocation} onChange={set('pickupLocation')} /></div>
         <div><label className="label">Lieu de restitution</label><input className="input" placeholder="Agence, aéroport..." value={form.dropoffLocation} onChange={set('dropoffLocation')} /></div>
         <div><label className="label">Km départ</label><input className="input" type="number" value={form.startMileage} onChange={set('startMileage')} /></div>
       </div>
+
+      {/* Availability mini-calendar */}
+      {form.carId && (
+        <div className="border border-gray-200 rounded-xl p-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <CalendarRange className="w-4 h-4 text-blue-500" />
+            <h4 className="text-sm font-medium text-gray-700">Disponibilité du véhicule</h4>
+          </div>
+          <div className="flex gap-3 text-xs flex-wrap">
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-green-100 border border-green-300 inline-block" /> Disponible</span>
+            <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-red-100 border border-red-300 inline-block" /> Réservé</span>
+            {form.startDate && form.endDate && (
+              <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-blue-200 border border-blue-400 inline-block" /> Période sélectionnée</span>
+            )}
+          </div>
+          <div className="overflow-x-auto">
+            <div className="grid gap-px" style={{ gridTemplateColumns: 'repeat(7, minmax(32px, 1fr))', minWidth: 240 }}>
+              {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((d, i) => (
+                <div key={i} className="text-center text-xs font-medium text-gray-400 py-1">{d}</div>
+              ))}
+              {/* Padding for first day of month */}
+              {Array.from({ length: (calendarMonth[0].getDay() + 6) % 7 }).map((_, i) => (
+                <div key={`pad-${i}`} />
+              ))}
+              {calendarMonth.slice(0, 62).map(day => {
+                const dateStr = format(day, 'yyyy-MM-dd')
+                const booked = bookedIntervals.some(({ start, end }) => isWithinInterval(day, { start, end }))
+                const inRange = form.startDate && form.endDate
+                  && dateStr >= form.startDate && dateStr <= form.endDate
+                const isToday = dateStr === format(new Date(), 'yyyy-MM-dd')
+                return (
+                  <div
+                    key={dateStr}
+                    className={`text-center text-xs py-1.5 rounded transition-colors font-medium ${
+                      booked ? 'bg-red-100 text-red-600' :
+                      inRange ? 'bg-blue-200 text-blue-700' :
+                      isToday ? 'bg-gray-200 text-gray-700' :
+                      'bg-green-50 text-gray-600'
+                    }`}
+                    title={booked ? 'Réservé' : dateStr}
+                  >
+                    {day.getDate()}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+          {bookedIntervals.length > 0 && (
+            <div className="space-y-1">
+              {bookedIntervals.slice(0, 5).map(({ start, end, label }) => (
+                <div key={label} className="text-xs text-red-600 bg-red-50 rounded px-2 py-1">
+                  {label} : {format(start, 'dd/MM')} → {format(end, 'dd/MM/yyyy')}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <QRScanner isOpen={scannerOpen} onClose={() => setScannerOpen(false)} onResult={handleQRScan} />
     </div>,
 
@@ -505,6 +660,66 @@ export default function NewContract() {
         <span className="text-sm font-medium group-hover:text-blue-600">Dépassement de date non autorisé</span>
       </label>
 
+      {/* Rental options */}
+      {pricingOptions.filter(o => o.isActive).length > 0 && (
+        <div className="border-t pt-4 space-y-3">
+          <div className="flex items-center gap-2">
+            <Package className="w-4 h-4 text-green-600" />
+            <label className="label mb-0">Options de location</label>
+          </div>
+          <div className="space-y-2">
+            {pricingOptions.filter(o => o.isActive).map(opt => {
+              const sel = selectedOptions.find(s => s.optionId === opt.id)
+              const qty = sel?.quantity || 0
+              return (
+                <div key={opt.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${sel ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+                  <input
+                    type="checkbox"
+                    checked={!!sel}
+                    className="w-4 h-4 rounded shrink-0"
+                    onChange={e => {
+                      if (e.target.checked) {
+                        setSelectedOptions(prev => [...prev, { optionId: opt.id, name: opt.name, pricePerDay: opt.pricePerDay, quantity: nbDays || 1 }])
+                        setManualPrice(false)
+                      } else {
+                        setSelectedOptions(prev => prev.filter(s => s.optionId !== opt.id))
+                        setManualPrice(false)
+                      }
+                    }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800">{opt.name}</p>
+                    <p className="text-xs text-gray-500">{fmtMoney(opt.pricePerDay, form.currency)} / jour</p>
+                  </div>
+                  {sel && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <label className="text-xs text-gray-500">Jours :</label>
+                      <input
+                        type="number"
+                        min="1"
+                        className="input py-1 text-sm w-20 text-center"
+                        value={qty}
+                        onChange={e => {
+                          const q = Math.max(1, parseInt(e.target.value) || 1)
+                          setSelectedOptions(prev => prev.map(s => s.optionId === opt.id ? { ...s, quantity: q } : s))
+                          setManualPrice(false)
+                        }}
+                      />
+                      <span className="text-xs font-medium text-green-700">= {fmtMoney(opt.pricePerDay * qty, form.currency)}</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+          {selectedOptions.length > 0 && (
+            <div className="text-sm text-green-700 bg-green-50 rounded-lg px-3 py-2 font-medium">
+              Total options : {fmtMoney(optionsTotal, form.currency)}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="border-t pt-4">
         <label className="label">Remise (réduction sur le montant)</label>
         <div className="flex items-center gap-3 sm:max-w-xs">
@@ -524,14 +739,52 @@ export default function NewContract() {
 
     // STEP 4 — Paiement ou acompte
     <div key="payment" className="space-y-5">
+      {/* Auto-price info banner */}
+      {autoCalculatedPrice > 0 && !manualPrice && (
+        <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm">
+          <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+          <div className="space-y-0.5">
+            <p className="text-blue-800 font-medium">Prix calculé automatiquement</p>
+            <p className="text-blue-600 text-xs">
+              {nbDays} j × {fmtMoney(effectiveDailyPrice, form.currency)}/j
+              {activeSeason && ` (${activeSeason.name} : ${activeSeason.type === 'PERCENTAGE' ? `+${activeSeason.value}%` : `tarif fixe`})`}
+              {optionsTotal > 0 && ` + ${fmtMoney(optionsTotal, form.currency)} options`}
+              {' = '}{fmtMoney(autoCalculatedPrice, form.currency)}
+            </p>
+          </div>
+        </div>
+      )}
+      {activeSeason && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+          <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+          Saison <strong>{activeSeason.name}</strong> appliquée ({activeSeason.type === 'PERCENTAGE' ? `+${activeSeason.value}%` : `${fmtMoney(activeSeason.value)}/j fixe`})
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="label">
             {form.rentalType === 'PERIODIC'
               ? `Prix par ${form.periodUnit === 'WEEK' ? 'semaine' : 'mois'} *`
-              : 'Prix de base (location) *'}
+              : 'Prix total (location) *'}
           </label>
-          <input className="input" type="number" step="0.01" value={form.prixBase} onChange={set('prixBase')} placeholder="0.00" />
+          <input
+            className="input"
+            type="number"
+            step="0.01"
+            value={form.prixBase}
+            onChange={e => { set('prixBase')(e); setManualPrice(true) }}
+            placeholder="0.00"
+          />
+          {manualPrice && (
+            <button
+              type="button"
+              className="text-xs text-blue-600 hover:underline mt-1"
+              onClick={() => { setManualPrice(false); setForm(f => ({ ...f, prixBase: autoCalculatedPrice.toFixed(2) })) }}
+            >
+              ↩ Recalculer automatiquement ({fmtMoney(autoCalculatedPrice, form.currency)})
+            </button>
+          )}
         </div>
         <div>
           <label className="label">Devise</label>
@@ -543,7 +796,19 @@ export default function NewContract() {
 
       {(prixBase > 0 || remise > 0) && (
         <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 space-y-2">
-          {prixBase > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">Prix de base</span><span className="font-medium">{fmtMoney(prixBase, form.currency)}</span></div>}
+          {effectiveDailyPrice > 0 && nbDays > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">{nbDays} j × {fmtMoney(effectiveDailyPrice, form.currency)}/j</span>
+              <span className="font-medium">{fmtMoney(effectiveDailyPrice * nbDays, form.currency)}</span>
+            </div>
+          )}
+          {optionsTotal > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Options ({selectedOptions.length})</span>
+              <span className="font-medium">{fmtMoney(optionsTotal, form.currency)}</span>
+            </div>
+          )}
+          {prixBase > 0 && <div className="flex justify-between text-sm border-t pt-2"><span className="text-gray-500">Sous-total</span><span className="font-medium">{fmtMoney(prixBase, form.currency)}</span></div>}
           {remise > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">Remise</span><span className="text-green-600 font-medium">- {fmtMoney(remise, form.currency)}</span></div>}
           {(prixBase > 0 || remise > 0) && (
             <div className="flex justify-between text-sm font-semibold border-t pt-2 mt-2">
@@ -621,7 +886,17 @@ export default function NewContract() {
 
         <div className="bg-white border border-gray-200 rounded-xl p-4">
           <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Paiement</h4>
-          <RecapRow label="Prix de base" value={fmtMoney(prixBase, form.currency)} />
+          {effectiveDailyPrice > 0 && nbDays > 0 && (
+            <RecapRow label={`${nbDays} j × ${fmtMoney(effectiveDailyPrice, form.currency)}/j`} value={fmtMoney(effectiveDailyPrice * nbDays, form.currency)} />
+          )}
+          {activeSeason && (
+            <RecapRow label={`Saison : ${activeSeason.name}`} value={activeSeason.type === 'PERCENTAGE' ? `+${activeSeason.value}%` : `${fmtMoney(activeSeason.value)}/j fixe`} />
+          )}
+          {selectedOptions.map(o => (
+            <RecapRow key={o.optionId} label={`${o.name} (${o.quantity} j)`} value={fmtMoney(o.pricePerDay * o.quantity, form.currency)} />
+          ))}
+          {optionsTotal > 0 && <RecapRow label="Sous-total options" value={fmtMoney(optionsTotal, form.currency)} />}
+          <RecapRow label="Sous-total" value={fmtMoney(prixBase, form.currency)} />
           {remise > 0 && <RecapRow label="Remise" value={`- ${fmtMoney(remise, form.currency)}`} />}
           <RecapRow label="Total location" value={fmtMoney(montantFinal, form.currency)} highlight />
           <RecapRow label="Acompte versé" value={amountPaid > 0 ? fmtMoney(amountPaid, form.currency) : '0'} />

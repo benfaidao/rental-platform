@@ -114,6 +114,20 @@ router.put('/change-password', authenticate, async (req, res) => {
   res.json({ message: 'Mot de passe mis à jour' });
 });
 
+// PUT /auth/force-change-password — for users who must change their password (no current password required)
+router.put('/force-change-password', authenticate, async (req, res) => {
+  const { newPassword } = req.body;
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: 'Mot de passe trop court (6 caractères minimum)' });
+  }
+  if (!req.user.mustChangePassword) {
+    return res.status(403).json({ error: 'Non autorisé' });
+  }
+  const hashed = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({ where: { id: req.user.id }, data: { password: hashed, mustChangePassword: false } });
+  res.json({ message: 'Mot de passe mis à jour' });
+});
+
 // POST /auth/forgot-password
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;

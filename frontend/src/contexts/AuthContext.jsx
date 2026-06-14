@@ -32,6 +32,8 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  const updateUser = (updates) => setUser(u => u ? { ...u, ...updates } : u)
+
   const isSuperAdmin = user?.role === 'SUPER_ADMIN'
   const isAgencyAdmin = (agencyId) =>
     user?.role === 'SUPER_ADMIN' ||
@@ -42,7 +44,7 @@ export function AuthProvider({ children }) {
   const getUserAgencies = () => user?.agencyUsers?.map(au => au.agency) || []
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isSuperAdmin, isAgencyAdmin, isAgencySuspended, getUserAgencies }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser, isSuperAdmin, isAgencyAdmin, isAgencySuspended, getUserAgencies }}>
       {children}
     </AuthContext.Provider>
   )

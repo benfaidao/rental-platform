@@ -77,9 +77,10 @@ model User {
   lastName  String
   phone     String?
   role      UserRole @default(AGENCY_USER)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isActive           Boolean  @default(true)
+  mustChangePassword Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   agencyUsers        AgencyUser[]
   transactions       FinancialTransaction[]
@@ -159,6 +160,7 @@ model Agency {
   ic                    String?
   rc                    String?
   logo                  String?
+  device                String?
   isActive              Boolean  @default(true)
   isSuspended           Boolean  @default(false)
   acceptsRentalRequests Boolean  @default(true)
@@ -183,6 +185,8 @@ model Agency {
   externalBookings RentalContract[]      @relation("BookedByAgency")
   rentalRequests   RentalRequest[]       @relation("RequestingAgency")
   rentalOffers     RentalOffer[]         @relation("OfferingAgency")
+  pricingSeasons   PricingSeason[]
+  rentalOptions    RentalOption[]
 
   @@map("agencies")
 }
@@ -405,6 +409,7 @@ model RentalContract {
   documents        ContractDocument[]
   periodicPayments PeriodicPayment[]
   sinistres        Sinistre[]
+  contractOptions  ContractOption[]
 
   @@map("rental_contracts")
 }
@@ -744,6 +749,51 @@ model AgencyBilling {
   contract AgencyContract? @relation(fields: [contractId], references: [id], onDelete: SetNull)
 
   @@map("agency_billings")
+}
+
+model PricingSeason {
+  id        String   @id @default(cuid())
+  agencyId  String
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  type      String   // "PERCENTAGE" | "FIXED"
+  value     Float
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  agency Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  @@map("pricing_seasons")
+}
+
+model RentalOption {
+  id          String   @id @default(cuid())
+  agencyId    String
+  name        String
+  pricePerDay Float
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  agency          Agency           @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  contractOptions ContractOption[]
+
+  @@map("rental_options")
+}
+
+model ContractOption {
+  id          String  @id @default(cuid())
+  contractId  String
+  optionId    String?
+  name        String
+  pricePerDay Float
+  quantity    Int
+  total       Float
+
+  contract RentalContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  option   RentalOption?  @relation(fields: [optionId], references: [id], onDelete: SetNull)
+
+  @@map("contract_options")
 }
 
 model PlatformSettings {

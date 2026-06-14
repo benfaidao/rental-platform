@@ -177,6 +177,7 @@ router.post('/', async (req, res) => {
     clientLicenseNumber, clientLicenseExpiry,
     secondDriverName, secondDriverIdNumber, secondDriverIdExpiry,
     secondDriverLicense, secondDriverLicenseExpiry,
+    contractOptions,
   } = req.body;
 
   if (!carId || !clientName || !startDate || !endDate || !rentalAmount) {
@@ -288,6 +289,20 @@ router.post('/', async (req, res) => {
         data: periods.map(p => ({ ...p, contractId: contract.id })),
       });
     }
+  }
+
+  // Save contract options (extras like baby seat, GPS, etc.)
+  if (Array.isArray(contractOptions) && contractOptions.length > 0) {
+    await prisma.contractOption.createMany({
+      data: contractOptions.map(o => ({
+        contractId: contract.id,
+        optionId: o.optionId || null,
+        name: o.name,
+        pricePerDay: parseFloat(o.pricePerDay),
+        quantity: parseInt(o.quantity),
+        total: parseFloat(o.total),
+      })),
+    });
   }
 
   res.status(201).json(contract);

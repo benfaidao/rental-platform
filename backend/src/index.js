@@ -30,6 +30,7 @@ const agencyRequestsRoutes = require('./routes/agency/requests');
 const agencySinistresRoutes = require('./routes/agency/sinistres');
 const agencyProfileRoutes   = require('./routes/agency/profile');
 const agencyMembersRoutes   = require('./routes/agency/members');
+const agencyPricingRoutes   = require('./routes/agency/pricing');
 const publicRoutes          = require('./routes/public');
 
 const app = express();
@@ -293,6 +294,7 @@ app.use('/agencies/:agencyId/requests', agencyRequestsRoutes);
 app.use('/agencies/:agencyId/sinistres', agencySinistresRoutes);
 app.use('/agencies/:agencyId/profile',   agencyProfileRoutes);
 app.use('/agencies/:agencyId/members',   agencyMembersRoutes);
+app.use('/agencies/:agencyId/pricing',   agencyPricingRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

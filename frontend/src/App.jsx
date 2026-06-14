@@ -23,6 +23,7 @@ import Access from './pages/agency/Access'
 import Chat from './pages/agency/Chat'
 import RentalRequests from './pages/agency/RentalRequests'
 import AgencySettings from './pages/agency/AgencySettings'
+import Pricing from './pages/agency/Pricing'
 import ContractView from './pages/ContractView'
 import Landing from './pages/Landing'
 import DemandeAcces from './pages/DemandeAcces'
@@ -107,6 +108,7 @@ export default function App() {
             <Route path="access" element={<Access />} />
             <Route path="chat" element={<Chat />} />
             <Route path="rental-requests" element={<RentalRequests />} />
+            <Route path="pricing" element={<Pricing />} />
             <Route path="settings" element={<AgencySettings />} />
           </Route>
         </Routes>

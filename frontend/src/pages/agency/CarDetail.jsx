@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   getCar, updateCar,
@@ -14,7 +14,7 @@ import {
 import Modal from '../../components/Modal'
 import QRCode from 'react-qr-code'
 import {
-  ArrowLeft, Edit2, QrCode, Car, AlertTriangle, Wrench, FileText, BanIcon,
+  ArrowLeft, Edit2, QrCode, Car, AlertTriangle, Wrench, FileText, BanIcon, CalendarPlus,
   Plus, Trash2, Upload, Eye, ExternalLink, CheckCircle2, Clock, Activity,
   DollarSign, Calendar, Camera, X, CheckCircle,
 } from 'lucide-react'
@@ -833,6 +833,7 @@ function QRModal({ car, onClose }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function CarDetail() {
   const { agencyId, carId } = useParams()
+  const navigate = useNavigate()
   const qc = useQueryClient()
   const [tab, setTab] = useState('info')
   const [editModal, setEditModal] = useState(false)
@@ -972,9 +973,15 @@ export default function CarDetail() {
               </div>
             </div>
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-2 shrink-0 flex-wrap">
             <button onClick={() => setQrModal(true)} className="btn-secondary flex items-center gap-1.5 text-sm" title="QR Code">
               <QrCode className="w-4 h-4" /> QR Code
+            </button>
+            <button
+              onClick={() => navigate(`/agency/${agencyId}/contracts/new?carId=${carId}`)}
+              className="btn-secondary flex items-center gap-1.5 text-sm text-green-700 border-green-200 hover:bg-green-50"
+            >
+              <CalendarPlus className="w-4 h-4" /> Réserver
             </button>
             <button onClick={() => setEditModal(true)} className="btn-primary flex items-center gap-1.5 text-sm">
               <Edit2 className="w-4 h-4" /> Modifier

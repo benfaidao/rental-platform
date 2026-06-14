@@ -44,6 +44,7 @@ export const getFileUrl = (url, agencyId) => {
 export const login = (data) => api.post('/auth/login', data)
 export const getMe = () => api.get('/auth/me')
 export const changePassword = (data) => api.put('/auth/change-password', data)
+export const forceChangePassword = (newPassword) => api.put('/auth/force-change-password', { newPassword })
 export const forgotPassword = (email) => api.post('/auth/forgot-password', { email })
 export const resetPassword = (token, newPassword) => api.post('/auth/reset-password', { token, newPassword })
 
@@ -259,3 +260,14 @@ export const getAgencyMembers = (agencyId) => api.get(`/agencies/${agencyId}/mem
 export const addAgencyMember = (agencyId, data) => api.post(`/agencies/${agencyId}/members`, data)
 export const updateAgencyMember = (agencyId, userId, data) => api.put(`/agencies/${agencyId}/members/${userId}`, data)
 export const removeAgencyMember = (agencyId, userId) => api.delete(`/agencies/${agencyId}/members/${userId}`)
+export const resetMemberPassword = (agencyId, userId, newPassword) => api.post(`/agencies/${agencyId}/members/${userId}/reset-password`, { newPassword })
+
+// Agency - Pricing
+export const getPricingSeasons = (agencyId) => api.get(`/agencies/${agencyId}/pricing/seasons`)
+export const createPricingSeason = (agencyId, data) => api.post(`/agencies/${agencyId}/pricing/seasons`, data)
+export const updatePricingSeason = (agencyId, id, data) => api.put(`/agencies/${agencyId}/pricing/seasons/${id}`, data)
+export const deletePricingSeason = (agencyId, id) => api.delete(`/agencies/${agencyId}/pricing/seasons/${id}`)
+export const getPricingOptions = (agencyId) => api.get(`/agencies/${agencyId}/pricing/options`)
+export const createPricingOption = (agencyId, data) => api.post(`/agencies/${agencyId}/pricing/options`, data)
+export const updatePricingOption = (agencyId, id, data) => api.put(`/agencies/${agencyId}/pricing/options/${id}`, data)
+export const deletePricingOption = (agencyId, id) => api.delete(`/agencies/${agencyId}/pricing/options/${id}`)

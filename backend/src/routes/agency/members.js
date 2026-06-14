@@ -70,6 +70,28 @@ router.put('/:userId', requireAdmin, async (req, res) => {
   res.json(member);
 });
 
+// POST /:userId/reset-password — reset a member's password (admin only)
+router.post('/:userId/reset-password', requireAdmin, async (req, res) => {
+  if (req.params.userId === req.user.id) {
+    return res.status(400).json({ error: 'Utilisez les paramètres de profil pour changer votre propre mot de passe' });
+  }
+  const { newPassword } = req.body;
+  if (!newPassword || newPassword.length < 6) {
+    return res.status(400).json({ error: 'Mot de passe trop court (6 caractères minimum)' });
+  }
+  const member = await prisma.agencyUser.findUnique({
+    where: { userId_agencyId: { userId: req.params.userId, agencyId: req.params.agencyId } },
+  });
+  if (!member) return res.status(404).json({ error: 'Membre introuvable' });
+
+  const hashed = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({
+    where: { id: req.params.userId },
+    data: { password: hashed, mustChangePassword: true },
+  });
+  res.json({ message: 'Mot de passe réinitialisé. L\'employé devra le changer à la prochaine connexion.' });
+});
+
 // DELETE — remove user from agency (admin only)
 router.delete('/:userId', requireAdmin, async (req, res) => {
   // Prevent removing self
