@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
   try {
     const agency = await prisma.agency.findUnique({
       where: { id: req.params.agencyId },
-      select: { id: true, name: true, address: true, phone: true, email: true, ice: true, ic: true, rc: true, device: true },
+      select: { id: true, name: true, address: true, phone: true, email: true, ice: true, ic: true, rc: true, device: true, vatRate: true },
     });
     if (!agency) return res.status(404).json({ error: 'Agence introuvable' });
 
@@ -46,7 +46,7 @@ router.put('/', async (req, res) => {
     if (req.agencyRole !== 'ADMIN' && req.user.role !== 'SUPER_ADMIN') {
       return res.status(403).json({ error: 'Accès réservé aux administrateurs' });
     }
-    const { name, address, phone, email, ice, ic, rc, device } = req.body;
+    const { name, address, phone, email, ice, ic, rc, device, vatRate } = req.body;
     if (!name?.trim()) return res.status(400).json({ error: 'Le nom est requis' });
 
     const agency = await prisma.agency.update({
@@ -60,8 +60,9 @@ router.put('/', async (req, res) => {
         ic:      ic?.trim()      || null,
         rc:      rc?.trim()      || null,
         device:  device?.trim()  || null,
+        vatRate: vatRate !== undefined ? (vatRate === '' || vatRate === null ? null : parseFloat(vatRate)) : undefined,
       },
-      select: { id: true, name: true, address: true, phone: true, email: true, ice: true, ic: true, rc: true, device: true },
+      select: { id: true, name: true, address: true, phone: true, email: true, ice: true, ic: true, rc: true, device: true, vatRate: true },
     });
     res.json(agency);
   } catch (err) {

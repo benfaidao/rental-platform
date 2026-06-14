@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createCar } from '../../api'
-import { ArrowLeft, Car } from 'lucide-react'
+import { createCar, uploadCarDocument } from '../../api'
+import { ArrowLeft, Car, Camera, X, Star, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const FUEL_TYPES = ['Essence', 'Diesel', 'Hybride', 'Électrique', 'GPL']
@@ -12,6 +12,7 @@ export default function NewCar() {
   const { agencyId } = useParams()
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const fileInputRef = useRef(null)
 
   const [form, setForm] = useState({
     wwPlate: '', finalPlate: '', brand: '', model: '', year: '', color: '',
@@ -23,9 +24,46 @@ export default function NewCar() {
   })
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
 
+  const [photoFiles, setPhotoFiles] = useState([])
+  const [mainPhotoIdx, setMainPhotoIdx] = useState(0)
+  const [uploading, setUploading] = useState(false)
+
+  const handlePhotoAdd = (e) => {
+    const files = Array.from(e.target.files)
+    if (!files.length) return
+    setPhotoFiles(prev => [...prev, ...files])
+    e.target.value = ''
+  }
+
+  const removePhoto = (idx) => {
+    setPhotoFiles(prev => {
+      const next = prev.filter((_, i) => i !== idx)
+      if (mainPhotoIdx >= next.length) setMainPhotoIdx(Math.max(0, next.length - 1))
+      else if (idx < mainPhotoIdx) setMainPhotoIdx(mainPhotoIdx - 1)
+      return next
+    })
+  }
+
   const createMutation = useMutation({
     mutationFn: (data) => createCar(agencyId, data),
-    onSuccess: () => {
+    onSuccess: async (res) => {
+      const carId = res.data.id
+      if (photoFiles.length > 0) {
+        setUploading(true)
+        try {
+          for (let i = 0; i < photoFiles.length; i++) {
+            const fd = new FormData()
+            fd.append('file', photoFiles[i])
+            fd.append('type', 'PHOTO')
+            if (i === mainPhotoIdx) fd.append('isMainPhoto', 'true')
+            await uploadCarDocument(agencyId, carId, fd)
+          }
+        } catch {
+          toast.error('Erreur lors de l\'upload de certaines photos')
+        } finally {
+          setUploading(false)
+        }
+      }
       qc.invalidateQueries(['cars', agencyId])
       toast.success('Véhicule ajouté')
       navigate(`/agency/${agencyId}/cars`)
@@ -37,6 +75,8 @@ export default function NewCar() {
     e.preventDefault()
     createMutation.mutate(form)
   }
+
+  const isPending = createMutation.isPending || uploading
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -121,6 +161,59 @@ export default function NewCar() {
           </div>
         </div>
 
+        {/* Photos */}
+        <div className="card space-y-4">
+          <h3 className="font-semibold text-gray-700">Photos</h3>
+          <p className="text-xs text-gray-400">Cliquez sur <Star className="w-3 h-3 inline text-yellow-500" /> pour définir la photo principale affichée dans la liste.</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            capture="environment"
+            className="hidden"
+            onChange={handlePhotoAdd}
+          />
+          {photoFiles.length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {photoFiles.map((file, idx) => (
+                <div key={idx} className={`relative rounded-lg overflow-hidden border-2 aspect-square ${idx === mainPhotoIdx ? 'border-yellow-400' : 'border-gray-200'}`}>
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setMainPhotoIdx(idx)}
+                    className={`absolute top-1 left-1 p-0.5 rounded-full ${idx === mainPhotoIdx ? 'bg-yellow-400 text-white' : 'bg-black/40 text-white hover:bg-yellow-400'}`}
+                    title="Photo principale"
+                  >
+                    <Star className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(idx)}
+                    className="absolute top-1 right-1 p-0.5 rounded-full bg-black/40 text-white hover:bg-red-500"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                  {idx === mainPhotoIdx && (
+                    <span className="absolute bottom-0 left-0 right-0 bg-yellow-400/90 text-white text-[10px] text-center py-0.5 font-medium">Principale</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="btn-secondary flex items-center gap-2 text-sm"
+          >
+            <Camera className="w-4 h-4" /> Ajouter des photos
+          </button>
+        </div>
+
         {/* Notes */}
         <div className="card space-y-4">
           <h3 className="font-semibold text-gray-700">Notes</h3>
@@ -132,9 +225,9 @@ export default function NewCar() {
           <Link to={`/agency/${agencyId}/cars`} className="btn-secondary flex items-center justify-center gap-2">
             <ArrowLeft className="w-4 h-4" /> Annuler
           </Link>
-          <button type="submit" className="btn-primary flex items-center justify-center gap-2 px-6" disabled={createMutation.isPending}>
+          <button type="submit" className="btn-primary flex items-center justify-center gap-2 px-6" disabled={isPending}>
             <Car className="w-4 h-4" />
-            {createMutation.isPending ? 'Enregistrement...' : 'Créer le véhicule'}
+            {uploading ? 'Upload photos...' : isPending ? 'Enregistrement...' : 'Créer le véhicule'}
           </button>
         </div>
       </form>

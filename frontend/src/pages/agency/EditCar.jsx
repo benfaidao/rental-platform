@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getCar, updateCar } from '../../api'
-import { ArrowLeft, Car } from 'lucide-react'
+import { getCar, updateCar, getCarDocuments, uploadCarDocument, deleteCarDocument, setCarPhotoAsMain, getFileUrl } from '../../api'
+import { ArrowLeft, Car, Camera, X, Star, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const FUEL_TYPES = ['Essence', 'Diesel', 'Hybride', 'Électrique', 'GPL']
@@ -14,13 +14,23 @@ export default function EditCar() {
   const { agencyId, carId } = useParams()
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const fileInputRef = useRef(null)
 
   const { data: car, isLoading } = useQuery({
     queryKey: ['carDetail', agencyId, carId],
     queryFn: () => getCar(agencyId, carId).then(r => r.data),
   })
 
+  const { data: allDocs = [] } = useQuery({
+    queryKey: ['carDocs', carId],
+    queryFn: () => getCarDocuments(agencyId, carId).then(r => r.data),
+  })
+
+  const photos = allDocs.filter(d => d.type === 'PHOTO')
+
   const [form, setForm] = useState(null)
+  const [newPhotoFiles, setNewPhotoFiles] = useState([])
+  const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     if (car) {
@@ -51,7 +61,24 @@ export default function EditCar() {
 
   const updateMutation = useMutation({
     mutationFn: (data) => updateCar(agencyId, carId, data),
-    onSuccess: () => {
+    onSuccess: async () => {
+      if (newPhotoFiles.length > 0) {
+        setUploading(true)
+        try {
+          for (let i = 0; i < newPhotoFiles.length; i++) {
+            const fd = new FormData()
+            fd.append('file', newPhotoFiles[i])
+            fd.append('type', 'PHOTO')
+            await uploadCarDocument(agencyId, carId, fd)
+          }
+          qc.invalidateQueries(['carDocs', carId])
+        } catch {
+          toast.error('Erreur lors de l\'upload de certaines photos')
+        } finally {
+          setUploading(false)
+          setNewPhotoFiles([])
+        }
+      }
       qc.invalidateQueries(['cars', agencyId])
       qc.invalidateQueries(['carDetail', agencyId, carId])
       toast.success('Véhicule mis à jour')
@@ -59,6 +86,23 @@ export default function EditCar() {
     },
     onError: () => toast.error('Erreur'),
   })
+
+  const deleteMutation = useMutation({
+    mutationFn: (docId) => deleteCarDocument(agencyId, carId, docId),
+    onSuccess: () => { qc.invalidateQueries(['carDocs', carId]); qc.invalidateQueries(['cars', agencyId]); toast.success('Photo supprimée') },
+  })
+
+  const mainMutation = useMutation({
+    mutationFn: (docId) => setCarPhotoAsMain(agencyId, carId, docId),
+    onSuccess: () => { qc.invalidateQueries(['carDocs', carId]); qc.invalidateQueries(['cars', agencyId]); toast.success('Photo principale définie') },
+  })
+
+  const handlePhotoAdd = (e) => {
+    const files = Array.from(e.target.files)
+    if (!files.length) return
+    setNewPhotoFiles(prev => [...prev, ...files])
+    e.target.value = ''
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -68,6 +112,8 @@ export default function EditCar() {
   if (isLoading || !form) {
     return <div className="text-center py-16 text-gray-400">Chargement...</div>
   }
+
+  const isPending = updateMutation.isPending || uploading
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -154,6 +200,84 @@ export default function EditCar() {
           </div>
         </div>
 
+        {/* Photos */}
+        <div className="card space-y-4">
+          <h3 className="font-semibold text-gray-700">Photos</h3>
+          <p className="text-xs text-gray-400">Cliquez sur <Star className="w-3 h-3 inline text-yellow-500" /> pour définir la photo principale affichée dans la liste des véhicules.</p>
+
+          {/* Existing photos */}
+          {photos.length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {photos.map(doc => (
+                <div key={doc.id} className={`relative rounded-lg overflow-hidden border-2 aspect-square ${doc.isMainPhoto ? 'border-yellow-400' : 'border-gray-200'}`}>
+                  <img
+                    src={getFileUrl(doc.url, agencyId)}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => mainMutation.mutate(doc.id)}
+                    className={`absolute top-1 left-1 p-0.5 rounded-full ${doc.isMainPhoto ? 'bg-yellow-400 text-white' : 'bg-black/40 text-white hover:bg-yellow-400'}`}
+                    title="Définir comme photo principale"
+                    disabled={mainMutation.isPending}
+                  >
+                    <Star className="w-3 h-3" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { if (confirm('Supprimer cette photo ?')) deleteMutation.mutate(doc.id) }}
+                    className="absolute top-1 right-1 p-0.5 rounded-full bg-black/40 text-white hover:bg-red-500"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                  {doc.isMainPhoto && (
+                    <span className="absolute bottom-0 left-0 right-0 bg-yellow-400/90 text-white text-[10px] text-center py-0.5 font-medium">Principale</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* New photos to upload */}
+          {newPhotoFiles.length > 0 && (
+            <div>
+              <p className="text-xs text-gray-500 mb-2">Photos à ajouter ({newPhotoFiles.length})</p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {newPhotoFiles.map((file, idx) => (
+                  <div key={idx} className="relative rounded-lg overflow-hidden border-2 border-blue-200 aspect-square">
+                    <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setNewPhotoFiles(prev => prev.filter((_, i) => i !== idx))}
+                      className="absolute top-1 right-1 p-0.5 rounded-full bg-black/40 text-white hover:bg-red-500"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            capture="environment"
+            className="hidden"
+            onChange={handlePhotoAdd}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="btn-secondary flex items-center gap-2 text-sm"
+          >
+            <Camera className="w-4 h-4" /> Ajouter des photos
+          </button>
+        </div>
+
         {/* Notes */}
         <div className="card space-y-4">
           <h3 className="font-semibold text-gray-700">Notes</h3>
@@ -165,9 +289,9 @@ export default function EditCar() {
           <Link to={`/agency/${agencyId}/cars/${carId}`} className="btn-secondary flex items-center justify-center gap-2">
             <ArrowLeft className="w-4 h-4" /> Annuler
           </Link>
-          <button type="submit" className="btn-primary flex items-center justify-center gap-2 px-6" disabled={updateMutation.isPending}>
+          <button type="submit" className="btn-primary flex items-center justify-center gap-2 px-6" disabled={isPending}>
             <Car className="w-4 h-4" />
-            {updateMutation.isPending ? 'Enregistrement...' : 'Enregistrer les modifications'}
+            {uploading ? 'Upload photos...' : isPending ? 'Enregistrement...' : 'Enregistrer les modifications'}
           </button>
         </div>
       </form>

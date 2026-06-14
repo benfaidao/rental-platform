@@ -162,6 +162,7 @@ model Agency {
   rc                    String?
   logo                  String?
   device                String?
+  vatRate               Float?
   isActive              Boolean  @default(true)
   isSuspended           Boolean  @default(false)
   acceptsRentalRequests Boolean  @default(true)
@@ -339,13 +340,14 @@ model Client {
 }
 
 model CarDocument {
-  id        String   @id @default(cuid())
-  carId     String
-  type      String
-  filename  String
-  url       String
-  notes     String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  carId       String
+  type        String
+  filename    String
+  url         String
+  notes       String?
+  isMainPhoto Boolean  @default(false)
+  createdAt   DateTime @default(now())
 
   car Car @relation(fields: [carId], references: [id], onDelete: Cascade)
 

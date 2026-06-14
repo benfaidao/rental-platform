@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getAgencyProfile, updateAgencyProfile, updateUserProfile, requestEmailChange, confirmEmailChange, getAgencyMembers, addAgencyMember, updateAgencyMember, removeAgencyMember, resetMemberPassword } from '../../api'
-import { Building2, Phone, Mail, MapPin, Save, User, Hash, Pencil, X, Copy, CheckCircle, Plus, Trash2, Users, Smartphone, KeyRound, Shield } from 'lucide-react'
+import { Building2, Phone, Mail, MapPin, Save, User, Hash, Pencil, X, Copy, CheckCircle, Plus, Trash2, Users, Smartphone, KeyRound, Shield, Percent } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Access from './Access'
 
@@ -179,7 +179,7 @@ export default function AgencySettings() {
   const isAdmin = profile?.agencyRole === 'ADMIN'
 
   // ── Formulaire agence ────────────────────────────────────────────────────────
-  const [agencyForm, setAgencyForm] = useState({ name: '', address: '', phone: '', email: '', ice: '', ic: '', rc: '', device: '' })
+  const [agencyForm, setAgencyForm] = useState({ name: '', address: '', phone: '', email: '', ice: '', ic: '', rc: '', device: '', vatRate: '' })
 
   useEffect(() => {
     if (profile?.agency) {
@@ -192,6 +192,7 @@ export default function AgencySettings() {
         ic:      profile.agency.ic      || '',
         rc:      profile.agency.rc      || '',
         device:  profile.agency.device  || '',
+        vatRate: profile.agency.vatRate != null ? String(profile.agency.vatRate) : '',
       })
     }
   }, [profile])
@@ -415,6 +416,26 @@ export default function AgencySettings() {
                 onChange={e => setAgencyForm(f => ({ ...f, device: e.target.value }))}
                 placeholder="Identifiant ou modèle du terminal"
               />
+            </div>
+
+            <div className="border-t border-gray-100 pt-4">
+              <h4 className="text-sm font-semibold text-gray-600 mb-3">Facturation</h4>
+              <div>
+                <label className="label flex items-center gap-2">
+                  <Percent className="w-4 h-4 text-gray-400" /> Taux de TVA (%)
+                </label>
+                <input
+                  className="input"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={agencyForm.vatRate}
+                  onChange={e => setAgencyForm(f => ({ ...f, vatRate: e.target.value }))}
+                  placeholder="Laisser vide si non assujetti à la TVA"
+                />
+                <p className="text-xs text-gray-400 mt-1">Si renseigné, les factures afficheront automatiquement le détail HT / TVA / TTC.</p>
+              </div>
             </div>
 
             <div className="pt-2">

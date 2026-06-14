@@ -31,7 +31,7 @@ router.get('/', async (req, res) => {
       },
       documents: {
         where: { type: 'PHOTO' },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ isMainPhoto: 'desc' }, { createdAt: 'desc' }],
         take: 1,
         select: { url: true },
       },
@@ -330,8 +330,15 @@ router.get('/:carId/documents', async (req, res) => {
 
 router.post('/:carId/documents', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Fichier requis' });
-  const { type, notes } = req.body;
+  const { type, notes, isMainPhoto } = req.body;
   const url = `/agencies/${req.params.agencyId}/files/${req.file.filename}`;
+  const isMain = type === 'PHOTO' && isMainPhoto === 'true';
+  if (isMain) {
+    await prisma.carDocument.updateMany({
+      where: { carId: req.params.carId, type: 'PHOTO' },
+      data: { isMainPhoto: false },
+    });
+  }
   const doc = await prisma.carDocument.create({
     data: {
       carId: req.params.carId,
@@ -339,9 +346,22 @@ router.post('/:carId/documents', upload.single('file'), async (req, res) => {
       filename: req.file.originalname,
       url,
       notes,
+      isMainPhoto: isMain,
     },
   });
   res.status(201).json(doc);
+});
+
+router.put('/:carId/documents/:docId/main', async (req, res) => {
+  await prisma.carDocument.updateMany({
+    where: { carId: req.params.carId, type: 'PHOTO' },
+    data: { isMainPhoto: false },
+  });
+  const doc = await prisma.carDocument.update({
+    where: { id: req.params.docId },
+    data: { isMainPhoto: true },
+  });
+  res.json(doc);
 });
 
 router.delete('/:carId/documents/:docId', async (req, res) => {

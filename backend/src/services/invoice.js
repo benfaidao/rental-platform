@@ -162,9 +162,19 @@ async function generateInvoicePdf(contract, stream, signatures = {}) {
     doc.y = y + 16;
   }
 
+  const vatRate = agency.vatRate;
   if (contract.montantTTC != null) {
+    // Ancien mode manuel : rentalAmount = HT, montantTTC = TTC
     sumRow('Montant HT :', formatAmount(contract.rentalAmount, contract.currency), false);
     sumRow('Montant TTC :', formatAmount(contract.montantTTC, contract.currency), false);
+  } else if (vatRate != null && vatRate > 0) {
+    // TVA configurée au niveau agence : rentalAmount = TTC
+    const montantTTC = contract.rentalAmount || 0;
+    const montantHT  = montantTTC / (1 + vatRate / 100);
+    const montantTVA = montantTTC - montantHT;
+    sumRow('Montant HT :', formatAmount(montantHT, contract.currency), false);
+    sumRow(`TVA (${vatRate}%) :`, formatAmount(montantTVA, contract.currency), false);
+    sumRow('Montant TTC :', formatAmount(montantTTC, contract.currency), false);
   } else {
     sumRow('Montant :', formatAmount(contract.rentalAmount, contract.currency), false);
   }

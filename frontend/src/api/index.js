@@ -101,6 +101,8 @@ export const uploadCarDocument = (agencyId, carId, data) =>
   api.post(`/agencies/${agencyId}/cars/${carId}/documents`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
 export const deleteCarDocument = (agencyId, carId, docId) =>
   api.delete(`/agencies/${agencyId}/cars/${carId}/documents/${docId}`)
+export const setCarPhotoAsMain = (agencyId, carId, docId) =>
+  api.put(`/agencies/${agencyId}/cars/${carId}/documents/${docId}/main`)
 
 // Agency - Contracts
 export const getContracts = (agencyId, params) => api.get(`/agencies/${agencyId}/contracts`, { params })
