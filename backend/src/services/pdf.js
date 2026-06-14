@@ -81,6 +81,7 @@ async function generateContractPdf(contract, stream, signatures = {}) {
 
   // ── Bloc 2 colonnes : Période | Finances ───────────────────────────────────
   doc.moveDown(SEC_GAP);
+  doc.moveDown(0.5);
 
   const days = Math.ceil(
     (new Date(contract.endDate) - new Date(contract.startDate)) / 86400000
