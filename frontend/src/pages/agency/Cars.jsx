@@ -763,13 +763,13 @@ export default function Cars() {
           return (
             <div key={car.id} className={`card p-4 ${hasAlert ? 'border-orange-200' : ''}`}>
               <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
-                    <Car className="w-6 h-6 text-gray-500" />
+                <Link to={`/agency/${agencyId}/cars/${car.id}`} className="flex gap-4 flex-1 min-w-0 group">
+                  <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-blue-50 transition-colors">
+                    <Car className="w-6 h-6 text-gray-500 group-hover:text-blue-500 transition-colors" />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Link to={`/agency/${agencyId}/cars/${car.id}`} className="font-semibold hover:text-blue-600 transition-colors">{car.brand} {car.model}</Link>
+                      <span className="font-semibold group-hover:text-blue-600 transition-colors">{car.brand} {car.model}</span>
                       <span className={DISPLAY_STATUS_BADGES[car.displayStatus] || STATUS_BADGES[car.status]}>
                         {DISPLAY_STATUSES[car.displayStatus] || STATUSES[car.status]}
                       </span>
@@ -807,11 +807,11 @@ export default function Cars() {
                       )}
                     </div>
                   </div>
-                </div>
+                </Link>
                 <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-100 lg:pt-0 lg:border-0 lg:justify-end">
-                  <button onClick={() => setDetailModal(car)} className="btn-secondary text-xs py-1.5 flex items-center gap-1" title="Voir les détails">
+                  <Link to={`/agency/${agencyId}/cars/${car.id}`} className="btn-secondary text-xs py-1.5 flex items-center gap-1" title="Voir les détails">
                     <Eye className="w-3 h-3 text-blue-500" /> Détails
-                  </button>
+                  </Link>
                   <button onClick={() => setDocsModal(car)} className="btn-secondary text-xs py-1.5 flex items-center gap-1">
                     <FileText className="w-3 h-3" /> Documents
                   </button>

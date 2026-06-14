@@ -142,20 +142,9 @@ function InfoTab({ car }) {
   )
 }
 
-// ─── Locations tab ────────────────────────────────────────────────────────────
-function LocationsTab({ car }) {
-  const [view, setView] = useState('active')
-  const active = car.activeRental ? [car.activeRental] : []
-  const upcoming = car.upcomingReservations || []
-  const completed = car.completedRentals || []
-
-  const tabs = [
-    { id: 'active', label: `En cours (${active.length})` },
-    { id: 'upcoming', label: `À venir (${upcoming.length})` },
-    { id: 'completed', label: `Terminées (${completed.length})` },
-  ]
-
-  const renderContract = (c) => (
+// ─── Shared contract row ─────────────────────────────────────────────────────
+function ContractRow({ c }) {
+  return (
     <div key={c.id} className="flex items-start justify-between gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-gray-300 transition-colors">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
@@ -170,8 +159,20 @@ function LocationsTab({ car }) {
       </div>
     </div>
   )
+}
 
-  const current = view === 'active' ? active : view === 'upcoming' ? upcoming : completed
+// ─── Locations tab ────────────────────────────────────────────────────────────
+function LocationsTab({ car }) {
+  const [view, setView] = useState('active')
+  const active = car.activeRental ? [car.activeRental] : []
+  const completed = car.completedRentals || []
+
+  const tabs = [
+    { id: 'active', label: `En cours (${active.length})` },
+    { id: 'completed', label: `Terminées (${completed.length})` },
+  ]
+
+  const current = view === 'active' ? active : completed
 
   return (
     <div className="space-y-4">
@@ -184,7 +185,7 @@ function LocationsTab({ car }) {
         ))}
       </div>
       <div className="space-y-2">
-        {current.map(renderContract)}
+        {current.map(c => <ContractRow key={c.id} c={c} />)}
         {!current.length && (
           <div className="text-center py-10 text-gray-400">
             <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
@@ -192,6 +193,22 @@ function LocationsTab({ car }) {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+// ─── Réservations tab ─────────────────────────────────────────────────────────
+function ReservationsTab({ car }) {
+  const reservations = car.upcomingReservations || []
+  return (
+    <div className="space-y-2">
+      {reservations.map(c => <ContractRow key={c.id} c={c} />)}
+      {!reservations.length && (
+        <div className="text-center py-10 text-gray-400">
+          <Clock className="w-8 h-8 mx-auto mb-2 opacity-30" />
+          <p className="text-sm">Aucune réservation en attente</p>
+        </div>
+      )}
     </div>
   )
 }
@@ -876,6 +893,7 @@ export default function CarDetail() {
   )
 
   const allContracts = [...(car.completedRentals || []), ...(car.upcomingReservations || []), ...(car.activeRental ? [car.activeRental] : [])]
+
   const totalRevenue = [...(car.completedRentals || []), ...(car.activeRental ? [car.activeRental] : [])]
     .filter(c => c.status !== 'CANCELLED')
     .reduce((s, c) => s + (c.montantTTC ?? c.rentalAmount ?? 0), 0)
@@ -887,9 +905,13 @@ export default function CarDetail() {
     .filter(d => d > new Date())
     .sort((a, b) => a - b)[0]
 
+  const activeAndCompleted = [...(car.activeRental ? [car.activeRental] : []), ...(car.completedRentals || [])]
+  const reservations = car.upcomingReservations || []
+
   const TABS = [
     { id: 'info', label: 'Informations' },
-    { id: 'locations', label: `Locations (${allContracts.length})` },
+    { id: 'locations', label: `Locations (${activeAndCompleted.length})` },
+    { id: 'reservations', label: `Réservations (${reservations.length})` },
     { id: 'disponibilite', label: 'Disponibilité' },
     { id: 'documents', label: `Documents (${docs.length})` },
     { id: 'echeances', label: `Échéances (${DEADLINE_ITEMS.filter(({ key }) => car[key]).length})` },
@@ -1010,6 +1032,7 @@ export default function CarDetail() {
         <div className="p-5 sm:p-6">
           {tab === 'info' && <InfoTab car={car} />}
           {tab === 'locations' && <LocationsTab car={car} />}
+          {tab === 'reservations' && <ReservationsTab car={car} />}
           {tab === 'disponibilite' && <DisponibiliteTab agencyId={agencyId} car={car} />}
           {tab === 'documents' && <DocumentsTab agencyId={agencyId} carId={carId} />}
           {tab === 'echeances' && <EcheancesTab car={car} />}
