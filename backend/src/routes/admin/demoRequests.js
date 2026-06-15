@@ -54,7 +54,11 @@ router.post('/:id/approve', async (req, res) => {
   if (existingUser) {
     user = await prisma.user.update({
       where: { id: existingUser.id },
-      data: { agencyUsers: { create: { agencyId: agency.id, role: 'ADMIN' } } },
+      data: {
+        password: hashedPassword,
+        mustChangePassword: true,
+        agencyUsers: { create: { agencyId: agency.id, role: 'ADMIN' } },
+      },
     });
   } else {
     user = await prisma.user.create({
@@ -92,9 +96,9 @@ router.post('/:id/approve', async (req, res) => {
           <table cellpadding="6" style="font-size:15px;background:#f8fafc;border-radius:8px;padding:12px">
             <tr><td><strong>URL :</strong></td><td><a href="${appUrl}">${appUrl}</a></td></tr>
             <tr><td><strong>Email :</strong></td><td>${demoRequest.email}</td></tr>
-            ${!existingUser ? `<tr><td><strong>Mot de passe :</strong></td><td>${rawPassword}</td></tr>` : ''}
+            <tr><td><strong>Mot de passe :</strong></td><td>${rawPassword}</td></tr>
           </table>
-          ${!existingUser ? '<p style="color:#6b7280;font-size:13px">Vous serez invité à changer votre mot de passe à la première connexion.</p>' : ''}
+          <p style="color:#6b7280;font-size:13px">Vous serez invité à changer votre mot de passe à la première connexion.</p>
           <p>Bonne découverte !</p>
         `,
       });
@@ -103,7 +107,7 @@ router.post('/:id/approve', async (req, res) => {
     }
   }
 
-  res.json({ success: true, agency, credentials: { email: demoRequest.email, password: existingUser ? null : rawPassword } });
+  res.json({ success: true, agency, credentials: { email: demoRequest.email, password: rawPassword } });
 });
 
 router.post('/:id/reject', async (req, res) => {
