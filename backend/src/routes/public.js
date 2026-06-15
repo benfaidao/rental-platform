@@ -28,7 +28,7 @@ router.post('/demo-request', async (req, res) => {
   if (mailer) {
     try {
       await mailer.sendMail({
-        from: `"Mobiliscar" <${process.env.SMTP_USER}>`,
+        from: `"Mobiliscar" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
         to: process.env.DEMO_EMAIL || process.env.SMTP_USER,
         subject: `🚗 Nouvelle demande de démo — ${agency || email}`,
         html: `
