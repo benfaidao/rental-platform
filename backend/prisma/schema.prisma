@@ -293,6 +293,7 @@ model Car {
   fuelType                String?
   mileage                 Int?
   authorizationDate       DateTime?
+  firstCirculationDate    DateTime?
   lastTechnicalInspection DateTime?
   nextTechnicalInspection DateTime?
   insuranceExpiry         DateTime?

@@ -254,7 +254,7 @@ router.get('/:carId', async (req, res) => {
 router.post('/', async (req, res) => {
   const {
     wwPlate, finalPlate, brand, model, year, color, fuelType, mileage,
-    authorizationDate, lastTechnicalInspection, nextTechnicalInspection,
+    authorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
     insuranceExpiry, circulationAuthExpiry, notes, purchasePrice, purchaseDate,
     rentalPriceTTC, transmission,
   } = req.body;
@@ -268,6 +268,7 @@ router.post('/', async (req, res) => {
       color, fuelType,
       mileage: mileage ? parseInt(mileage) : null,
       authorizationDate: authorizationDate ? new Date(authorizationDate) : null,
+      firstCirculationDate: firstCirculationDate ? new Date(firstCirculationDate) : null,
       lastTechnicalInspection: lastTechnicalInspection ? new Date(lastTechnicalInspection) : null,
       nextTechnicalInspection: nextTechnicalInspection ? new Date(nextTechnicalInspection) : null,
       insuranceExpiry: insuranceExpiry ? new Date(insuranceExpiry) : null,
@@ -285,7 +286,7 @@ router.post('/', async (req, res) => {
 router.put('/:carId', async (req, res) => {
   const {
     wwPlate, finalPlate, brand, model, year, color, fuelType, mileage, status,
-    authorizationDate, lastTechnicalInspection, nextTechnicalInspection,
+    authorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
     insuranceExpiry, circulationAuthExpiry, notes, isActive, purchasePrice, purchaseDate,
     rentalPriceTTC, transmission,
   } = req.body;
@@ -298,6 +299,7 @@ router.put('/:carId', async (req, res) => {
       color, fuelType, status,
       mileage: mileage ? parseInt(mileage) : undefined,
       authorizationDate: authorizationDate ? new Date(authorizationDate) : undefined,
+      firstCirculationDate: firstCirculationDate ? new Date(firstCirculationDate) : undefined,
       lastTechnicalInspection: lastTechnicalInspection ? new Date(lastTechnicalInspection) : undefined,
       nextTechnicalInspection: nextTechnicalInspection ? new Date(nextTechnicalInspection) : undefined,
       insuranceExpiry: insuranceExpiry ? new Date(insuranceExpiry) : undefined,

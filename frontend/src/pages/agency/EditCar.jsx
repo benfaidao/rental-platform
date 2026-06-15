@@ -49,6 +49,7 @@ export default function EditCar() {
         purchasePrice:            car.purchasePrice            ?? '',
         purchaseDate:             toDate(car.purchaseDate),
         authorizationDate:        toDate(car.authorizationDate),
+        firstCirculationDate:     toDate(car.firstCirculationDate),
         insuranceExpiry:          toDate(car.insuranceExpiry),
         lastTechnicalInspection:  toDate(car.lastTechnicalInspection),
         nextTechnicalInspection:  toDate(car.nextTechnicalInspection),
@@ -195,7 +196,8 @@ export default function EditCar() {
         <div className="card space-y-4">
           <h3 className="font-semibold text-gray-700">Documents & Dates</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="label">Date d'autorisation</label><input className="input" type="date" value={form.authorizationDate} onChange={set('authorizationDate')} /></div>
+            <div><label className="label">Date d'autorisation de circulation</label><input className="input" type="date" value={form.authorizationDate} onChange={set('authorizationDate')} /></div>
+            <div><label className="label">Date de mise en circulation</label><input className="input" type="date" value={form.firstCirculationDate} onChange={set('firstCirculationDate')} /></div>
             <div><label className="label">Fin assurance</label><input className="input" type="date" value={form.insuranceExpiry} onChange={set('insuranceExpiry')} /></div>
             <div><label className="label">Dernier contrôle technique</label><input className="input" type="date" value={form.lastTechnicalInspection} onChange={set('lastTechnicalInspection')} /></div>
             <div><label className="label">Prochain contrôle technique</label><input className="input" type="date" value={form.nextTechnicalInspection} onChange={set('nextTechnicalInspection')} /></div>
