@@ -46,6 +46,10 @@ export default function EditCar() {
         mileage:                  car.mileage                  ?? '',
         transmission:             car.transmission             || '',
         fiscalPower:              car.fiscalPower              ?? '',
+        chassisNumber:            car.chassisNumber            || '',
+        cylindersCount:           car.cylindersCount           ?? '',
+        vehicleType:              car.vehicleType              || '',
+        genre:                    car.genre                    || '',
         rentalPriceTTC:           car.rentalPriceTTC           ?? '',
         purchasePrice:            car.purchasePrice            ?? '',
         purchaseDate:             toDate(car.purchaseDate),
@@ -156,6 +160,7 @@ export default function EditCar() {
             <div><label className="label">Immatriculation finale</label><input className="input" value={form.finalPlate} onChange={set('finalPlate')} placeholder="12345-A-1" /></div>
             <div><label className="label">Marque *</label><input className="input" value={form.brand} onChange={set('brand')} required /></div>
             <div><label className="label">Modèle *</label><input className="input" value={form.model} onChange={set('model')} required /></div>
+            <div className="sm:col-span-2"><label className="label">Numéro de châssis</label><input className="input" value={form.chassisNumber} onChange={set('chassisNumber')} placeholder="VF1AA000000000000" /></div>
           </div>
         </div>
 
@@ -181,6 +186,9 @@ export default function EditCar() {
             </div>
             <div><label className="label">Kilométrage</label><input className="input" type="number" value={form.mileage} onChange={set('mileage')} /></div>
             <div><label className="label">Puissance fiscale (CV)</label><input className="input" type="number" value={form.fiscalPower} onChange={set('fiscalPower')} placeholder="ex: 7" /></div>
+            <div><label className="label">Nombre de cylindres</label><input className="input" type="number" value={form.cylindersCount} onChange={set('cylindersCount')} placeholder="ex: 4" /></div>
+            <div><label className="label">Type</label><input className="input" value={form.vehicleType} onChange={set('vehicleType')} placeholder="ex: BERLINE" /></div>
+            <div><label className="label">Genre</label><input className="input" value={form.genre} onChange={set('genre')} placeholder="ex: VP" /></div>
           </div>
         </div>
 

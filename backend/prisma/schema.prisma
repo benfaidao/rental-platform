@@ -303,6 +303,10 @@ model Car {
   rentalPriceTTC          Float?
   transmission            String?
   fiscalPower             Int?
+  chassisNumber           String?
+  cylindersCount          Int?
+  vehicleType             String?
+  genre                   String?
   status                  CarStatus @default(AVAILABLE)
   isActive                Boolean   @default(true)
   notes                   String?

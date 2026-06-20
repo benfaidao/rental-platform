@@ -96,6 +96,7 @@ function InfoTab({ car }) {
       {[
         { label: 'Immatriculation WW', value: car.wwPlate },
         { label: 'Immatriculation finale', value: car.finalPlate },
+        { label: 'Numéro de châssis', value: car.chassisNumber },
         { label: 'Marque / Modèle', value: `${car.brand} ${car.model}` },
         { label: 'Année', value: car.year },
         { label: 'Couleur', value: car.color },
@@ -103,6 +104,9 @@ function InfoTab({ car }) {
         { label: 'Boîte de vitesses', value: car.transmission },
         { label: 'Kilométrage', value: car.mileage != null ? `${car.mileage.toLocaleString()} km` : null },
         { label: 'Puissance fiscale', value: car.fiscalPower != null ? `${car.fiscalPower} CV` : null },
+        { label: 'Nombre de cylindres', value: car.cylindersCount != null ? `${car.cylindersCount}` : null },
+        { label: 'Type', value: car.vehicleType },
+        { label: 'Genre', value: car.genre },
         { label: 'Prix de location TTC', value: car.rentalPriceTTC != null ? `${fmtMoney(car.rentalPriceTTC)} / jour` : null },
         { label: "Prix d'achat TTC", value: car.purchasePrice != null ? fmtMoney(car.purchasePrice) : null },
         { label: "Date d'achat", value: fmtDate(car.purchaseDate) },

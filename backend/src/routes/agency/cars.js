@@ -258,6 +258,7 @@ router.post('/', async (req, res) => {
     authorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
     insuranceExpiry, circulationAuthExpiry, notes, purchasePrice, purchaseDate,
     rentalPriceTTC, transmission, fiscalPower,
+    chassisNumber, cylindersCount, vehicleType, genre,
   } = req.body;
   if (!brand || !model) return res.status(400).json({ error: 'Marque et modèle requis' });
 
@@ -280,6 +281,10 @@ router.post('/', async (req, res) => {
       rentalPriceTTC: rentalPriceTTC ? parseFloat(rentalPriceTTC) : null,
       transmission: transmission || null,
       fiscalPower: fiscalPower ? parseInt(fiscalPower) : null,
+      chassisNumber: chassisNumber || null,
+      cylindersCount: cylindersCount ? parseInt(cylindersCount) : null,
+      vehicleType: vehicleType || null,
+      genre: genre || null,
     },
   });
   res.status(201).json(car);
@@ -291,6 +296,7 @@ router.put('/:carId', async (req, res) => {
     authorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
     insuranceExpiry, circulationAuthExpiry, notes, isActive, purchasePrice, purchaseDate,
     rentalPriceTTC, transmission, fiscalPower,
+    chassisNumber, cylindersCount, vehicleType, genre,
   } = req.body;
 
   const car = await prisma.car.update({
@@ -312,6 +318,10 @@ router.put('/:carId', async (req, res) => {
       rentalPriceTTC: rentalPriceTTC !== undefined ? (rentalPriceTTC ? parseFloat(rentalPriceTTC) : null) : undefined,
       transmission: transmission !== undefined ? (transmission || null) : undefined,
       fiscalPower: fiscalPower !== undefined ? (fiscalPower ? parseInt(fiscalPower) : null) : undefined,
+      chassisNumber: chassisNumber !== undefined ? (chassisNumber || null) : undefined,
+      cylindersCount: cylindersCount !== undefined ? (cylindersCount ? parseInt(cylindersCount) : null) : undefined,
+      vehicleType: vehicleType !== undefined ? (vehicleType || null) : undefined,
+      genre: genre !== undefined ? (genre || null) : undefined,
     },
   });
   res.json(car);
