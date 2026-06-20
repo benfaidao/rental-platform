@@ -292,8 +292,9 @@ model Car {
   color                   String?
   fuelType                String?
   mileage                 Int?
-  authorizationDate       DateTime?
-  firstCirculationDate    DateTime?
+  authorizationDate           DateTime?
+  definitiveAuthorizationDate DateTime?
+  firstCirculationDate        DateTime?
   lastTechnicalInspection DateTime?
   nextTechnicalInspection DateTime?
   insuranceExpiry         DateTime?

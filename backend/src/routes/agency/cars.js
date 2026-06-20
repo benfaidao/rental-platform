@@ -255,7 +255,7 @@ router.get('/:carId', async (req, res) => {
 router.post('/', async (req, res) => {
   const {
     wwPlate, finalPlate, brand, model, year, color, fuelType, mileage,
-    authorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
+    authorizationDate, definitiveAuthorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
     insuranceExpiry, circulationAuthExpiry, notes, purchasePrice, purchaseDate,
     rentalPriceTTC, transmission, fiscalPower,
     chassisNumber, cylindersCount, vehicleType, genre,
@@ -270,6 +270,7 @@ router.post('/', async (req, res) => {
       color, fuelType,
       mileage: mileage ? parseInt(mileage) : null,
       authorizationDate: authorizationDate ? new Date(authorizationDate) : null,
+      definitiveAuthorizationDate: definitiveAuthorizationDate ? new Date(definitiveAuthorizationDate) : null,
       firstCirculationDate: firstCirculationDate ? new Date(firstCirculationDate) : null,
       lastTechnicalInspection: lastTechnicalInspection ? new Date(lastTechnicalInspection) : null,
       nextTechnicalInspection: nextTechnicalInspection ? new Date(nextTechnicalInspection) : null,
@@ -293,7 +294,7 @@ router.post('/', async (req, res) => {
 router.put('/:carId', async (req, res) => {
   const {
     wwPlate, finalPlate, brand, model, year, color, fuelType, mileage, status,
-    authorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
+    authorizationDate, definitiveAuthorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
     insuranceExpiry, circulationAuthExpiry, notes, isActive, purchasePrice, purchaseDate,
     rentalPriceTTC, transmission, fiscalPower,
     chassisNumber, cylindersCount, vehicleType, genre,
@@ -307,6 +308,7 @@ router.put('/:carId', async (req, res) => {
       color, fuelType, status,
       mileage: mileage ? parseInt(mileage) : undefined,
       authorizationDate: authorizationDate ? new Date(authorizationDate) : undefined,
+      definitiveAuthorizationDate: definitiveAuthorizationDate !== undefined ? (definitiveAuthorizationDate ? new Date(definitiveAuthorizationDate) : null) : undefined,
       firstCirculationDate: firstCirculationDate ? new Date(firstCirculationDate) : undefined,
       lastTechnicalInspection: lastTechnicalInspection ? new Date(lastTechnicalInspection) : undefined,
       nextTechnicalInspection: nextTechnicalInspection ? new Date(nextTechnicalInspection) : undefined,
