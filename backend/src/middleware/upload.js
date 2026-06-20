@@ -7,8 +7,13 @@ const sharp = require('sharp');
 const uploadDir = path.join(__dirname, '../../uploads');
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
+const fixEncoding = (file) => {
+  file.originalname = Buffer.from(file.originalname, 'latin1').toString('utf8');
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    fixEncoding(file);
     const agencyId = req.params.agencyId || 'general';
     const dir = path.join(uploadDir, agencyId);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });

@@ -79,6 +79,8 @@ const DOC_TYPES = [
   { value: 'VIGNETTE', label: 'Vignette' },
   { value: 'CIRCULATION_AUTH', label: 'Autorisation de circulation' },
   { value: 'DECLARATION_MISE_EN_CIRCULATION_WW', label: 'Déclaration Mise en Circulation WW' },
+  { value: 'DEMANDE_IMMATRICULATION', label: "Demande d'immatriculation" },
+  { value: 'RECEPISSE_DEPOT_IMMATRICULATION', label: "Récépissé de dépôt d'immatriculation" },
   { value: 'TECHNICAL_INSPECTION', label: 'Contrôle technique' },
   { value: 'PHOTO', label: 'Photo' },
   { value: 'OTHER', label: 'Autre' },
