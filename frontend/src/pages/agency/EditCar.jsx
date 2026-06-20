@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getCar, updateCar, getCarDocuments, uploadCarDocument, deleteCarDocument, setCarPhotoAsMain, getFileUrl } from '../../api'
+import { getCar, updateCar, getCarDocuments, uploadCarDocument, deleteCarDocument, setCarPhotoAsMain, getFileUrl, getPartners } from '../../api'
 import { ArrowLeft, Car, Camera, X, Star, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -29,12 +29,20 @@ export default function EditCar() {
   const photos = allDocs.filter(d => d.type === 'PHOTO')
 
   const [form, setForm] = useState(null)
+  const [vendorSearch, setVendorSearch] = useState('')
+  const [vendorName, setVendorName] = useState('')
+  const { data: partners = [] } = useQuery({
+    queryKey: ['partners', agencyId, vendorSearch],
+    queryFn: () => getPartners(agencyId, vendorSearch ? { search: vendorSearch } : {}).then(r => r.data),
+    enabled: vendorSearch.length > 0,
+  })
   const [newPhotoFiles, setNewPhotoFiles] = useState([])
   const [mainNewPhotoIdx, setMainNewPhotoIdx] = useState(null)
   const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
     if (car) {
+      if (car.vendor) setVendorName(car.vendor.name)
       setForm({
         wwPlate:                  car.wwPlate                  || '',
         finalPlate:               car.finalPlate               || '',
@@ -50,6 +58,7 @@ export default function EditCar() {
         cylindersCount:           car.cylindersCount           ?? '',
         vehicleType:              car.vehicleType              || '',
         genre:                    car.genre                    || '',
+        vendorId:                 car.vendorId                 || '',
         rentalPriceTTC:           car.rentalPriceTTC           ?? '',
         purchasePrice:            car.purchasePrice            ?? '',
         purchaseDate:             toDate(car.purchaseDate),
@@ -200,6 +209,28 @@ export default function EditCar() {
             <div><label className="label">Prix indicatif/jour TTC (MAD)</label><input className="input" type="number" step="0.01" value={form.rentalPriceTTC} onChange={set('rentalPriceTTC')} placeholder="0.00" /></div>
             <div><label className="label">Prix d'achat TTC (MAD)</label><input className="input" type="number" step="0.01" value={form.purchasePrice} onChange={set('purchasePrice')} placeholder="0.00" /></div>
             <div><label className="label">Date d'achat</label><input className="input" type="date" value={form.purchaseDate} onChange={set('purchaseDate')} /></div>
+            <div className="relative">
+              <label className="label">Vendeur (partenaire)</label>
+              {form.vendorId ? (
+                <div className="input flex items-center justify-between">
+                  <span className="text-gray-800">{vendorName}</span>
+                  <button type="button" onClick={() => { setForm(f => ({ ...f, vendorId: '' })); setVendorName(''); setVendorSearch('') }} className="text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
+                </div>
+              ) : (
+                <>
+                  <input className="input" value={vendorSearch} onChange={e => setVendorSearch(e.target.value)} placeholder="Rechercher un partenaire..." />
+                  {partners.length > 0 && (
+                    <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                      {partners.map(p => (
+                        <li key={p.id} className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-700" onClick={() => { setForm(f => ({ ...f, vendorId: p.id })); setVendorName(p.name); setVendorSearch('') }}>
+                          {p.name}{p.type ? ` · ${p.type}` : ''}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
 

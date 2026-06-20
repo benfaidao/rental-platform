@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { createCar, uploadCarDocument } from '../../api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createCar, uploadCarDocument, getPartners } from '../../api'
 import { ArrowLeft, Car, Camera, X, Star, Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -18,12 +18,21 @@ export default function NewCar() {
     wwPlate: '', finalPlate: '', brand: '', model: '', year: '', color: '',
     fuelType: '', mileage: '', transmission: '', fiscalPower: '',
     chassisNumber: '', cylindersCount: '', vehicleType: '', genre: '',
+    vendorId: '',
     rentalPriceTTC: '', purchasePrice: '', purchaseDate: '',
     authorizationDate: '', definitiveAuthorizationDate: '', firstCirculationDate: '', insuranceExpiry: '',
     lastTechnicalInspection: '', nextTechnicalInspection: '',
     circulationAuthExpiry: '', notes: '',
   })
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }))
+
+  const [vendorSearch, setVendorSearch] = useState('')
+  const [vendorName, setVendorName] = useState('')
+  const { data: partners = [] } = useQuery({
+    queryKey: ['partners', agencyId, vendorSearch],
+    queryFn: () => getPartners(agencyId, vendorSearch ? { search: vendorSearch } : {}).then(r => r.data),
+    enabled: vendorSearch.length > 0,
+  })
 
   const [photoFiles, setPhotoFiles] = useState([])
   const [mainPhotoIdx, setMainPhotoIdx] = useState(0)
@@ -152,6 +161,28 @@ export default function NewCar() {
             <div><label className="label">Prix indicatif/jour TTC (MAD)</label><input className="input" type="number" step="0.01" value={form.rentalPriceTTC} onChange={set('rentalPriceTTC')} placeholder="0.00" /></div>
             <div><label className="label">Prix d'achat TTC (MAD)</label><input className="input" type="number" step="0.01" value={form.purchasePrice} onChange={set('purchasePrice')} placeholder="0.00" /></div>
             <div><label className="label">Date d'achat</label><input className="input" type="date" value={form.purchaseDate} onChange={set('purchaseDate')} /></div>
+            <div className="relative">
+              <label className="label">Vendeur (partenaire)</label>
+              {form.vendorId ? (
+                <div className="input flex items-center justify-between">
+                  <span className="text-gray-800">{vendorName}</span>
+                  <button type="button" onClick={() => { setForm(f => ({ ...f, vendorId: '' })); setVendorName(''); setVendorSearch('') }} className="text-gray-400 hover:text-red-500"><X className="w-4 h-4" /></button>
+                </div>
+              ) : (
+                <>
+                  <input className="input" value={vendorSearch} onChange={e => setVendorSearch(e.target.value)} placeholder="Rechercher un partenaire..." />
+                  {partners.length > 0 && (
+                    <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-1 max-h-48 overflow-y-auto">
+                      {partners.map(p => (
+                        <li key={p.id} className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-700" onClick={() => { setForm(f => ({ ...f, vendorId: p.id })); setVendorName(p.name); setVendorSearch('') }}>
+                          {p.name}{p.type ? ` · ${p.type}` : ''}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
 

@@ -209,6 +209,7 @@ router.get('/:carId', async (req, res) => {
   const car = await prisma.car.findFirst({
     where: { id: req.params.carId, agencyId: req.params.agencyId },
     include: {
+      vendor: { select: { id: true, name: true } },
       documents: true,
       oilChanges: { orderBy: { date: 'desc' }, take: 5 },
       repairs: { orderBy: { date: 'desc' }, take: 5, include: { photos: true } },
@@ -257,7 +258,7 @@ router.post('/', async (req, res) => {
     wwPlate, finalPlate, brand, model, year, color, fuelType, mileage,
     authorizationDate, definitiveAuthorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
     insuranceExpiry, circulationAuthExpiry, notes, purchasePrice, purchaseDate,
-    rentalPriceTTC, transmission, fiscalPower,
+    rentalPriceTTC, transmission, fiscalPower, vendorId,
     chassisNumber, cylindersCount, vehicleType, genre,
   } = req.body;
   if (!brand || !model) return res.status(400).json({ error: 'Marque et modèle requis' });
@@ -282,6 +283,7 @@ router.post('/', async (req, res) => {
       rentalPriceTTC: rentalPriceTTC ? parseFloat(rentalPriceTTC) : null,
       transmission: transmission || null,
       fiscalPower: fiscalPower ? parseInt(fiscalPower) : null,
+      vendorId: vendorId || null,
       chassisNumber: chassisNumber || null,
       cylindersCount: cylindersCount ? parseInt(cylindersCount) : null,
       vehicleType: vehicleType || null,
@@ -296,7 +298,7 @@ router.put('/:carId', async (req, res) => {
     wwPlate, finalPlate, brand, model, year, color, fuelType, mileage, status,
     authorizationDate, definitiveAuthorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
     insuranceExpiry, circulationAuthExpiry, notes, isActive, purchasePrice, purchaseDate,
-    rentalPriceTTC, transmission, fiscalPower,
+    rentalPriceTTC, transmission, fiscalPower, vendorId,
     chassisNumber, cylindersCount, vehicleType, genre,
   } = req.body;
 
@@ -320,6 +322,7 @@ router.put('/:carId', async (req, res) => {
       rentalPriceTTC: rentalPriceTTC !== undefined ? (rentalPriceTTC ? parseFloat(rentalPriceTTC) : null) : undefined,
       transmission: transmission !== undefined ? (transmission || null) : undefined,
       fiscalPower: fiscalPower !== undefined ? (fiscalPower ? parseInt(fiscalPower) : null) : undefined,
+      vendorId: vendorId !== undefined ? (vendorId || null) : undefined,
       chassisNumber: chassisNumber !== undefined ? (chassisNumber || null) : undefined,
       cylindersCount: cylindersCount !== undefined ? (cylindersCount ? parseInt(cylindersCount) : null) : undefined,
       vehicleType: vehicleType !== undefined ? (vehicleType || null) : undefined,

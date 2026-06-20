@@ -304,6 +304,7 @@ model Car {
   rentalPriceTTC          Float?
   transmission            String?
   fiscalPower             Int?
+  vendorId                String?
   chassisNumber           String?
   cylindersCount          Int?
   vehicleType             String?
@@ -315,6 +316,7 @@ model Car {
   updatedAt               DateTime  @updatedAt
 
   agency          Agency           @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  vendor          Partner?         @relation(fields: [vendorId], references: [id], onDelete: SetNull)
   documents       CarDocument[]
   contracts       RentalContract[]
   oilChanges      OilChange[]
@@ -673,6 +675,7 @@ model Partner {
 
   agency   Agency           @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   contacts PartnerContact[]
+  cars     Car[]
 
   @@map("partners")
 }

@@ -110,6 +110,7 @@ function InfoTab({ car }) {
         { label: 'Prix de location TTC', value: car.rentalPriceTTC != null ? `${fmtMoney(car.rentalPriceTTC)} / jour` : null },
         { label: "Prix d'achat TTC", value: car.purchasePrice != null ? fmtMoney(car.purchasePrice) : null },
         { label: "Date d'achat", value: fmtDate(car.purchaseDate) },
+        { label: 'Vendeur', value: car.vendor?.name ?? null },
         { label: "Date d'autorisation provisoire de circulation", value: fmtDate(car.authorizationDate) },
         { label: "Date d'autorisation définitive de circulation", value: fmtDate(car.definitiveAuthorizationDate) },
         { label: 'Dernier CT', value: fmtDate(car.lastTechnicalInspection) },
