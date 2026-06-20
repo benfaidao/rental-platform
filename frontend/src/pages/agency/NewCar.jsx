@@ -16,7 +16,7 @@ export default function NewCar() {
 
   const [form, setForm] = useState({
     wwPlate: '', finalPlate: '', brand: '', model: '', year: '', color: '',
-    fuelType: '', mileage: '', transmission: '', rentalPriceTTC: '',
+    fuelType: '', mileage: '', transmission: '', fiscalPower: '', rentalPriceTTC: '',
     purchasePrice: '', purchaseDate: '',
     authorizationDate: '', firstCirculationDate: '', insuranceExpiry: '',
     lastTechnicalInspection: '', nextTechnicalInspection: '',
@@ -136,6 +136,7 @@ export default function NewCar() {
               </select>
             </div>
             <div><label className="label">Kilométrage</label><input className="input" type="number" value={form.mileage} onChange={set('mileage')} placeholder="0" /></div>
+            <div><label className="label">Puissance fiscale (CV)</label><input className="input" type="number" value={form.fiscalPower} onChange={set('fiscalPower')} placeholder="ex: 7" /></div>
           </div>
         </div>
 

@@ -102,6 +102,7 @@ function InfoTab({ car }) {
         { label: 'Carburant', value: car.fuelType },
         { label: 'Boîte de vitesses', value: car.transmission },
         { label: 'Kilométrage', value: car.mileage != null ? `${car.mileage.toLocaleString()} km` : null },
+        { label: 'Puissance fiscale', value: car.fiscalPower != null ? `${car.fiscalPower} CV` : null },
         { label: 'Prix de location TTC', value: car.rentalPriceTTC != null ? `${fmtMoney(car.rentalPriceTTC)} / jour` : null },
         { label: "Prix d'achat TTC", value: car.purchasePrice != null ? fmtMoney(car.purchasePrice) : null },
         { label: "Date d'achat", value: fmtDate(car.purchaseDate) },

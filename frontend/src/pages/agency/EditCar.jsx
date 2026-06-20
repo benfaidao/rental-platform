@@ -45,6 +45,7 @@ export default function EditCar() {
         fuelType:                 car.fuelType                 || '',
         mileage:                  car.mileage                  ?? '',
         transmission:             car.transmission             || '',
+        fiscalPower:              car.fiscalPower              ?? '',
         rentalPriceTTC:           car.rentalPriceTTC           ?? '',
         purchasePrice:            car.purchasePrice            ?? '',
         purchaseDate:             toDate(car.purchaseDate),
@@ -179,6 +180,7 @@ export default function EditCar() {
               </select>
             </div>
             <div><label className="label">Kilométrage</label><input className="input" type="number" value={form.mileage} onChange={set('mileage')} /></div>
+            <div><label className="label">Puissance fiscale (CV)</label><input className="input" type="number" value={form.fiscalPower} onChange={set('fiscalPower')} placeholder="ex: 7" /></div>
           </div>
         </div>
 

@@ -257,7 +257,7 @@ router.post('/', async (req, res) => {
     wwPlate, finalPlate, brand, model, year, color, fuelType, mileage,
     authorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
     insuranceExpiry, circulationAuthExpiry, notes, purchasePrice, purchaseDate,
-    rentalPriceTTC, transmission,
+    rentalPriceTTC, transmission, fiscalPower,
   } = req.body;
   if (!brand || !model) return res.status(400).json({ error: 'Marque et modèle requis' });
 
@@ -279,6 +279,7 @@ router.post('/', async (req, res) => {
       purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
       rentalPriceTTC: rentalPriceTTC ? parseFloat(rentalPriceTTC) : null,
       transmission: transmission || null,
+      fiscalPower: fiscalPower ? parseInt(fiscalPower) : null,
     },
   });
   res.status(201).json(car);
@@ -289,7 +290,7 @@ router.put('/:carId', async (req, res) => {
     wwPlate, finalPlate, brand, model, year, color, fuelType, mileage, status,
     authorizationDate, firstCirculationDate, lastTechnicalInspection, nextTechnicalInspection,
     insuranceExpiry, circulationAuthExpiry, notes, isActive, purchasePrice, purchaseDate,
-    rentalPriceTTC, transmission,
+    rentalPriceTTC, transmission, fiscalPower,
   } = req.body;
 
   const car = await prisma.car.update({
@@ -310,6 +311,7 @@ router.put('/:carId', async (req, res) => {
       purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
       rentalPriceTTC: rentalPriceTTC !== undefined ? (rentalPriceTTC ? parseFloat(rentalPriceTTC) : null) : undefined,
       transmission: transmission !== undefined ? (transmission || null) : undefined,
+      fiscalPower: fiscalPower !== undefined ? (fiscalPower ? parseInt(fiscalPower) : null) : undefined,
     },
   });
   res.json(car);

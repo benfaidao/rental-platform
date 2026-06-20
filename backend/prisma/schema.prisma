@@ -302,6 +302,7 @@ model Car {
   purchaseDate            DateTime?
   rentalPriceTTC          Float?
   transmission            String?
+  fiscalPower             Int?
   status                  CarStatus @default(AVAILABLE)
   isActive                Boolean   @default(true)
   notes                   String?
