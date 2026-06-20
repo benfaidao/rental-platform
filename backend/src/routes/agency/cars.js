@@ -3,6 +3,7 @@ const path = require('path');
 const { PrismaClient } = require('@prisma/client');
 const { authenticate, requireAgencyAccess } = require('../../middleware/auth');
 const upload = require('../../middleware/upload');
+const { compressUploads } = require('../../middleware/upload');
 
 const router = express.Router({ mergeParams: true });
 const prisma = new PrismaClient();
@@ -330,7 +331,7 @@ router.get('/:carId/documents', async (req, res) => {
   res.json(docs);
 });
 
-router.post('/:carId/documents', upload.single('file'), async (req, res) => {
+router.post('/:carId/documents', upload.single('file'), compressUploads, async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Fichier requis' });
   const { type, notes, isMainPhoto } = req.body;
   const url = `/agencies/${req.params.agencyId}/files/${req.file.filename}`;

@@ -2,6 +2,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { authenticate, requireAgencyAccess } = require('../../middleware/auth');
 const upload = require('../../middleware/upload');
+const { compressUploads } = require('../../middleware/upload');
 const generateContractPdf = require('../../services/pdf');
 const generateInvoicePdf = require('../../services/invoice');
 const socketService = require('../../services/socketService');
@@ -486,7 +487,7 @@ router.post('/:contractId/invoice', async (req, res) => {
   await generateInvoicePdf(contract, res, signatures);
 });
 
-router.post('/:contractId/photos', upload.array('photos', 10), async (req, res) => {
+router.post('/:contractId/photos', upload.array('photos', 10), compressUploads, async (req, res) => {
   const { type } = req.body;
   if (!req.files?.length) return res.status(400).json({ error: 'Photos requises' });
 
@@ -505,7 +506,7 @@ router.post('/:contractId/photos', upload.array('photos', 10), async (req, res) 
   res.status(201).json(photos);
 });
 
-router.post('/:contractId/documents', upload.single('file'), async (req, res) => {
+router.post('/:contractId/documents', upload.single('file'), compressUploads, async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Fichier requis' });
   const { notes, type } = req.body;
   const doc = await prisma.contractDocument.create({

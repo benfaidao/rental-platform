@@ -2,6 +2,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { authenticate, requireAgencyAccess } = require('../../middleware/auth');
 const upload = require('../../middleware/upload');
+const { compressUploads } = require('../../middleware/upload');
 const fs = require('fs');
 const path = require('path');
 
@@ -190,7 +191,7 @@ router.delete('/:sinistreId', async (req, res) => {
 });
 
 // POST /:sinistreId/photos — upload photos
-router.post('/:sinistreId/photos', upload.array('photos', 10), async (req, res) => {
+router.post('/:sinistreId/photos', upload.array('photos', 10), compressUploads, async (req, res) => {
   try {
     const sinistre = await prisma.sinistre.findFirst({
       where: { id: req.params.sinistreId, agencyId: req.params.agencyId },

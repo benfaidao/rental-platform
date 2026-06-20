@@ -2,6 +2,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { authenticate, requireAgencyAccess } = require('../../middleware/auth');
 const upload = require('../../middleware/upload');
+const { compressUploads } = require('../../middleware/upload');
 
 const router = express.Router({ mergeParams: true });
 const prisma = new PrismaClient();
@@ -196,7 +197,7 @@ router.delete('/repairs/:id', async (req, res) => {
   res.json({ message: 'Réparation supprimée' });
 });
 
-router.post('/repairs/:id/photos', upload.array('photos', 10), async (req, res) => {
+router.post('/repairs/:id/photos', upload.array('photos', 10), compressUploads, async (req, res) => {
   if (!req.files?.length) return res.status(400).json({ error: 'Photos requises' });
   const photos = await prisma.$transaction(
     req.files.map(file =>

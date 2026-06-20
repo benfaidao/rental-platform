@@ -2,6 +2,7 @@ const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const { authenticate, requireAgencyAccess } = require('../../middleware/auth');
 const upload = require('../../middleware/upload');
+const { compressUploads } = require('../../middleware/upload');
 
 const router = express.Router({ mergeParams: true });
 const prisma = new PrismaClient();
@@ -48,7 +49,7 @@ const uploadFields = upload.fields([{ name: 'idFile', maxCount: 10 }, { name: 'l
 const toUrls = (files, agencyId) =>
   (files || []).map(f => `/agencies/${agencyId}/files/${f.filename}`);
 
-router.post('/', uploadFields, async (req, res) => {
+router.post('/', uploadFields, compressUploads, async (req, res) => {
   const { clientType, firstName, lastName, companyName, companyIce, phone, email, address, idType, idNumber, idExpiry, licenseNumber, licenseExpiry } = req.body;
   if (!firstName || !lastName) return res.status(400).json({ error: 'Prénom et nom requis' });
 
@@ -76,7 +77,7 @@ router.post('/', uploadFields, async (req, res) => {
   res.status(201).json(client);
 });
 
-router.put('/:clientId', uploadFields, async (req, res) => {
+router.put('/:clientId', uploadFields, compressUploads, async (req, res) => {
   const { clientType, firstName, lastName, companyName, companyIce, phone, email, address, idType, idNumber, idExpiry, licenseNumber, licenseExpiry } = req.body;
   const existing = await prisma.client.findFirst({ where: { id: req.params.clientId, agencyId: req.params.agencyId } });
   if (!existing) return res.status(404).json({ error: 'Client non trouvé' });
