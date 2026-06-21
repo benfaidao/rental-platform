@@ -711,6 +711,7 @@ export default function Cars() {
                       {car.wwPlate && !car.finalPlate && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">WW: {car.wwPlate}</span>}
                       {car.finalPlate && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">{car.finalPlate}</span>}
                       {car.year && <span className="text-xs text-gray-500">{car.year}</span>}
+                      {car.color && <span className="text-xs text-gray-500">{car.color}</span>}
                       {car.fuelType && <span className="text-xs text-gray-500">{car.fuelType}</span>}
                       {car.transmission && <span className="text-xs text-gray-500">{car.transmission}</span>}
                       {car.mileage && <span className="text-xs text-gray-500">{car.mileage.toLocaleString()} km</span>}
